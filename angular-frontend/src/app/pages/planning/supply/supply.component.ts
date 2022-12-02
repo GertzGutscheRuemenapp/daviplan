@@ -153,13 +153,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         legendElapsed = !!this.placesLayer.legend?.elapsed
         this.layerGroup?.removeLayer(this.placesLayer);
       }
-      let max = 0;
-      let min = Number.MAX_VALUE;
       let mapPlaces: any[] = [];
       this.places?.forEach(place => {
-        const capacity = place.capacity || 0;
-        max = Math.max(max, capacity);
-        if (place.capacity) min = Math.min(min, capacity);
         const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
           [this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
         const doCompare = (place.capacity !== undefined) && (place.baseCapacity !== undefined);
@@ -168,7 +163,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             id: place.id,
             geometry: place.geom,
             properties: {
-              name: place.name, tooltip: tooltip, capacity: place.capacity,
+              name: place.name, tooltip: tooltip, capacity: place.capacity || 0,
               scenarioPlace: place.scenario !== null,
               capDecreased: doCompare && (place.capacity! < place.baseCapacity!),
               capIncreased: doCompare && (place.capacity! > place.baseCapacity!)
@@ -176,6 +171,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           });
         }
       });
+      const values = mapPlaces.map(p => p.properties.capacity);
+      const max = (mapPlaces.length === 0)? 0: Math.max(...values);
+      const min = (mapPlaces.length === 0)? 0: Math.min(...values);
       const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
                   mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
                   Minimum: ${min.toLocaleString()}<br>
@@ -349,7 +347,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(): void {
     const desc = `${this.activeScenario?.name}<br>
                   Angebot für Leistung "${this.activeService?.name}"<br>
-                  <b>${this.activeService?.facilityPluralUnit} ${this.year} mit Anzahl ${this.activeService?.capacityPluralUnit}</b>`
+                  <b>${this.activeService?.facilityPluralUnit} ${this.year} mit Anzahl ${this.activeService?.capacityPluralUnit}
+                  ${this.planningService.placeFilterColumns.length > 0? ' (gefiltert)': ''}</b>`
     this.mapControl?.setDescription(desc);
   }
 

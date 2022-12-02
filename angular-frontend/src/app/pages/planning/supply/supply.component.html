@@ -110,7 +110,7 @@
         <table *ngVar="getCapacities(place) as capacities" style="margin-top: 10px;">
           <tr *ngFor="let capacity of capacities;">
             <td style="padding-right: 10px;">
-              {{(capacity.fromYear === 0)? realYears[0]: 'ab ' + capacity.fromYear}}
+              ab {{(capacity.fromYear === 0)? realYears[0]: capacity.fromYear}}
             </td>
             <td *ngIf="activeService.hasCapacity">{{capacity.capacity}} {{(capacity.capacity === 1)? activeService.capacitySingularUnit: activeService.capacityPluralUnit}}</td>
             <td *ngIf="!activeService.hasCapacity">{{(capacity.capacity)? 'Ja': 'Nein'}}</td>
