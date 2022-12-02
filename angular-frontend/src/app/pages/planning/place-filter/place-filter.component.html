@@ -12,8 +12,8 @@
     <div>
       <h4>Standortfilter</h4>
       <span class="subtitle1 sub">
-      Die Tabelle zeigt die gefilterten Standorte im Szenario "{{scenario?.name}}" im Jahr {{timeSlider.value}}
-    </span>
+        Gefilterte Standorte im Szenario "{{scenario?.name}}" im Jahr {{timeSlider.value}}
+      </span>
     </div>
     <div id="time-slider-wrapper">
       <div class="time-button" (click)="shiftYear(-1)">
@@ -31,6 +31,12 @@
       </app-time-slider>
     </div>
   </div>
+  <mat-slide-toggle *ngIf="this.service && showIgnoreCapacitiesToggle"
+                    [(ngModel)]="_ignoreCapacities"
+                    (change)="updateTable()"
+                    color="primary" style="margin-top: -10px; margin-bottom: 5px;">
+    Auch Standorte ohne Leistung "{{this.service?.name}}" anzeigen
+  </mat-slide-toggle>
   <app-filter-table maxTableHeight="40vh" #filterTable
                     (filtersChanged)="onFilterChange($event)"
                     [columns]="columns"

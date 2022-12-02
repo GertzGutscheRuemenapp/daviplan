@@ -6,7 +6,7 @@ import {
   Infrastructure,
   Place,
   Service,
-  Scenario, FieldType, PlaceField, Capacity
+  Scenario, FieldType, PlaceField, Capacity, User
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
@@ -24,6 +24,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { sortBy } from "../../../helpers/utils";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { AuthService } from "../../../auth.service";
 
 @Component({
   selector: 'app-supply',
@@ -56,18 +57,28 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   private mapClickSub?: Subscription;
   // capacities over all years (depending on scenario)
   capacities: Capacity[] = [];
-  // capacities over all years in base scenario
-  baseCapacities: Capacity[] = [];
   _editCapacities: Capacity[] = [];
+  ignoreCapacities = false;
+  processEditable = false;
+  user?: User;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
-              private http: HttpClient, private rest: RestAPI) {}
+              private http: HttpClient, private rest: RestAPI, private auth: AuthService) {
+    this.auth.getCurrentUser().subscribe(user => {
+      this.user = user;
+      this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
+        this.processEditable = (process?.owner === this.user?.id) || !!process?.allowSharedChange;
+      }));
+    })
+  }
+
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
     this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
     this.mapControl.addGroup(this.layerGroup);
+    this.applyUserSettings();
     this.initData();
   }
 
@@ -97,11 +108,18 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.updatePlaces();
     }));
   }
+  applyUserSettings(): void {
+    this.ignoreCapacities = this.cookies.get('planning-ignore-capacities', 'boolean') || false;
+  }
+
+  onIgnoreCapacitiesChange(): void {
+    this.cookies.set('planning-ignore-capacities', this.ignoreCapacities);
+    this.updatePlaces();
+  }
 
   onFilter(): void {
     this.updatePlaces();
   }
-
 
   updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
     this.layerGroup?.clear();
@@ -142,9 +160,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         const capacity = place.capacity || 0;
         max = Math.max(max, capacity);
         if (place.capacity) min = Math.min(min, capacity);
-        const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
+        const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
+          [this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
         const doCompare = (place.capacity !== undefined) && (place.baseCapacity !== undefined);
-        mapPlaces.push({
+        if (this.ignoreCapacities || place.capacity || place.scenario) {
+          mapPlaces.push({
             id: place.id,
             geometry: place.geom,
             properties: {
@@ -153,7 +173,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               capDecreased: doCompare && (place.capacity! < place.baseCapacity!),
               capIncreased: doCompare && (place.capacity! > place.baseCapacity!)
             }
-        });
+          });
+        }
       });
       const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
                   mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
@@ -249,7 +270,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               scale: 'linear'
             },
             strokeColor: {
-              colorFunc: (feat => feat.get('scenarioPlace')? '#FFC000': feat.get('capDecreased')? '#fc450c' : feat.get('capIncreased')? '#00ff28': '')
+              colorFunc: (feat => feat.get('scenarioPlace')? '#00c4ff': feat.get('capDecreased')? '#fc450c' : feat.get('capIncreased')? '#00ff28': '')
             },
             field: 'capacity',
             // min: this.activeService?.minCapacity || 0,
@@ -260,7 +281,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             entries: [
               { label: 'Kapazität verringert', color: 'rgba(0,0,0,0)', strokeColor: '#fc450c' },
               { label: 'Kapazität erhöht', color: 'rgba(0,0,0,0)', strokeColor: '#00ff28' },
-              { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#FFC000' },
+              { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#00c4ff' },
             ],
             elapsed: legendElapsed
           }
@@ -311,7 +332,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       hasBackdrop: false,
       autoFocus: false,
       data: {
-        title: 'Ausgewählte Einrichtungen',
+        title: 'Ausgewählte Einrichtung(en)',
         template: template,
         context: { edit: true },
         resizable: true,

@@ -319,6 +319,39 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  getProcessPopoverHTML(process?: PlanningProcess): string {
+    if (!process) return '';
+    let description = process.description? `<p><i>${process.description}</i></p>`: '';
+    const infraNames = process.infrastructures.map(iId => this.allInfrastructures.find(i => i.id === iId)?.name);
+    description += `<p>Infrastrukturbereiche:
+                      <ul>
+                        ${(infraNames.length > 0)? infraNames.map(s => (s === undefined)? '<li class="red">unbekannter Bereich (keine Zugriffsberechtigung!)</li>': `<li>${s}</li>`).join(''): '-'}
+                      </ul>
+                    </p>`;
+    if (process.owner === this.user?.id && process.users.length > 0) {
+      const userNames = process.users.map(uId => this.getPrettyUserName(this.otherUsers.find(u => u.id === uId)));
+      description += `<p>geteilt mit:
+                        <ul>
+                            ${userNames.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                      </p>`;
+    }
+    if (process.owner !== this.user?.id) {
+      description += `<p>geteilt durch ${this.getPrettyUserName(this.otherUsers.find(u => u.id === process.owner))}</p>`;
+      description += `<p><b>Änderungen an Szenarien ${process.allowSharedChange? 'erlaubt': 'nicht erlaubt'}</p></b>`;
+    }
+    return description;
+  }
+
+  getPrettyUserName(user?: User): string {
+    if (!user) return '';
+    let pretty = user.username;
+    if (user.firstName.length > 0 || user.lastName.length > 0) {
+      pretty += ` (${user.firstName}${(user.firstName.length > 0 && user.lastName.length > 0)? ' ': ''}${user.lastName})`;
+    }
+    return pretty;
+  }
+
   ngOnDestroy() {
     let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
     this.renderer.setStyle(wrapper, 'overflow-y', 'auto');
