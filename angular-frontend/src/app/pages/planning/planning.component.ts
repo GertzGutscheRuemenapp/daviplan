@@ -325,7 +325,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     const infraNames = process.infrastructures.map(iId => this.allInfrastructures.find(i => i.id === iId)?.name);
     description += `<p>Infrastrukturbereiche:
                       <ul>
-                        ${(infraNames.length > 0)? infraNames.map(s => (s === undefined)? '<li>unbekannter Bereich (keine Zugriffsberechtigung)</li>': `<li>${s}</li>`).join(''): '-'}
+                        ${(infraNames.length > 0)? infraNames.map(s => (s === undefined)? '<li class="red">unbekannter Bereich (keine Zugriffsberechtigung!)</li>': `<li>${s}</li>`).join(''): '-'}
                       </ul>
                     </p>`;
     if (process.owner === this.user?.id && process.users.length > 0) {

@@ -6,7 +6,7 @@ import {
   Infrastructure,
   Place,
   Service,
-  Scenario, FieldType, PlaceField, Capacity
+  Scenario, FieldType, PlaceField, Capacity, User
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
@@ -24,6 +24,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { sortBy } from "../../../helpers/utils";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { AuthService } from "../../../auth.service";
 
 @Component({
   selector: 'app-supply',
@@ -58,10 +59,20 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   capacities: Capacity[] = [];
   _editCapacities: Capacity[] = [];
   ignoreCapacities = false;
+  processEditable = false;
+  user?: User;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
-              private http: HttpClient, private rest: RestAPI) {}
+              private http: HttpClient, private rest: RestAPI, private auth: AuthService) {
+    this.auth.getCurrentUser().subscribe(user => {
+      this.user = user;
+      this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
+        this.processEditable = (process?.owner === this.user?.id) || !!process?.allowSharedChange;
+      }));
+    })
+  }
+
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
