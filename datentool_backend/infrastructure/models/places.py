@@ -143,6 +143,10 @@ class Capacity(DatentoolModelMixin, models.Model):
         Update to_year in the last row and
         from_year in the current row before saving
         """
+        if kwargs.pop('skip_row_update', None):
+            super().save(*args, **kwargs)
+            return
+
         prev_row = self._get_prev_row()
         next_row = self._get_next_row()
 
@@ -164,6 +168,7 @@ class Capacity(DatentoolModelMixin, models.Model):
 
         if prev_row:
             prev_row.to_year = next_row.from_year - 1 if next_row else 99999999
+            prev_row.save(skip_row_update=True)
 
         super().delete(**kwargs)
 

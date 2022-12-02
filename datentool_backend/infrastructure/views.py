@@ -250,7 +250,9 @@ class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                     capacity=capacity['capacity'],
                     from_year=capacity['from_year'])
                 keep.append(cap.id)
-        existing.exclude(id__in=keep).delete()
+        # iterate instead of bulk delete to trigger model delete()
+        for cap in existing.exclude(id__in=keep):
+            cap.delete()
         queryset = Capacity.filter_queryset(
             Capacity.objects.filter(place=place),
             service_ids=[service],

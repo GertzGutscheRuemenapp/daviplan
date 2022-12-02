@@ -230,7 +230,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
         title: $localize`Szenario erstellen`,
         // confirmButtonText: $localize`erstellen`,
         template: this.editScenarioTemplate,
-        closeOnConfirm: true
+        closeOnConfirm: false
       }
     });
     dialogRef.afterOpened().subscribe(() => {
@@ -250,6 +250,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
         this.process!.scenarios.push(scenario);
         this.scenarios.push(scenario);
         this.planningService.scenarioChanged.emit(scenario);
+        dialogRef.close();
       },(error) => {
         showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
