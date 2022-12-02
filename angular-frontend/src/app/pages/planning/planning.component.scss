@@ -130,12 +130,14 @@ mat-toolbar mat-form-field {
     top: 155px;
     //left: calc(#{$context-bar-width} - 100% - 100px);
     left: calc(#{$context-bar-width} - 1000px);
-    transition: 0.4s ease-out left;
+    transition: 0.4s ease-out left, 0.4s ease-out opacity;
     z-index: -1;
+    opacity: 0;
   }
 
   #scenario-menu.expanded {
     left: $context-bar-width;
+    opacity: 1;
   }
   #process-select .mat-form-field-appearance-standard.mat-form-field-has-label .mat-select:not(.mat-select-empty) .mat-select-arrow-wrapper {
     //transform: none;

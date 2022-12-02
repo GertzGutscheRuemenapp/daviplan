@@ -77,9 +77,9 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
         });
       }))
     })
-    this.planningService.scenarioChanged.subscribe(changed => {
+    this.planningService.scenarioChanged.subscribe(scenario => {
       if (this.domain==="supply") {
-        this.updateTotalCapacities({scenario:this.activeScenario, reset:true});
+        this.updateTotalCapacities({scenario: scenario, reset:true});
       }
     })
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
@@ -230,7 +230,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
         title: $localize`Szenario erstellen`,
         // confirmButtonText: $localize`erstellen`,
         template: this.editScenarioTemplate,
-        closeOnConfirm: true
+        closeOnConfirm: false
       }
     });
     dialogRef.afterOpened().subscribe(() => {
@@ -249,6 +249,8 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
         if(!this.process!.scenarios) this.process!.scenarios = []
         this.process!.scenarios.push(scenario);
         this.scenarios.push(scenario);
+        this.planningService.scenarioChanged.emit(scenario);
+        dialogRef.close();
       },(error) => {
         showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);

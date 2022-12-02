@@ -22,7 +22,6 @@
                       [value]="service"
                       [checked]="service.id === selectedService?.id"
                       (change)="selectedService = service; onServiceChange();"
-                      style="margin-right: 100%;"
                       color="primary"
                       [ngbPopover]="service.description"
                       placement="right"

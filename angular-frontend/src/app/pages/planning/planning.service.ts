@@ -42,7 +42,7 @@ export class PlanningService extends RestCacheService {
   activeScenario?: Scenario;
   activeProcess?: PlanningProcess;
   showScenarioMenu = false;
-  scenarioChanged = new EventEmitter<boolean>();
+  scenarioChanged = new EventEmitter<Scenario>();
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService) {
     super(http, rest);
