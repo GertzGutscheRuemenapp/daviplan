@@ -21,8 +21,8 @@ MODE_SPEED = {
 
 MODE_MAX_DISTANCE = {
     Mode.WALK: 4000,
-    Mode.BIKE: 10000,
-    Mode.CAR: 25000,
+    Mode.BIKE: 15000,
+    Mode.CAR: 50000,
     Mode.TRANSIT: 1000,
 }
 
