@@ -110,15 +110,11 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         place_fields = []
         names = [f['name'] for f in data]
         if (len(set(names)) != len(names)):
-            raise NotAcceptable('Die Namen der Attribute müssen einzigartig sein!')
+            raise NotAcceptable('Die Kurznamen der Attribute müssen einzigartig sein!')
         # '_' is not allowed because of serializer which is auto camel-casing it
         for name in names:
             if '_' in name:
-                raise NotAcceptable('Die Namen der Attribute dürfen kein "_" enthalten!')
-        place_fields_ids = [f.id for f in place_fields]
-        for place_field in instance.placefield_set.exclude(
-            is_preset=True).exclude(id__in=place_fields_ids):
-            place_field.delete(keep_parents=True)
+                raise NotAcceptable('Die Kurznamen der Attribute dürfen kein "_" enthalten!')
         for pf_data in data:
             pf_id = pf_data.get('id', None)
             field_name = pf_data['name']
@@ -147,6 +143,10 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                     f'Der Name des Feldes "{field_name}" ist '
                     'bereits so oder in anderer Schreibweise vorhanden')
             place_fields.append(place_field)
+        place_fields_ids = [f.id for f in place_fields]
+        for place_field in instance.placefield_set.exclude(
+            is_preset=True).exclude(id__in=place_fields_ids):
+            place_field.delete(keep_parents=True)
 
     def get_places_count(self, instance):
         return instance.place_set.count()
