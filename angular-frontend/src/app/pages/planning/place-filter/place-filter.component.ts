@@ -1,8 +1,8 @@
 import { AfterViewInit, Component, EventEmitter, Input, Output, TemplateRef, ViewChild } from '@angular/core';
-import { Capacity, FieldType, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
+import { FieldType, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { FilterTableComponent, FilterColumn } from "../../../elements/filter-table/filter-table.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -104,7 +104,13 @@ export class PlaceFilterComponent  implements AfterViewInit {
   }
 
   private getColumns(): FilterColumn[] {
-    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
+    function cloneFilter(filterColumn: FilterColumn): any {
+      return Object.assign(Object.create(Object.getPrototypeOf(filterColumn.filter)), filterColumn.filter)
+    }
+    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR', attribute: '_placeName_' }];
+    const nameFilter = this.planningService.placeFilterColumns?.find(p => p.attribute === '_placeName_');
+    if (nameFilter)
+      columns[0].filter = cloneFilter(nameFilter);
     this.infrastructure!.services!.forEach(service => {
       const column: FilterColumn = {
         // name: service.hasCapacity? `${service.name} (Kapazität)`: service.name,
@@ -130,7 +136,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
       };
       const filterInput = this.planningService.placeFilterColumns?.find(c => c.attribute === field.name);
       if (filterInput)
-        column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
+        column.filter = cloneFilter(filterInput);
       columns.push(column);
     })
     return columns;

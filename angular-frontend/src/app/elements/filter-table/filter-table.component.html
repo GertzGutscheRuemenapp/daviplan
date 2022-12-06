@@ -75,7 +75,7 @@
   </form>
 </ng-template>
 
-<ng-template #stringFilter let-unit="unit" let-filter="filter">
+<ng-template #stringFilter let-unit="unit" let-filter="filter" let-options="options">
   <form [formGroup]="filterForm">
     <div style="display: flex; align-items: baseline;">
       <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
@@ -85,10 +85,22 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
-        <input matInput formControlName="value" required>
-      </mat-form-field>
-      <span>{{unit}}</span>
+      <div *ngIf="filterForm.value.operator === Operator.in else textInput"
+           formArrayName="options"
+           style="overflow: auto; max-height: 400px;">
+        <div *ngFor="let option of options; let i = index;">
+          <mat-checkbox color="primary"
+                        [formControlName]="i">
+            {{ option }}
+          </mat-checkbox>
+        </div>
+      </div>
+      <ng-template #textInput>
+        <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+          <input matInput formControlName="value">
+        </mat-form-field>
+        <span>{{unit}}</span>
+      </ng-template>
     </div>
   </form>
 </ng-template>
@@ -97,7 +109,10 @@
   <form style="display: grid;" [formGroup]="filterForm">
     <div formArrayName="options">
       <div *ngFor="let option of options; let i = index;">
-        <mat-checkbox [formControlName]="i">{{ option }}</mat-checkbox>
+        <mat-checkbox color="primary"
+                      [formControlName]="i">
+          {{ option }}
+        </mat-checkbox>
       </div>
     </div>
   </form>

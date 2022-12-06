@@ -280,7 +280,7 @@ export class PlanningService extends RestCacheService {
         if (!filter.filter(cap)) return;
       }
       else if (filterColumn.attribute) {
-        const value = place.attributes[filterColumn.attribute];
+        const value = (filterColumn.attribute === '_placeName_')? place.name: place.attributes[filterColumn.attribute];
         if (!filter.filter(value)) return;
       }
       if (i === this.placeFilterColumns.length - 1) match = true;

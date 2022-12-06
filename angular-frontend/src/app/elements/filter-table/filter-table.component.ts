@@ -62,6 +62,10 @@ abstract class Filter {
       return (value >= this.value);
     if (this.operator === Operator.lte)
       return (value <= this.value);
+    if (this.operator === Operator.in) {
+      if (!this.value) return true;
+      return this.value.split(', ').indexOf(value) >= 0;
+    }
     return false;
   };
 }
@@ -69,7 +73,11 @@ abstract class Filter {
 class StrFilter extends Filter {
   name = 'Zeichenfilter';
   value = '';
-  allowedOperators = [Operator.in];
+  allowedOperators = [Operator.in, Operator.contains];
+
+  constructor(operator: Operator = Operator.eq, active: boolean = false) {
+    super(operator, active);
+  }
 
   filter(value: string): boolean {
     return super.filter(value);
@@ -102,13 +110,12 @@ class ClassFilter extends Filter {
   value = '';
 
   constructor(classes: string[] = [], operator: Operator = Operator.eq, active: boolean = false) {
-    super(operator, active);
+    super(Operator.in, active);
     this.classes = classes;
   }
 
   filter(value: string): boolean {
-    if (!this.value) return true;
-    return this.value.split(',').indexOf(value) >= 0;
+    return super.filter(value);
   }
 }
 
@@ -130,6 +137,7 @@ export class FilterTableComponent implements OnInit {
   @ViewChild('classFilter') classFilter?: TemplateRef<any>;
   @ViewChild('boolFilter') boolFilter?: TemplateRef<any>;
   opText = opText;
+  Operator = Operator;
 
   constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {}
 
@@ -188,23 +196,21 @@ export class FilterTableComponent implements OnInit {
     const template = (column.type === 'NUM')? this.numberFilter:
                      (column.type === 'BOOL')? this.boolFilter:
                      (column.type === 'CLA')? this.classFilter:
-                       this.classFilter;
+                       this.stringFilter;
     const context: any = {
       unit: column.unit || '' ,
       filter: column.filter
     }
     const formConfig: any = {
-      operator: new FormControl(''),
+      operator: new FormControl(column.filter.operator),
       value: new FormControl('')
     }
-    if (column.type === 'CLA') {
-      const options = (column.filter as ClassFilter).classes;
+    if (column.type === 'CLA' || column.type === 'STR') {
+      const options = (column.type === 'CLA')? (column.filter as ClassFilter).classes: [...new Set(this._rows.map(r => r[col]))].sort();
       context['options'] = options;
       const formArray = this.formBuilder.array([]);
       options.forEach(o => formArray.push(new FormControl(false)));
       formConfig.options = formArray;
-      // const config = (column.filter as ClassFilter).classes.reduce((a, c) => ({ ...a, [c]: false}), {});
-      // this.filterForm = this.formBuilder.group(config);
     }
     this.filterForm = this.formBuilder.group(formConfig);
 
@@ -226,10 +232,9 @@ export class FilterTableComponent implements OnInit {
       column.filter!.operator = this.filterForm.value.operator;
       let value = this.filterForm.value.value;
       if (column.type === 'BOOL') value = value === '1';
-      if (column.type === 'CLA') {
-        const options = (column.filter as ClassFilter).classes;
-        const checked = options.filter((o, i) => this.filterForm.value.options[i]);
-        value = checked.join(',');
+      if (this.filterForm.value.operator === Operator.in) {
+        const checked = context['options'].filter((o: any, i: number) => this.filterForm.value.options[i]);
+        value = checked.join(', ');
       }
       column.filter!.value = value;
       column.filter!.active = true;
