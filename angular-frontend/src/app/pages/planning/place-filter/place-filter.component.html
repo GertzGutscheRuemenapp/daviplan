@@ -1,5 +1,5 @@
 <button title="Standortfilter" mat-icon-button color="primary" class="filter-button small"
-        [ngClass]="{ inverted: planningService.placeFilterColumns.length > 0 }"
+        [ngClass]="{ inverted: this.infrastructure && this.planningService.placeFilterColumns[infrastructure.id] && this.planningService.placeFilterColumns[infrastructure.id].length > 0 }"
         [disabled]="!infrastructure"
         (click)="onClick()">
   <mat-icon>filter_list</mat-icon>
