@@ -350,7 +350,8 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         # delete places that have no place_id in the excel-file
         place_ids_in_excelfile = df_places.index[~pd.isna(df_places.index)]
-        places_to_delete = Place.objects.exclude(id__in=place_ids_in_excelfile)
+        places_to_delete = Place.objects.filter(infrastructure=infrastructure_id)\
+            .exclude(id__in=place_ids_in_excelfile)
         n_elems_deleted, elems_deleted = places_to_delete.delete()
         n_places_deleted = elems_deleted.get('datentool_backend.Place')
         self.logger.info(f'{n_places_deleted} bestehende Standorte gelöscht')
