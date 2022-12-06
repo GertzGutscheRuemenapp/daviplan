@@ -27,7 +27,7 @@ import { reset } from "ol/transform";
 })
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
-  placeFilterColumns: FilterColumn[] = [];
+  placeFilterColumns: Record<number, FilterColumn[]> = {};
   ignoreCapacitySupplyFilter: boolean = false;
   // cache already requested capacities: {scenario_id: {service_id: {year: capacity}}}
   private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
@@ -271,9 +271,11 @@ export class PlanningService extends RestCacheService {
   }
 
   private _filterPlace(place: Place): boolean {
-    if (this.placeFilterColumns.length === 0) return true;
+    if (!this.activeInfrastructure) return false;
+    const filterColumns = this.placeFilterColumns[this.activeInfrastructure.id] || [];
+    if (filterColumns.length === 0) return true;
     let match = false;
-    this.placeFilterColumns.forEach((filterColumn, i) => {
+    filterColumns.forEach((filterColumn, i) => {
       const filter = filterColumn.filter!;
       if (filterColumn.service) {
         const cap = this.getPlaceCapacity(place, { service: filterColumn.service });
@@ -283,7 +285,7 @@ export class PlanningService extends RestCacheService {
         const value = (filterColumn.attribute === '_placeName_')? place.name: place.attributes[filterColumn.attribute];
         if (!filter.filter(value)) return;
       }
-      if (i === this.placeFilterColumns.length - 1) match = true;
+      if (i === filterColumns.length - 1) match = true;
     })
     return match;
   }

@@ -75,7 +75,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
 
   private openDialog(): void {
     if (!this.infrastructure) return;
-    this._filterColumnsTemp = this.planningService.placeFilterColumns;
+    this._filterColumnsTemp = this.planningService.placeFilterColumns[this.infrastructure.id];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       // width: '100%',
@@ -98,8 +98,8 @@ export class PlaceFilterComponent  implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.planningService.placeFilterColumns = this._filterColumnsTemp;
-      this.onFilter.emit(this.planningService.placeFilterColumns);
+      this.planningService.placeFilterColumns[this.infrastructure!.id] = this._filterColumnsTemp;
+      this.onFilter.emit(this.planningService.placeFilterColumns[this.infrastructure!.id]);
     });
   }
 
@@ -107,8 +107,9 @@ export class PlaceFilterComponent  implements AfterViewInit {
     function cloneFilter(filterColumn: FilterColumn): any {
       return Object.assign(Object.create(Object.getPrototypeOf(filterColumn.filter)), filterColumn.filter)
     }
+    const filterColumns = (this.infrastructure? this.planningService.placeFilterColumns[this.infrastructure.id]: []) || [];
     let columns: FilterColumn[] = [{ name: 'Name', type: 'STR', attribute: '_placeName_' }];
-    const nameFilter = this.planningService.placeFilterColumns?.find(p => p.attribute === '_placeName_');
+    const nameFilter = filterColumns.find(p => p.attribute === '_placeName_');
     if (nameFilter)
       columns[0].filter = cloneFilter(nameFilter);
     this.infrastructure!.services!.forEach(service => {
@@ -119,7 +120,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
         type: service.hasCapacity? 'NUM' : 'BOOL',
         unit: service.hasCapacity? service.capacityPluralUnit: ''
       };
-      const filterInput = this.planningService.placeFilterColumns?.find(c => c.service === service);
+      const filterInput = filterColumns.find(c => c.service === service);
       if (filterInput)
         column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
       columns.push(column);
@@ -134,7 +135,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
         classes: fieldType.classification?.map(c => c.value),
         unit: field.unit
       };
-      const filterInput = this.planningService.placeFilterColumns?.find(c => c.attribute === field.name);
+      const filterInput = filterColumns.find(c => c.attribute === field.name);
       if (filterInput)
         column.filter = cloneFilter(filterInput);
       columns.push(column);
