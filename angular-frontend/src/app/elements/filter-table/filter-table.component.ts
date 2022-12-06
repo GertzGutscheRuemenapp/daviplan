@@ -75,11 +75,13 @@ class StrFilter extends Filter {
   value = '';
   allowedOperators = [Operator.in, Operator.contains];
 
-  constructor(operator: Operator = Operator.eq, active: boolean = false) {
+  constructor(operator: Operator = Operator.in, active: boolean = false) {
     super(operator, active);
   }
 
   filter(value: string): boolean {
+    if (this.operator === Operator.contains)
+      return value.indexOf(this.value) >= 0;
     return super.filter(value);
   }
 }
