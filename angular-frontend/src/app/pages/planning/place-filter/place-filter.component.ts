@@ -122,7 +122,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
       const fieldType = this.fieldTypes.find(ft => ft.id == field.fieldType);
       if (!fieldType) return;
       const column: FilterColumn = {
-        name: field.name,
+        name: field.label || field.name,
         attribute: field.name,
         type: fieldType.ftype,
         classes: fieldType.classification?.map(c => c.value),
@@ -139,7 +139,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
   private placesToRows(places: Place[]): any[][]{
     const rows: any[][] = [];
     places.forEach(place => {
-      if (this.service && !this.ignoreCapacities && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
+      if (this.service && !this._ignoreCapacities && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
       const capValues = this.infrastructure!.services!.map(service => {
         const capacity = this.planningService.getPlaceCapacity(place, { service: service, year: this.year, scenario: this.scenario });
         return service.hasCapacity? capacity: !!capacity;

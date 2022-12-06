@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { Service } from "../../rest-interfaces";
 
 // type Operator = '>' | '<' | '=' | '>=' | '<=';
@@ -11,15 +11,19 @@ enum Operator {
   lt = '<',
   eq = '=',
   gte = '>=',
-  lte = '<='
+  lte = '<=',
+  in = 'in',
+  contains = 'contains'
 }
 
-const opText = {
+const opText: Record<any, string> = {
   '>': 'größer' ,
   '<': 'kleiner',
   '=': 'gleich',
   '>=': 'größer gleich' ,
-  '<=': 'kleiner gleich'
+  '<=': 'kleiner gleich',
+  'in': 'Auswahl',
+  'contains': 'enthält'
 }
 
 export interface FilterColumn {
@@ -37,6 +41,7 @@ abstract class Filter {
   active: boolean;
   name = 'Filter';
   value?: any;
+  allowedOperators: Operator[] = Object.values(Operator);
   constructor(operator: Operator = Operator.eq, active = false) {
     this.operator = operator;
     this.active = active;
@@ -64,6 +69,7 @@ abstract class Filter {
 class StrFilter extends Filter {
   name = 'Zeichenfilter';
   value = '';
+  allowedOperators = [Operator.in];
 
   filter(value: string): boolean {
     return super.filter(value);
@@ -73,6 +79,7 @@ class StrFilter extends Filter {
 class NumFilter extends Filter {
   name = 'Zahlenfilter';
   value = 0;
+  allowedOperators = [Operator.gt, Operator.lt, Operator.eq, Operator.gte, Operator.lte];
 
   filter(value: number): boolean {
     return super.filter(value);
@@ -91,15 +98,17 @@ class BoolFilter extends Filter {
 class ClassFilter extends Filter {
   name = 'Klassenfilter';
   classes: string[];
+  allowedOperators = [Operator.in];
+  value = '';
 
   constructor(classes: string[] = [], operator: Operator = Operator.eq, active: boolean = false) {
     super(operator, active);
     this.classes = classes;
-    this.value = this.classes[0];
   }
 
   filter(value: string): boolean {
-    return true
+    if (!this.value) return true;
+    return this.value.split(',').indexOf(value) >= 0;
   }
 }
 
@@ -114,21 +123,15 @@ export class FilterTableComponent implements OnInit {
   _columns: FilterColumn[] = [];
   processedRows: any[][] = [];
   _rows: any[][] = [];
-  filterForm: FormGroup;
+  filterForm!: FormGroup;
   sorting: ('asc' | 'desc' | 'none' )[] = [];
   @ViewChild('numberFilter') numberFilter?: TemplateRef<any>;
   @ViewChild('stringFilter') stringFilter?: TemplateRef<any>;
   @ViewChild('classFilter') classFilter?: TemplateRef<any>;
   @ViewChild('boolFilter') boolFilter?: TemplateRef<any>;
-  operators: string[][] = Object.values(Operator).map(op => [op, opText[op]]);
   opText = opText;
 
-  constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {
-    this.filterForm = this.formBuilder.group({
-      operator: new FormControl(''),
-      value: new FormControl('')
-    });
-  }
+  constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {}
 
   @Input() set columns (columns: FilterColumn[]){
     this._columns = columns;
@@ -182,19 +185,29 @@ export class FilterTableComponent implements OnInit {
   openFilterDialog(col: number) {
     const column = this._columns[col];
     if (!column.filter) return;
-    this.filterForm.reset({
-        operator: column.filter.operator,
-        value: column.filter.value
-    });
     const template = (column.type === 'NUM')? this.numberFilter:
                      (column.type === 'BOOL')? this.boolFilter:
                      (column.type === 'CLA')? this.classFilter:
                        this.classFilter;
     const context: any = {
       unit: column.unit || '' ,
+      filter: column.filter
     }
-    if (column.type === 'CLA')
-      context['classes'] = (column.filter as ClassFilter).classes;
+    const formConfig: any = {
+      operator: new FormControl(''),
+      value: new FormControl('')
+    }
+    if (column.type === 'CLA') {
+      const options = (column.filter as ClassFilter).classes;
+      context['options'] = options;
+      const formArray = this.formBuilder.array([]);
+      options.forEach(o => formArray.push(new FormControl(false)));
+      formConfig.options = formArray;
+      // const config = (column.filter as ClassFilter).classes.reduce((a, c) => ({ ...a, [c]: false}), {});
+      // this.filterForm = this.formBuilder.group(config);
+    }
+    this.filterForm = this.formBuilder.group(formConfig);
+
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '600px',
@@ -213,6 +226,11 @@ export class FilterTableComponent implements OnInit {
       column.filter!.operator = this.filterForm.value.operator;
       let value = this.filterForm.value.value;
       if (column.type === 'BOOL') value = value === '1';
+      if (column.type === 'CLA') {
+        const options = (column.filter as ClassFilter).classes;
+        const checked = options.filter((o, i) => this.filterForm.value.options[i]);
+        value = checked.join(',');
+      }
       column.filter!.value = value;
       column.filter!.active = true;
       this.emitChange();

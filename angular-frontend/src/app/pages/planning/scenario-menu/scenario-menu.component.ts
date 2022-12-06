@@ -95,7 +95,6 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year=year;
-      console.log('scenario')
       if (this.domain==="supply"){
         this.updateTotalCapacities();
       }
@@ -216,7 +215,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
           }
           this.activeScenario = this.baseScenario;
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });
