@@ -110,11 +110,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
                 <br>${formattedValue} ${this.planningService.activeService?.demandPluralUnit} im Jahr ${this.year}
                 <br>im Szenario "${this.planningService.activeScenario?.name}"`
       })
-      max = Math.max(max, 10);
-      const steps = (max < 1.2 * min)? 3: (max < 1.4 * min)? 5: (max < 1.6 * min)? 7: 9;
       const desc = `<b>${this.planningService.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b><br>
                     Minimum: ${min.toLocaleString()}<br>
                     Maximum: ${max.toLocaleString()}`;
+      max = Math.max(max, 10);
       let style: ValueStyle = {
         field: 'value',
         min: Math.max(min, 0),

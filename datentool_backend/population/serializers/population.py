@@ -1,6 +1,5 @@
 from typing import List
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 
 from datentool_backend.population.models import (

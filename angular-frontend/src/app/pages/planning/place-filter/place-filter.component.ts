@@ -18,9 +18,12 @@ export class PlaceFilterComponent  implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   @ViewChild('filterTable') filterTable?: FilterTableComponent;
   @Input() infrastructure?: Infrastructure;
+  // show filter toggle button to toggle between ignoring capacities
+  @Input() showIgnoreCapacitiesToggle: boolean = false;
+  @Input() ignoreCapacities: boolean = false;
+  _ignoreCapacities: boolean = false;
   @Input() service?: Service;
   @Input() scenario?: Scenario;
-  // @Input() services?: Service[];
   @Input() year?: number;
   @Output() onFilter = new EventEmitter<FilterColumn[]>();
   public columns: FilterColumn[] = [];
@@ -40,6 +43,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
 
   onClick() {
     if (!this.infrastructure) return;
+    this._ignoreCapacities = this.ignoreCapacities;
     let observables: Observable<any>[] = [];
     observables.push(this.planningService.getFieldTypes().pipe(map(fieldTypes => {
       this.fieldTypes = fieldTypes;
@@ -135,7 +139,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
   private placesToRows(places: Place[]): any[][]{
     const rows: any[][] = [];
     places.forEach(place => {
-      if (this.service && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
+      if (this.service && !this.ignoreCapacities && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
       const capValues = this.infrastructure!.services!.map(service => {
         const capacity = this.planningService.getPlaceCapacity(place, { service: service, year: this.year, scenario: this.scenario });
         return service.hasCapacity? capacity: !!capacity;

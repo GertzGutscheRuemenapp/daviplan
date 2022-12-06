@@ -105,9 +105,9 @@
 
 #scenario-controls {
   width: 50px;
-  padding-left: 8px;
+  border-left: 6px solid #2196f3;
+  padding-left: 6px;
   display: flex;
-  border-left: solid lightgrey 1px;
   //align-items: center;
 
   button {

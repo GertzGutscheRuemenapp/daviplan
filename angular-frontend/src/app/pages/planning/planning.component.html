@@ -11,7 +11,7 @@
       <mat-select #processSelect disableOptionCentering disableRipple
                   [ngbPopover]="activeProcessPopover"
                   [popoverTitle]="activeProcess?.name"
-                  placement="right"
+                  placement="auto"
                   container="body"
                   triggers="mouseenter:mouseleave"
                   panelClass="custom-option-panel"
@@ -29,7 +29,8 @@
           </span>
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
-        <mat-optgroup label="Meine Planungsprozesse">
+        <mat-optgroup *ngIf="user?.profile?.canCreateProcess || myProcesses.length > 0"
+                      label="Meine Planungsprozesse">
           <button *ngIf="user?.profile?.canCreateProcess || user?.isSuperuser"
                   title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
@@ -38,10 +39,9 @@
             <mat-icon>add</mat-icon>
           </button>
           <ng-container *ngFor="let process of myProcesses">
+            <!--unfortunatelly can't pass parameter to popover template-->
             <ng-template #ProcessPopover>
-              <ng-container *ngIf="process.description"> <i>{{process.description }}</i></ng-container>
-              <mat-divider *ngIf="process.description && process.users.length > 0"></mat-divider>
-              {{(process.users.length > 0)? 'geteilt mit ...': ''}}
+              <div [innerHTML]="getProcessPopoverHTML(process)"></div>
             </ng-template>
             <mat-option class="custom-option"
                         [value]="process.id"
@@ -71,12 +71,7 @@
         <mat-optgroup *ngIf="sharedProcesses.length > 0" label="Geteilte Planungsprozesse">
           <ng-container *ngFor="let process of sharedProcesses">
             <ng-template #ProcessPopover>
-              <ng-container *ngIf="process.description">
-                <i>{{process.description }}</i>
-                <mat-divider></mat-divider>
-              </ng-container>
-              {{(process.allowSharedChange)? 'editierbar': 'nicht editierbar'}}<br>
-              geteilt durch <i>{{process.owner}}</i>
+              <div [innerHTML]="getProcessPopoverHTML(process)"></div>
             </ng-template>
             <mat-option [value]="process.id"
                         [ngbPopover]="ProcessPopover"
@@ -177,19 +172,10 @@
     </app-side-toggle>
   </div>
 </div>
+<!--unfortunatelly can't pass parameter to popover template-->
 <ng-template #activeProcessPopover>
   <ng-container *ngIf="activeProcess">
-    <ng-container *ngIf="activeProcess.description">
-      <i>{{activeProcess.description }}</i>
-      <mat-divider></mat-divider>
-    </ng-container>
-<!--    <div *ngIf="activeProcess?.users.length > 0 && !activeProcess?.owner === user">
-      geteilt mit ...
-    </div>
-    <div *ngIf="activeProcess?.user">
-      {{(activeProcess?.editable)? 'editierbar': 'nicht editierbar'}} <br>
-      geteilt durch <i>{{activeProcess?.user}}</i>
-    </div>-->
+    <div [innerHTML]="getProcessPopoverHTML(activeProcess)"></div>
   </ng-container>
   <div *ngIf="!activeProcess" i18n>
     <p>Bitte wählen Sie hier einen Planungsprozess aus.</p>
@@ -237,8 +223,6 @@
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
         <div class="border-box" style="height: 250px;">
-<!--          <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
-          <mat-divider style="margin-bottom: 10px;"></mat-divider>-->
           <mat-checkbox class="reverse" color="primary"
                         *ngFor="let infrastructure of allInfrastructures"
                         (change)="infrastructure.included = $event.checked"
@@ -254,9 +238,12 @@
                         *ngFor="let user of otherUsers"
                         (change)="user.shared = $event.checked"
                         [checked]="user.shared || false">
-            {{user.username + ((user.firstName.length > 0 || user.lastName.length > 0)? (' (' + user.firstName + ((user.firstName.length > 0 && user.lastName.length > 0)? ' ': '') + user.lastName + ')'): '')}}
+            {{getPrettyUserName(user)}}
           </mat-checkbox>
         </div>
+        <mat-checkbox formControlName="allowSharedChange" style="margin-top: 10px;" color="primary">
+          Änderungen an Szenarien erlauben
+        </mat-checkbox>
       </div>
     </div>
   </form>
