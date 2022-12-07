@@ -1,8 +1,8 @@
 import { AfterViewInit, Component, EventEmitter, Input, Output, TemplateRef, ViewChild } from '@angular/core';
-import { Capacity, FieldType, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
+import { FieldType, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { FilterTableComponent, FilterColumn } from "../../../elements/filter-table/filter-table.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -75,7 +75,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
 
   private openDialog(): void {
     if (!this.infrastructure) return;
-    this._filterColumnsTemp = this.planningService.placeFilterColumns;
+    this._filterColumnsTemp = this.planningService.placeFilterColumns[this.infrastructure.id];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       // width: '100%',
@@ -98,13 +98,20 @@ export class PlaceFilterComponent  implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.planningService.placeFilterColumns = this._filterColumnsTemp;
-      this.onFilter.emit(this.planningService.placeFilterColumns);
+      this.planningService.placeFilterColumns[this.infrastructure!.id] = this._filterColumnsTemp;
+      this.onFilter.emit(this.planningService.placeFilterColumns[this.infrastructure!.id]);
     });
   }
 
   private getColumns(): FilterColumn[] {
-    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
+    function cloneFilter(filterColumn: FilterColumn): any {
+      return Object.assign(Object.create(Object.getPrototypeOf(filterColumn.filter)), filterColumn.filter)
+    }
+    const filterColumns = (this.infrastructure? this.planningService.placeFilterColumns[this.infrastructure.id]: []) || [];
+    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR', attribute: '_placeName_' }];
+    const nameFilter = filterColumns.find(p => p.attribute === '_placeName_');
+    if (nameFilter)
+      columns[0].filter = cloneFilter(nameFilter);
     this.infrastructure!.services!.forEach(service => {
       const column: FilterColumn = {
         // name: service.hasCapacity? `${service.name} (Kapazität)`: service.name,
@@ -113,7 +120,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
         type: service.hasCapacity? 'NUM' : 'BOOL',
         unit: service.hasCapacity? service.capacityPluralUnit: ''
       };
-      const filterInput = this.planningService.placeFilterColumns?.find(c => c.service === service);
+      const filterInput = filterColumns.find(c => c.service === service);
       if (filterInput)
         column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
       columns.push(column);
@@ -122,15 +129,15 @@ export class PlaceFilterComponent  implements AfterViewInit {
       const fieldType = this.fieldTypes.find(ft => ft.id == field.fieldType);
       if (!fieldType) return;
       const column: FilterColumn = {
-        name: field.name,
+        name: field.label || field.name,
         attribute: field.name,
         type: fieldType.ftype,
         classes: fieldType.classification?.map(c => c.value),
         unit: field.unit
       };
-      const filterInput = this.planningService.placeFilterColumns?.find(c => c.attribute === field.name);
+      const filterInput = filterColumns.find(c => c.attribute === field.name);
       if (filterInput)
-        column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
+        column.filter = cloneFilter(filterInput);
       columns.push(column);
     })
     return columns;
@@ -139,7 +146,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
   private placesToRows(places: Place[]): any[][]{
     const rows: any[][] = [];
     places.forEach(place => {
-      if (this.service && !this.ignoreCapacities && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
+      if (this.service && !this._ignoreCapacities && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
       const capValues = this.infrastructure!.services!.map(service => {
         const capacity = this.planningService.getPlaceCapacity(place, { service: service, year: this.year, scenario: this.scenario });
         return service.hasCapacity? capacity: !!capacity;

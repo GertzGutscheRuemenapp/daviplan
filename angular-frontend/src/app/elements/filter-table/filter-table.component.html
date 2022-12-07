@@ -57,13 +57,13 @@
   </button>
 </div>
 
-<ng-template #numberFilter let-unit="unit">
+<ng-template #numberFilter let-unit="unit" let-filter="filter">
   <form [formGroup]="filterForm">
     <div style="display: flex; align-items: baseline;">
       <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
         <mat-select formControlName="operator" required>
-          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
-            {{operator[1]}}
+          <mat-option *ngFor="let operator of filter.allowedOperators" [value]="operator">
+            {{opText[operator]}}
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -75,42 +75,45 @@
   </form>
 </ng-template>
 
-<ng-template #stringFilter let-unit="unit">
+<ng-template #stringFilter let-unit="unit" let-filter="filter" let-options="options">
   <form [formGroup]="filterForm">
     <div style="display: flex; align-items: baseline;">
       <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
         <mat-select formControlName="operator" required>
-          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
-            {{operator[1]}}
+          <mat-option *ngFor="let operator of filter.allowedOperators" [value]="operator">
+            {{opText[operator]}}
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
-        <input matInput formControlName="value" required>
-      </mat-form-field>
-      <span>{{unit}}</span>
+      <div *ngIf="filterForm.value.operator === Operator.in else textInput"
+           formArrayName="options"
+           style="overflow: auto; max-height: 400px;">
+        <div *ngFor="let option of options; let i = index;">
+          <mat-checkbox color="primary"
+                        [formControlName]="i">
+            {{ option }}
+          </mat-checkbox>
+        </div>
+      </div>
+      <ng-template #textInput>
+        <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+          <input matInput formControlName="value">
+        </mat-form-field>
+        <span>{{unit}}</span>
+      </ng-template>
     </div>
   </form>
 </ng-template>
 
-<ng-template #classFilter let-unit="unit" let-classes="classes">
-  <form [formGroup]="filterForm">
-    <div style="display: flex; align-items: baseline;">
-      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
-        <mat-select formControlName="operator" required>
-          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
-            {{operator[1]}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
-        <mat-select formControlName="operator" required>
-          <mat-option *ngFor="let class of classes" [value]="class">
-            {{class}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <span>{{unit}}</span>
+<ng-template #classFilter let-filter="filter" let-options="options">
+  <form style="display: grid;" [formGroup]="filterForm">
+    <div formArrayName="options">
+      <div *ngFor="let option of options; let i = index;">
+        <mat-checkbox color="primary"
+                      [formControlName]="i">
+          {{ option }}
+        </mat-checkbox>
+      </div>
     </div>
   </form>
 </ng-template>
