@@ -2,7 +2,7 @@
   <label style="padding-top: 20px;">{{timeSlider.min}}</label>
   <mat-slider #timeSlider color="primary"
               thumbLabel [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0" step="1"
-              [value]="_years[0]" tickInterval="1"
+              [value]="year" tickInterval="1"
               (change)="changeYear($event.value)"
               style="width: 420px; margin-top: 15px;"></mat-slider>
   <label style="padding-top: 20px;">{{timeSlider.max}}</label>
@@ -53,7 +53,7 @@
         </th>
       </tr>
       <tr *ngFor="let row of rows" [class.editRow]="edit">
-        <td style="text-align: end;">{{row.ageGroup.label}}</td>
+        <td style="text-align: left;">{{row.ageGroup.label}}</td>
         <td *ngFor="let entry of row.entries">
           <ng-container *ngIf="!edit">
             {{(entry.value !== undefined)? entry.value: 0 }}

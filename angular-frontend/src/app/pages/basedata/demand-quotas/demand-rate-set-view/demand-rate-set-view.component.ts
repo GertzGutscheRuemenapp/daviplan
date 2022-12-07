@@ -1,12 +1,12 @@
 import { AfterViewInit, Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { environment } from "../../../../../environments/environment";
 import { AgeGroup, DemandRate, DemandRateSet, Gender, Service } from "../../../../rest-interfaces";
-import { TimeSliderComponent } from "../../../../elements/time-slider/time-slider.component";
 import { MultilineChartComponent, MultilineData } from "../../../../diagrams/multiline-chart/multiline-chart.component";
 import { sortBy } from "../../../../helpers/utils";
 import { DemandTypes } from "../../../../rest-interfaces";
 import { ConfirmDialogComponent } from "../../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import { MatSlider } from "@angular/material/slider";
 
 interface Row {
   ageGroup: AgeGroup,
@@ -27,13 +27,13 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   @Input() edit: boolean = false;
   @Input() chartHeight = 300;
   @Input() inPlace = false;
-  @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
+  @ViewChild('timeSlider') timeSlider?: MatSlider;
   @ViewChild('yearChart') yearChart!: MultilineChartComponent;
   @ViewChild('ageGroupChart') ageGroupChart!: MultilineChartComponent;
   @ViewChild('copyYearDataTemplate') copyYearDataTemlate!: TemplateRef<any>;
   @ViewChild('interpolateYearDataTemplate') interpolateYearDataTemplate!: TemplateRef<any>;
   backend: string = environment.backend;
-  year?: number;
+  @Input() year?: number;
   selectedAgeGroup?: AgeGroup;
   unit: string = '';
   demandTypeLabel: string = '';
@@ -53,10 +53,11 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   rows: Row[] = [];
   genderColors: string[] = [];
 
+
   @Input() set years(years: number[]) {
     this._years = years;
     if (years.length > 0) {
-      this.year = years[0];
+      if (!this.year) this.year = years[0];
       this.copyToYear = this.interpolateToYear = years[years.length - 1];
       this.init();
     }
@@ -332,7 +333,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
         values: values
       });
     })
-    this.ageGroupChart.title = this.demandTypeLabel;
+    this.ageGroupChart.title = `${this.demandTypeLabel} über alle Jahre`;
     this.ageGroupChart.colors = this.genderColors;
     this.ageGroupChart.subtitle = `${this._service?.name}, ${this.selectedAgeGroup.label}` ;
     this.ageGroupChart.labels = this._genders.map(g => g.name);

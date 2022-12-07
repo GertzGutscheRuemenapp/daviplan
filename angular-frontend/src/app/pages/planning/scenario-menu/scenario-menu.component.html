@@ -188,10 +188,12 @@
 </ng-template>
 
 <ng-template #demandQuotaDialog
+             let-year="year"
              let-scenario="scenario" let-years="years"
              let-ageGroups="ageGroups" let-genders="genders"
              let-service="service" let-demandRateSet="demandRateSet">
   <app-demand-rate-set-view #demandRateSetPreview
+                            [year]="year"
                             [years]="years"
                             [demandRateSet]="demandRateSet"
                             [service]="service"

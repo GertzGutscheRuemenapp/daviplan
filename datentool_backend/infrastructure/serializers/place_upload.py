@@ -379,7 +379,7 @@ class ProcessPlaceUpload:
             .exclude(id__in=place_ids_in_excelfile)
         n_elems_deleted, elems_deleted = places_to_delete.delete()
         n_places_deleted = elems_deleted.get('datentool_backend.Place')
-        self.logger.info(f'{n_places_deleted} bestehende Standorte gelöscht')
+        self.logger.info(f'{n_places_deleted or 0} bestehende Standorte gelöscht')
 
         # get BKG-Geocoding-Key
         site_settings = SiteSetting.load()
