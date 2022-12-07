@@ -10,7 +10,8 @@ from django.db.models.fields import FloatField
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import GeoFunc, Transform
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.response import Response
 
 from openpyxl.utils import get_column_letter, quote_sheetname
 from openpyxl import styles
@@ -28,7 +29,8 @@ from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure)
 from datentool_backend.utils.crypto import decrypt
 from datentool_backend.utils.bkg_geocoder import BKGGeocoder
-from datentool_backend.utils.processes import ProcessScope
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Infrastructure.objects.all(),
@@ -305,16 +307,41 @@ class PlacesTemplateSerializer(serializers.Serializer):
         content = open(fn, 'rb').read()
         return content
 
-    def read_excel_file(self, request,
-                        #infrastructure_id: int,
-                        ) -> pd.DataFrame:
+    def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
         infrastructure_id = request.data.get('infrastructure')
+        run_sync = bool(strtobool(request.data.get('sync', 'False')))
 
         if infrastructure_id is None:
             raise Exception(f'Die ID der Infrastruktur muss im Formular mit übergeben werden.')
 
+        with ProtectedProcessManager(
+                user=request.user,
+                scope=getattr(serializer, 'scope', ProcessScope.INFRASTRUCTURE)) as ppm:
+            try:
+                ppm.run(self.process_place_upload,
+                        infrastructure_id, excel_file,
+                        self.logger, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'message': 'Upload/Geocoding gestartet'},
+                        status=status.HTTP_202_ACCEPTED)
+
+
+    @staticmethod
+    def process_place_upload(infrastructure_id: int, excel_file: str, logger):
+        ProcessPlaceUpload(logger).process_place_upload(infrastructure_id, excel_file)
+
+
+class ProcessPlaceUpload:
+
+    def __init__(self, logger):
+        self.logger = logger
+
+    def process_place_upload(self, infrastructure_id: int, excel_file: str):
         infra = Infrastructure.objects.get(pk=infrastructure_id)
 
         # get the services and the place fields of the infrastructure
@@ -326,7 +353,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
                                                          'field_type__name',
                                                          )
 
-
         # get a mapping of the classifications
         fclass_values = FClass.objects\
             .filter(ftype__in=place_fields.values_list('field_type'))\
@@ -335,7 +361,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
         fclass_dict = {(fclass_value['ftype'], fclass_value['value']):
                        fclass_value['id']
                        for fclass_value in fclass_values}
-
 
         # collect the places, attributes and capacities in lists
         place_ids = []
@@ -413,7 +438,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
             # set the place columns
             place.infrastructure = infra
             place.name = place_name
-            place.geom=geom
+            place.geom = geom
             place.save()
             place_ids.append(place.id)
 
@@ -486,14 +511,11 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     file,
                     drop_constraints=False, drop_indexes=False,
                 )
-
         self.logger.info(f'{len(df_places)} Einträge bearbeitet')
         if n_new > 0:
             self.logger.info(f'davon {n_new} als neue Orte hinzugefügt')
             self.logger.info('ACHTUNG: Für die neuen Orte muss die '
                              'Erreichbarkeit neu berechnet werden!')
-        df = pd.DataFrame()
-        return df
 
     def geocode(self, geocoder: BKGGeocoder, place_row: dict) -> Tuple[float, float]:
         kwargs = {
