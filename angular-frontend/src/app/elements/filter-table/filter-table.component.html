@@ -7,8 +7,8 @@
             <button color="primary" mat-icon-button
                     class="filter-button" title="Standortfilter"
                     [ngClass]="{'inverted': th.filter?.active}"
-                    (click)="toggleFilter(i)"
-                    title="Filter umschalten">
+                    (click)="openFilterDialog(i)"
+                    title="Filter bearbeiten">
               <mat-icon>filter_list</mat-icon>
             </button>
           </div>
@@ -27,7 +27,8 @@
       </th>
     </tr>
     <tr *ngFor="let row of processedRows">
-     <td *ngFor="let value of row; let i = index">
+     <td *ngFor="let value of row; let i = index"
+         style="max-width: 250px; white-space: normal;">
        <ng-container *ngIf="_columns[i].type === 'BOOL'; else rawContent">{{value? 'Ja': 'Nein'}}</ng-container>
        <ng-template #rawContent>{{value}}</ng-template>
      </td>
@@ -42,7 +43,7 @@
     <mat-chip-list>
       <ng-container *ngFor="let column of _columns; let i = index;">
         <mat-chip *ngIf="column.filter?.active" color="primary">
-          {{column.name}} | {{opText[column.filter!.operator]}} {{column.filter!.value}}
+          {{column.name}} | {{column.filter!.getDescription()}}
           <mat-icon title="Filter entfernen" (click)="toggleFilter(i)">
             cancel
           </mat-icon>

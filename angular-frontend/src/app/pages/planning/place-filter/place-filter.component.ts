@@ -105,7 +105,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
 
   private getColumns(): FilterColumn[] {
     function cloneFilter(filterColumn: FilterColumn): any {
-      return Object.assign(Object.create(Object.getPrototypeOf(filterColumn.filter)), filterColumn.filter)
+      return Object.assign(Object.create(Object.getPrototypeOf(filterColumn.filter)), filterColumn.filter);
     }
     const filterColumns = (this.infrastructure? this.planningService.placeFilterColumns[this.infrastructure.id]: []) || [];
     let columns: FilterColumn[] = [{ name: 'Name', type: 'STR', attribute: '_placeName_' }];
@@ -122,7 +122,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
       };
       const filterInput = filterColumns.find(c => c.service === service);
       if (filterInput)
-        column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
+        column.filter = cloneFilter(filterInput);
       columns.push(column);
     })
     this.infrastructure!.placeFields?.forEach(field => {

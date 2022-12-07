@@ -52,22 +52,39 @@ abstract class Filter {
   };
   filter(value: any): boolean {
     if (!this.active) return false;
-    if (this.operator === Operator.gt)
-      return (value > this.value);
-    if (this.operator === Operator.lt)
-      return (value < this.value);
-    if (this.operator === Operator.eq)
-      return (value == this.value);
-    if (this.operator === Operator.gte)
-      return (value >= this.value);
-    if (this.operator === Operator.lte)
-      return (value <= this.value);
-    if (this.operator === Operator.in) {
-      if (!this.value) return true;
-      return this.value.split(', ').indexOf(value) >= 0;
+    switch (this.operator) {
+      case Operator.gt:
+        return (value > this.value);
+      case Operator.lt:
+        return (value < this.value);
+      case Operator.eq:
+        return (value == this.value);
+      case Operator.gte:
+        return (value >= this.value);
+      case Operator.lte:
+        return (value <= this.value);
+      case Operator.in:
+        if (!this.value) return true;
+        return this.value.split(',').indexOf(value) >= 0;
+      default:
+        return false;
     }
-    return false;
   };
+
+  getDescription(): string {
+    let val;
+    switch (this.operator) {
+      case Operator.in:
+        val = `(${this.value.split(',').length} Einträge)`;
+        break;
+      case Operator.contains:
+        val = `"${this.value}"`;
+        break;
+      default:
+        val = this.value;
+    }
+    return `${opText[this.operator]} ${val}`;
+  }
 }
 
 class StrFilter extends Filter {
@@ -205,13 +222,16 @@ export class FilterTableComponent implements OnInit {
     }
     const formConfig: any = {
       operator: new FormControl(column.filter.operator),
-      value: new FormControl('')
+      value: new FormControl(column.filter.value || ((column.type === 'NUM')? 0: ''))
     }
     if (column.type === 'CLA' || column.type === 'STR') {
-      const options = (column.type === 'CLA')? (column.filter as ClassFilter).classes: [...new Set(this._rows.map(r => r[col]))].sort();
+      // take classes as options or all unique strings that contain sth different than whitespaces
+      let options = (column.type === 'CLA')? (column.filter as ClassFilter).classes:
+        [...new Set(this._rows.map(r => r[col]))].filter(o => o && o.replace(/\s/g, "").length > 0).sort();
       context['options'] = options;
       const formArray = this.formBuilder.array([]);
-      options.forEach(o => formArray.push(new FormControl(false)));
+      // values of the checkboxes for possible options, restoring current settings by filtering options with filter
+      options.forEach(o => formArray.push(new FormControl(column.filter?.filter(o))));
       formConfig.options = formArray;
     }
     this.filterForm = this.formBuilder.group(formConfig);
@@ -236,7 +256,7 @@ export class FilterTableComponent implements OnInit {
       if (column.type === 'BOOL') value = value === '1';
       if (this.filterForm.value.operator === Operator.in) {
         const checked = context['options'].filter((o: any, i: number) => this.filterForm.value.options[i]);
-        value = checked.join(', ');
+        value = checked.join(',');
       }
       column.filter!.value = value;
       column.filter!.active = true;
