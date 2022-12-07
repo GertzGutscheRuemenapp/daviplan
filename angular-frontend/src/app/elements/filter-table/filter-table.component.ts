@@ -251,15 +251,22 @@ export class FilterTableComponent implements OnInit {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.filterForm.markAllAsTouched();
       if (this.filterForm.invalid) return;
-      column.filter!.operator = this.filterForm.value.operator;
-      let value = this.filterForm.value.value;
-      if (column.type === 'BOOL') value = value === '1';
-      if (this.filterForm.value.operator === Operator.in) {
-        const checked = context['options'].filter((o: any, i: number) => this.filterForm.value.options[i]);
-        value = checked.join(',');
+      if (this.filterForm.value.operator === '-1') {
+        column.filter!.active = false;
       }
-      column.filter!.value = value;
-      column.filter!.active = true;
+      else {
+        let value = this.filterForm.value.value;
+        if (column.type === 'BOOL') value = value === '1';
+        if (this.filterForm.value.operator === Operator.in) {
+          const checked = context['options'].filter((o: any, i: number) => this.filterForm.value.options[i]);
+          value = checked.join(',');
+        }
+        // no input > do nothing (keeping dialog open) ToDo: error message?
+        if (!value && value !== 0) return;
+        column.filter!.operator = this.filterForm.value.operator;
+        column.filter!.value = value;
+        column.filter!.active = true;
+      }
       this.emitChange();
       this.filterAndSort()
       dialogRef.close(true);
