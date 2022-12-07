@@ -27,6 +27,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
   @ViewChild('demandSetSelection') demandSetSelection?: MatSelectionList;
   isLoading$ = new BehaviorSubject<boolean>(false);
+  year?: number;
   years: number[] = [];
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
@@ -67,9 +68,10 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.onServiceChange();
       }
     })
+    this.demandRateSetPreview?.timeSlider?.valueChange.subscribe(year => this.year = year || undefined);
     this.setupDemandTypeCard();
     this.setupPropertiesCard();
-    this.setupDemandRateSetCard()
+    this.setupDemandRateSetCard();
   }
 
   setupDemandTypeCard(): void {
