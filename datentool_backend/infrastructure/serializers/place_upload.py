@@ -1,5 +1,6 @@
 from io import StringIO
 import os
+from distutils.util import strtobool
 from collections import OrderedDict
 from typing import Tuple
 import pandas as pd
@@ -318,7 +319,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         with ProtectedProcessManager(
                 user=request.user,
-                scope=getattr(serializer, 'scope', ProcessScope.INFRASTRUCTURE)) as ppm:
+                scope=getattr(self, 'scope', ProcessScope.INFRASTRUCTURE)) as ppm:
             try:
                 ppm.run(self.process_place_upload,
                         infrastructure_id, excel_file,
