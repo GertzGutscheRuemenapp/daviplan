@@ -7,7 +7,6 @@ from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework.fields import FileField, BooleanField
 
 from django.conf import settings
@@ -75,26 +74,3 @@ class StopTemplateSerializer(serializers.Serializer):
 
         content = open(fn, 'rb').read()
         return content
-
-    def read_excel_file(self, request) -> pd.DataFrame:
-        """read excelfile and return a dataframe"""
-        excel_file = request.FILES['excel_file']
-        variant = request.data.get('variant')
-
-        df = pd.read_excel(excel_file.file,
-                           sheet_name='Haltestellen',
-                           skiprows=[1])
-
-        # assert the stopnumers are unique
-        assert df['HstNr'].is_unique, 'Haltestellennummer ist nicht eindeutig'
-
-        # create points out of Lat/Lon and transform them to WebMercator
-        points = [Point(stop['Lon'], stop['Lat'], srid=4326).transform(3857, clone=True)
-                  for i, stop in df.iterrows()]
-
-        df2 = pd.DataFrame({'hstnr': df['HstNr'],
-                            'name': df['HstName'],
-                            'geom': points,
-                            'variant_id': variant,
-                            })
-        return df2

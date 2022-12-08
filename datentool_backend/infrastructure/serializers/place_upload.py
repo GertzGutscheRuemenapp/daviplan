@@ -1,18 +1,12 @@
-from io import StringIO
 import os
-from distutils.util import strtobool
 from collections import OrderedDict
-from typing import Tuple
 import pandas as pd
 import logging
 
 from django.conf import settings
 from django.db.models.fields import FloatField
-from django.core.exceptions import BadRequest
-from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import GeoFunc, Transform
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 
 from openpyxl.utils import get_column_letter, quote_sheetname
 from openpyxl import styles
@@ -20,18 +14,15 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from datentool_backend.site.models import SiteSetting
-from datentool_backend.area.models import FClass, FieldTypes
+from datentool_backend.area.models import FieldTypes
 from datentool_backend.infrastructure.models.places import (PlaceAttribute,
                                                             Place,
                                                             PlaceField,
                                                             Capacity)
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure)
-from datentool_backend.utils.crypto import decrypt
-from datentool_backend.utils.bkg_geocoder import BKGGeocoder
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
+from datentool_backend.utils.processes import ProcessScope
+
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Infrastructure.objects.all(),
@@ -307,228 +298,3 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         content = open(fn, 'rb').read()
         return content
-
-    def read_excel_file(self, request) -> pd.DataFrame:
-        """read excelfile and return a dataframe"""
-        excel_file = request.FILES['excel_file']
-        infrastructure_id = request.data.get('infrastructure')
-        run_sync = bool(strtobool(request.data.get('sync', 'False')))
-
-        if infrastructure_id is None:
-            raise Exception(f'Die ID der Infrastruktur muss im Formular mit übergeben werden.')
-
-        with ProtectedProcessManager(
-                user=request.user,
-                scope=getattr(self, 'scope', ProcessScope.INFRASTRUCTURE)) as ppm:
-            try:
-                ppm.run(self.process_place_upload,
-                        infrastructure_id, excel_file,
-                        self.logger, sync=run_sync)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({'message': 'Upload/Geocoding gestartet'},
-                        status=status.HTTP_202_ACCEPTED)
-
-
-    @staticmethod
-    def process_place_upload(infrastructure_id: int, excel_file: str, logger):
-        ProcessPlaceUpload(logger).process_place_upload(infrastructure_id, excel_file)
-
-
-class ProcessPlaceUpload:
-
-    def __init__(self, logger):
-        self.logger = logger
-
-    def process_place_upload(self, infrastructure_id: int, excel_file: str):
-        infra = Infrastructure.objects.get(pk=infrastructure_id)
-
-        # get the services and the place fields of the infrastructure
-        services = infra.service_set.all().values('id', 'has_capacity', 'name')
-        place_fields = infra.placefield_set.all().values('id',
-                                                         'name',
-                                                         'field_type',
-                                                         'field_type__ftype',
-                                                         'field_type__name',
-                                                         )
-
-        # get a mapping of the classifications
-        fclass_values = FClass.objects\
-            .filter(ftype__in=place_fields.values_list('field_type'))\
-            .values('ftype', 'id', 'value')
-
-        fclass_dict = {(fclass_value['ftype'], fclass_value['value']):
-                       fclass_value['id']
-                       for fclass_value in fclass_values}
-
-        # collect the places, attributes and capacities in lists
-        place_ids = []
-        place_attributes = []
-        capacities = []
-
-        # read the excel-file
-        df_places = pd.read_excel(excel_file.file,
-                           sheet_name='Standorte und Kapazitäten',
-                           skiprows=[1])\
-            .set_index('place_id')
-
-        # delete places that have no place_id in the excel-file
-        place_ids_in_excelfile = df_places.index[~pd.isna(df_places.index)]
-        places_to_delete = Place.objects.filter(infrastructure=infrastructure_id)\
-            .exclude(id__in=place_ids_in_excelfile)
-        n_elems_deleted, elems_deleted = places_to_delete.delete()
-        n_places_deleted = elems_deleted.get('datentool_backend.Place')
-        self.logger.info(f'{n_places_deleted or 0} bestehende Standorte gelöscht')
-
-        # get BKG-Geocoding-Key
-        site_settings = SiteSetting.load()
-        UUID = site_settings.bkg_password or None
-        bkg_error = ('Es wurde keine UUID für die Nutzung des BKG-'
-                     'Geokodierungsdienstes hinterlegt' if not UUID else '')
-        geocoder = None
-        if UUID:
-            try:
-                bkg_pass = decrypt(UUID)
-            except Exception:
-                bkg_error = ('Die UUID des BKG-Geokodierungsdienstes konnte '
-                             'nicht entschlüsselt werden. Vermutlich ist der '
-                             'hinterlegte Schlüssel (ENCRYPT_KEY) nicht valide '
-                             '(URL-safe base64-encoded 32-byte benötigt)')
-            else:
-                geocoder = BKGGeocoder(bkg_pass, crs='EPSG:3857')
-
-        # iterate over all places
-        n_new = 0
-        for place_id, place_row in df_places.iterrows():
-            if pd.isna(place_id):
-                place_id = None
-            # check if place_id exists, otherwise create it
-            try:
-                place = Place.objects.get(pk=place_id)
-            except Place.DoesNotExist:
-                place = Place()
-                n_new += 1
-
-            place_name = place_row['Name']
-            if pd.isna(place_name):
-                place_name = ''
-
-            #  do a geocoding, if no coordinates are provided
-            lon = place_row['Lon']
-            lat = place_row['Lat']
-            if pd.isna(lon) or pd.isna(lat):
-                if geocoder:
-                    # ToDo: handle auth errors ...
-                    self.logger.info('Geokodiere Adressen')
-                    res = self.geocode(geocoder, place_row)
-                    if res:
-                        lon, lat = res
-                        geom = Point(lon, lat, srid=3857)
-                    else:
-                        # ToDo: ????
-                        pass
-                else:
-                    raise ConnectionError(bkg_error)
-            else:
-                # create the geometry and transform to WebMercator
-                geom = Point(lon, lat, srid=4326)
-                geom.transform(3857)
-
-            # set the place columns
-            place.infrastructure = infra
-            place.name = place_name
-            place.geom = geom
-            place.save()
-            place_ids.append(place.id)
-
-            # collect the place_attributes
-            for place_field in place_fields:
-                place_field_name = place_field['name']
-                attr = place_row.get(place_field_name)
-                if attr and not pd.isna(attr):
-                    str_value, num_value, class_value = None, None, None
-                    ftype = place_field['field_type__ftype']
-                    if ftype == 'STR':
-                        str_value = attr
-                    elif ftype == 'NUM':
-                        num_value = float(attr)
-                    else:
-                        try:
-                            class_value = fclass_dict[(place_field['field_type'],
-                                                       attr)]
-                        except KeyError:
-                            fieldtype_name = place_field['field_type__name']
-                            msg = f'Wert {attr} existiert nicht für Klassifizierung '\
-                                f'{fieldtype_name} in Spalte {place_field_name}'
-                            raise BadRequest(msg)
-                    attribute = (place.id, place_field['id'], str_value, num_value, class_value)
-                    place_attributes.append(attribute)
-
-            # collect the capacities
-            for service in services:
-                service_name = service['name']
-                if service['has_capacity']:
-                    col = f'Kapazität für Leistung {service_name}'
-                else:
-                    col = f'Bietet Leistung {service_name} an'
-                capacity = place_row.get(col)
-                if capacity is not None and not pd.isna(capacity):
-                    capacities.append((place.id, service['id'], capacity, 0, 99999999))
-
-        # upload the place-attributes
-        df_place_attributes = pd.DataFrame(place_attributes, columns=[
-            'place_id', 'field_id', 'str_value', 'num_value', 'class_value_id'
-        ])
-
-        df_place_attributes['class_value_id'] = df_place_attributes['class_value_id'].astype('Int64')
-
-        existing_place_attrs = PlaceAttribute.objects.filter(place_id__in=place_ids)
-        existing_place_attrs.delete()
-
-        if len(df_place_attributes):
-            with StringIO() as file:
-                df_place_attributes.to_csv(file, index=False)
-                file.seek(0)
-                PlaceAttribute.copymanager.from_csv(
-                    file,
-                    drop_constraints=False, drop_indexes=False,
-                )
-
-        # upload the capacities
-        df_capacities = pd.DataFrame(capacities,
-                                     columns=['place_id', 'service_id', 'capacity',
-                                              'from_year', 'to_year'])
-
-        existing_capacities = Capacity.objects.filter(place_id__in=place_ids)
-        existing_capacities.delete()
-
-        if len(df_capacities):
-            with StringIO() as file:
-                df_capacities.to_csv(file, index=False)
-                file.seek(0)
-                Capacity.copymanager.from_csv(
-                    file,
-                    drop_constraints=False, drop_indexes=False,
-                )
-        self.logger.info(f'{len(df_places)} Einträge bearbeitet')
-        if n_new > 0:
-            self.logger.info(f'davon {n_new} als neue Orte hinzugefügt')
-            self.logger.info('ACHTUNG: Für die neuen Orte muss die '
-                             'Erreichbarkeit neu berechnet werden!')
-
-    def geocode(self, geocoder: BKGGeocoder, place_row: dict) -> Tuple[float, float]:
-        kwargs = {
-            'ort': place_row.Ort,
-            'plz': place_row.PLZ,
-            'strasse': place_row.Straße,
-            'haus': place_row.Hausnummer,
-        }
-        res = geocoder.query(max_retries=2, **kwargs)
-        if res.status_code != 200:
-            return
-        features = res.json()['features']
-        if not features:
-            return
-        return features[0]['geometry']['coordinates']

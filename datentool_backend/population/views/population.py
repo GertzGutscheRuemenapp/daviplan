@@ -17,7 +17,7 @@ from django.core.exceptions import PermissionDenied, BadRequest
 from rest_framework.response import Response
 
 from datentool_backend.utils.crypto import decrypt
-from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
+from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
 from datentool_backend.utils.pop_aggregation import (
@@ -386,47 +386,3 @@ class PopulationViewSet(viewsets.ModelViewSet):
         msg = ('Abfrage der Bevölkerungsdaten von der Regionalstatistik '
                'erfolgreich')
         logger.info(msg)
-
-
-class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
-    queryset = PopulationEntry.objects.all()
-    serializer_class = PopulationEntrySerializer
-    serializer_action_classes = {'create_template': PopulationTemplateSerializer,
-                                 'upload_template': PopulationTemplateSerializer,
-                                 }
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filterset_fields = ['population']
-
-    @extend_schema(description='Upload Population Template',
-                   request=inline_serializer(
-                       name='PopulationUploadTemplateSerializer',
-                       fields={
-                           'area_level': area_level_id_serializer,
-                           'years': years_serializer,
-                           'prognosis': prognosis_id_serializer,
-                           'drop_constraints': drop_constraints
-                       }
-                       ),
-                   )
-    @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccess | CanEditBasedata])
-    def create_template(self, request, **kwargs):
-        area_level_id = request.data.get('area_level')
-        prognosis_id = request.data.get('prognosis')
-        years = request.data.get('years')
-        if not years:
-            msg = f'Kein Jahr ausgewählt, daher kann kein Template erzeugt werden.'
-            logger.error(msg)
-            raise BadRequest(msg)
-        return super().create_template(request,
-                                       area_level_id=area_level_id,
-                                       years=years,
-                                       prognosis_id=prognosis_id,
-                                       )
-
-    @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccess | CanEditBasedata],
-            parser_classes=[CamelCaseMultiPartParser])
-    def upload_template(self, request):
-        """Upload the filled out Stops-Template"""
-        return super().upload_template(request)

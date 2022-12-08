@@ -2,6 +2,10 @@ import logging
 logger = logging.getLogger('routing')
 
 from typing import List
+from tempfile import mktemp
+from matrixconverters.read_ptv import ReadPTVMatrix
+
+import pandas as pd
 
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import viewsets, status
@@ -21,7 +25,10 @@ from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
                                                           MatrixPlaceStopRouter,
                                                           TravelTimeRouterMixin,
                                                           )
-from datentool_backend.utils.excel_template import ExcelTemplateMixin
+from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
+                                                    write_template_df,
+                                                    ColumnError,
+                                                    )
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  run_sync, )
@@ -87,6 +94,56 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
         return super().list(request, *args, **kwargs)
 
 
+    def get_read_excel_params(self, request) -> Dict:
+        params = dict()
+        params['excel_file'] = request.FILES['excel_file']
+        params['variant_id'] = request.data.get('variant')
+        return params
+
+    @staticmethod
+    def process_excelfile(df: pd.DataFrame,
+                          queryset,
+                          logger,
+                          excel_file,
+                          variant_id,
+                          drop_constraints=False,
+                          ):
+        # read excelfile
+        try:
+            logger.info('Lese Excel-Datei')
+            df = read_excel_stopfile(excel_file, variant_id)
+        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
+            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
+            logger.error(msg)
+            return Response({'Fehler': msg},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # write_df
+        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+
+
+def read_excel_stopfile(excel_file, variant) -> pd.DataFrame:
+    """read excelfile and return a dataframe"""
+
+    df = pd.read_excel(excel_file.file,
+                       sheet_name='Haltestellen',
+                       skiprows=[1])
+
+    # assert the stopnumers are unique
+    assert df['HstNr'].is_unique, 'Haltestellennummer ist nicht eindeutig'
+
+    # create points out of Lat/Lon and transform them to WebMercator
+    points = [Point(stop['Lon'], stop['Lat'], srid=4326).transform(3857, clone=True)
+              for i, stop in df.iterrows()]
+
+    df2 = pd.DataFrame({'hstnr': df['HstNr'],
+                        'name': df['HstName'],
+                        'geom': points,
+                        'variant_id': variant,
+                        })
+    return df2
+
+
 class MatrixStopStopViewSet(ExcelTemplateMixin,
                             viewsets.ModelViewSet):
     serializer_class = MatrixStopStopSerializer
@@ -130,6 +187,74 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
         return super().upload_template(request)
+
+    def get_read_excel_params(self, request) -> Dict:
+        params = dict()
+        params['excel_or_visum_file'] = request.FILES['excel_or_visum_file']
+        params['variant_id'] = int(request.data.get('variant'))
+        return params
+
+    @staticmethod
+    def process_excelfile(df: pd.DataFrame,
+                          queryset,
+                          logger,
+                          excel_file,
+                          variant_id,
+                          drop_constraints=False,
+                          ):
+        # read excelfile
+        try:
+            logger.info('Lese Excel-Datei')
+            df = read_traveltime_matrix(excel_or_visum_file, variant_id)
+        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
+            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
+            logger.error(msg)
+            return Response({'Fehler': msg},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # write_df
+        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+
+
+
+def read_traveltime_matrix(excel_or_visum_file, variant_id) -> pd.DataFrame:
+    """read excelfile and return a dataframe"""
+
+    try:
+        df = pd.read_excel(excel_or_visum_file.file,
+                           sheet_name='Reisezeit',
+                           skiprows=[1])
+
+    except ValueError as e:
+        # read PTV-Matrix
+        fn = mktemp(suffix='.mtx')
+        with open(fn, 'wb') as tfile:
+            tfile.write(excel_or_visum_file.file.read())
+        da = ReadPTVMatrix(fn)
+        os.remove(fn)
+
+        df = da['matrix'].to_dataframe()
+        df = df.loc[df['matrix']<999999]
+        df.index.rename(['from_stop', 'to_stop'], inplace=True)
+        df.rename(columns={'matrix': 'minutes',}, inplace=True)
+        df.reset_index(inplace=True)
+
+    # assert the stopnumbers are in stops
+    cols = ['id', 'name', 'hstnr']
+    df_stops = pd.DataFrame(Stop.objects.filter(variant=variant).values(*cols),
+                            columns=cols)\
+        .set_index('hstnr')
+    assert df['from_stop'].isin(df_stops.index).all(), 'Von-Haltestelle nicht in Haltestellennummern'
+    assert df['to_stop'].isin(df_stops.index).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
+
+    df = df\
+        .merge(df_stops['id'].rename('from_stop_id'),
+                  left_on='from_stop', right_index=True)\
+        .merge(df_stops['id'].rename('to_stop_id'),
+                  left_on='to_stop', right_index=True)
+
+    df = df[['from_stop_id', 'to_stop_id', 'minutes']]
+    return df
 
 
 class RouterViewSet(viewsets.ModelViewSet):

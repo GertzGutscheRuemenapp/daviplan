@@ -1,7 +1,6 @@
 import os
 from typing import List
 import pandas as pd
-from openpyxl.reader.excel import load_workbook
 
 from django.core.exceptions import BadRequest
 from django.conf import settings
@@ -19,7 +18,6 @@ from datentool_backend.population.models import (Population, Prognosis,
                                                  PopulationEntry)
 from datentool_backend.utils.pop_aggregation import (
         disaggregate_population, aggregate_many)
-from datentool_backend.utils.excel_template import ColumnError
 from datentool_backend.utils.processes import ProcessScope
 
 import logging
@@ -69,8 +67,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
 
         # create Row-Multiindex for Areas with key and label
         areas = Area.annotated_qs(area_level)
-        key_attr = self.get_area_level_key(area_level)
-        label_attr = self.get_area_level_label(area_level)
+        key_attr = get_area_level_key(self.logger, area_level)
+        label_attr = get_area_level_label(self.logger, area_level)
 
         keys = ['id', key_attr, label_attr]
         idx_areas = pd.MultiIndex.from_frame(pd.DataFrame(areas.values(*keys), columns=keys))
@@ -185,99 +183,24 @@ class PopulationTemplateSerializer(serializers.Serializer):
         prognosis_id = request.data.get('prognosis', None)
         return PopulationEntry.objects.filter(population__prognosis_id=prognosis_id)
 
-    def read_excel_file(self, request) -> pd.DataFrame:
-        """read excelfile and return a dataframe"""
-        excel_file = request.FILES['excel_file']
-        prognosis_id = request.data.get('prognosis')
 
-        columns = ['population_id', 'area_id', 'gender_id',
-                   'age_group_id', 'value']
-        df = pd.DataFrame(columns=columns)
+def get_area_level_label(logger, area_level: AreaLevel) -> str:
+    try:
+        label_attr = AreaField.objects.get(area_level=area_level,
+                                           is_label=True).name
+    except AreaField.DoesNotExist:
+        msg = f'kein Label-Feld für Gebietseinheit {area_level.name} definiert'
+        logger.error(msg)
+        raise BadRequest(msg)
+    return label_attr
 
-        wb = load_workbook(excel_file.file)
-        meta = wb['meta']
-        area_level = AreaLevel.objects.get(is_default_pop_level=True)
 
-        areas = Area.annotated_qs(area_level)
-        key_attr = self.get_area_level_key(area_level)
-        df_areas = pd.DataFrame(areas.values(key_attr, 'id'))\
-            .set_index(key_attr)\
-            .rename(columns={'id': 'area_id', })
-
-        df_genders = pd.DataFrame(Gender.objects.values('id', 'name'))\
-            .set_index('name')\
-            .rename(columns={'id': 'gender_id', })
-        df_agegroups = pd.DataFrame([[ag.id, ag.name] for
-                                     ag in AgeGroup.objects.all()],
-                                    columns=['age_group_id', 'Altersgruppe'])\
-            .set_index('Altersgruppe')
-
-        n_years = meta['B2'].value
-        years = [meta.cell(3, n).value for n in range(2, n_years + 2)]
-        populations = []
-        for y in years:
-            if not str(y) in wb.sheetnames:
-                self.logger.info(f'Excel-Blatt für Jahr {y} nicht vorhanden')
-                continue
-            year, created = Year.objects.get_or_create(year=y)
-            population, created = Population.objects.get_or_create(
-                prognosis_id=prognosis_id,
-                year=year,
-            )
-            try:
-                # get the values and unpivot the data
-                df_pop = pd.read_excel(excel_file.file,
-                                       sheet_name=str(y),
-                                       header=[1, 2, 3, 4],
-                                       dtype={key_attr: object,},
-                                       index_col=[0, 1])\
-                    .stack(level=[0, 1, 2, 3])\
-                    .reset_index()
-                df_pop = df_pop.drop(['gender_id', 'age_group_id'], axis=1)
-                df_pop = df_pop\
-                    .merge(df_areas, left_on=key_attr, right_index=True)\
-                    .merge(df_genders, left_on='Geschlecht', right_index=True)\
-                    .merge(df_agegroups, left_on='Altersgruppe', right_index=True)
-
-                df_pop.rename(columns={0: 'value',}, inplace=True)
-                df_pop['population_id'] = population.id
-            except KeyError as e:
-                raise ColumnError(f'Spalte {e} wurde nicht gefunden.')
-            populations.append(population)
-            df = pd.concat([df, df_pop[columns]])
-
-        return df
-
-    def get_area_level_key(self, area_level: AreaLevel) -> str:
-        try:
-            key_attr = AreaField.objects.get(area_level=area_level,
-                                             is_key=True).name
-        except AreaField.DoesNotExist:
-            msg = f'Template konnte nicht erstellt werden, weil kein Schlüsselfeld für die Gebietseinheit {area_level.name} definiert ist.'
-            self.logger.error(msg)
-            raise BadRequest(msg)
-        return key_attr
-
-    def get_area_level_label(self, area_level: AreaLevel) -> str:
-        try:
-            label_attr = AreaField.objects.get(area_level=area_level,
-                                               is_label=True).name
-        except AreaField.DoesNotExist:
-            msg = f'kein Label-Feld für Gebietseinheit {area_level.name} definiert'
-            self.logger.error(msg)
-            raise BadRequest(msg)
-        return label_attr
-
-    @staticmethod
-    def post_processing(dataframe, drop_constraints=False,
-                        logger=logging.getLogger('population')):
-        populations = Population.objects.filter(
-            id__in=dataframe['population_id'].unique())
-        logger.info('Disaggregiere Bevölkerungsdaten')
-        for i, population in enumerate(populations):
-            disaggregate_population(population, use_intersected_data=True,
-                                    drop_constraints=drop_constraints)
-            logger.info(f'{i + 1}/{len(populations)}')
-        logger.info('Aggregiere Bevölkerungsdaten')
-        aggregate_many(AreaLevel.objects.all(), populations,
-                       drop_constraints=drop_constraints)
+def get_area_level_key(logger, area_level: AreaLevel) -> str:
+    try:
+        key_attr = AreaField.objects.get(area_level=area_level,
+                                         is_key=True).name
+    except AreaField.DoesNotExist:
+        msg = f'Template konnte nicht erstellt werden, weil kein Schlüsselfeld für die Gebietseinheit {area_level.name} definiert ist.'
+        logger.error(msg)
+        raise BadRequest(msg)
+    return key_attr
