@@ -316,7 +316,7 @@ export class ScenarioMenuComponent implements OnInit {
               panelClass: 'absolute',
               data: {
                 title: 'Nachfragequoten',
-                subtitle: `Leistung "${service?.name}" / Set "${demandRateSet?.name}"`,
+                subtitle: `Leistung "${service?.name}" / Variante "${demandRateSet?.name}"`,
                 // confirmButtonText: $localize`umbenennen`,
                 template: this.demandQuotaTemplate,
                 context: {
