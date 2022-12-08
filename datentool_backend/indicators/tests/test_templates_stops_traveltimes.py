@@ -187,7 +187,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'drop_constraints': False,
             'sync': True,
         }
-        res = self.client.post(url, data, extra=dict(format='multipart/form-data'), varant=33)
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'), variant=33)
         self.assertContains(res,
                             'Haltestelle nicht in Haltestellennummern',
                             status_code=406)

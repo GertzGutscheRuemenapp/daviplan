@@ -1,5 +1,7 @@
+from abc import abstractstaticmethod
 from io import StringIO
 from distutils.util import strtobool
+from typing import Dict
 import sys
 import traceback
 import logging
@@ -83,76 +85,83 @@ class ExcelTemplateMixin:
             request.data.get('drop_constraints', 'False')))
         run_sync = bool(strtobool(request.data.get('sync', 'False')))
 
-        try:
-            logger.info('Lese Excel-Datei')
-            df = serializer.read_excel_file(request, **kwargs)
-        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
-            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
-            logger.error(msg)
-            return Response({'Fehler': msg},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
         with ProtectedProcessManager(
             user=request.user,
             scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
+            params = self.get_read_excel_params(request)
 
             # workaround: if post requesting is required, do all the writing
             # of data before synchronously
             # did not manage to pass both into async
-            if hasattr(serializer, 'post_processing'):
-                self.write_template_df(df, queryset, logger,
-                                       drop_constraints=drop_constraints)
-                try:
-                    ppm.run(serializer.post_processing, df,
-                            drop_constraints=drop_constraints, sync=run_sync)
-                except Exception as e:
-                    return Response({'message': str(e)},
-                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
-            else:
-                try:
-                    ppm.run(self.write_template_df, df, queryset, logger,
-                            drop_constraints=drop_constraints, sync=run_sync)
-                except Exception as e:
-                    return Response({'message': str(e)},
-                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
+            try:
+                ppm.run(self.process_excelfile,
+                        queryset,
+                        logger,
+                        drop_constraints=drop_constraints,
+                        sync=run_sync,
+                        **params)
+            except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
+                msg = str(e)
+                logger.error(msg)
+                return Response({'Fehler': msg},
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'message': 'Upload gestartet'},
                         status=status.HTTP_202_ACCEPTED)
 
-    @staticmethod
-    def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
-        model = queryset.model
-        manager = model.copymanager
-        with transaction.atomic():
+    def get_read_excel_params(self, request) -> Dict:
+        params = dict()
+        return params
+
+
+    @abstractstaticmethod
+    def process_excelfile(queryset,
+                          logger,
+                          drop_constraints=False,
+                          **params):
+        # read excelfile
+        # write_df
+        # postprocess (optional)
+        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+
+
+def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
+    model = queryset.model
+    manager = model.copymanager
+    with transaction.atomic():
+        if drop_constraints:
+            manager.drop_constraints()
+            manager.drop_indexes()
+        if (len(queryset)):
+            logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
+            queryset.delete()
+        try:
+            if len(df):
+                logger.info('Schreibe Daten in Datenbank')
+                with StringIO() as file:
+                    df.to_csv(file, index=False)
+                    file.seek(0)
+                    model.copymanager.from_csv(
+                        file,
+                        drop_constraints=False, drop_indexes=False,
+                    )
+
+        except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            msg = repr(traceback.format_tb(exc_traceback))
+            logger.error(msg)
+            raise Exception(msg)
+
+        finally:
+            # recreate indices
             if drop_constraints:
-                manager.drop_constraints()
-                manager.drop_indexes()
-            if (len(queryset)):
-                logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
-                queryset.delete()
-            try:
-                if len(df):
-                    logger.info('Schreibe Daten in Datenbank')
-                    with StringIO() as file:
-                        df.to_csv(file, index=False)
-                        file.seek(0)
-                        model.copymanager.from_csv(
-                            file,
-                            drop_constraints=False, drop_indexes=False,
-                        )
+                manager.restore_constraints()
+                manager.restore_indexes()
 
-            except Exception as e:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                msg = repr(traceback.format_tb(exc_traceback))
-                logger.error(msg)
-                raise Exception(msg)
+    if (len(df)):
+        msg = f'{len(df)} Einträge geschrieben'
+        logger.info(msg)
 
-            finally:
-                # recreate indices
-                if drop_constraints:
-                    manager.restore_constraints()
-                    manager.restore_indexes()
-
-        if (len(df)):
-            msg = f'{len(df)} Einträge geschrieben'
-            logger.info(msg)

@@ -132,8 +132,8 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         res = self.client.post(url, data,
                                extra=dict(format='multipart/form-data'))
         # modified excel-Testfile with non-matching-classifications should
-        # raise a 400-response
-        self.assert_http_400_bad_request(res, msg=res.content)
+        # raise a 406-response
+        self.assert_http_406_not_acceptable(res, msg=res.content)
 
     def test_upload_place_template(self):
 
