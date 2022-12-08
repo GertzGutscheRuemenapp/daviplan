@@ -1,7 +1,8 @@
 import logging
 logger = logging.getLogger('routing')
 
-from typing import List
+import os
+from typing import List, Dict
 from tempfile import mktemp
 from matrixconverters.read_ptv import ReadPTVMatrix
 
@@ -32,7 +33,6 @@ from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  run_sync, )
-from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.utils.routers import OSRMRouter
@@ -50,9 +50,7 @@ from datentool_backend.modes.models import (ModeVariant,
                                             Mode,
                                             )
 
-from datentool_backend.indicators.serializers import (StopSerializer,
-                                                      StopTemplateSerializer,
-                                                      MatrixStopStopTemplateSerializer,
+from datentool_backend.indicators.serializers import (MatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
                                                       MatrixStopStopSerializer
                                                       )
@@ -67,81 +65,6 @@ air_distance_routing = serializers.BooleanField(
     label='use air distance for routing',
     help_text='Set to True for air-distance routing',
     required=False)
-
-
-class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Stop.objects.all()
-    serializer_class = StopSerializer
-    serializer_action_classes = {'upload_template': StopTemplateSerializer,
-                                 'create_template': StopTemplateSerializer,
-                                 }
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-    def get_queryset(self):
-        variant = self.request.data.get(
-            'variant', self.request.query_params.get('variant'))
-        if variant is not None:
-            return Stop.objects.filter(variant=variant)
-        return Stop.objects.all()
-
-    @extend_schema(
-            parameters=[
-                OpenApiParameter(name='variant', description='mode_variant_id',
-                                 required=True, type=int),
-            ],
-        )
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-
-    def get_read_excel_params(self, request) -> Dict:
-        params = dict()
-        params['excel_file'] = request.FILES['excel_file']
-        params['variant_id'] = request.data.get('variant')
-        return params
-
-    @staticmethod
-    def process_excelfile(df: pd.DataFrame,
-                          queryset,
-                          logger,
-                          excel_file,
-                          variant_id,
-                          drop_constraints=False,
-                          ):
-        # read excelfile
-        try:
-            logger.info('Lese Excel-Datei')
-            df = read_excel_stopfile(excel_file, variant_id)
-        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
-            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
-            logger.error(msg)
-            return Response({'Fehler': msg},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        # write_df
-        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
-
-
-def read_excel_stopfile(excel_file, variant) -> pd.DataFrame:
-    """read excelfile and return a dataframe"""
-
-    df = pd.read_excel(excel_file.file,
-                       sheet_name='Haltestellen',
-                       skiprows=[1])
-
-    # assert the stopnumers are unique
-    assert df['HstNr'].is_unique, 'Haltestellennummer ist nicht eindeutig'
-
-    # create points out of Lat/Lon and transform them to WebMercator
-    points = [Point(stop['Lon'], stop['Lat'], srid=4326).transform(3857, clone=True)
-              for i, stop in df.iterrows()]
-
-    df2 = pd.DataFrame({'hstnr': df['HstNr'],
-                        'name': df['HstName'],
-                        'geom': points,
-                        'variant_id': variant,
-                        })
-    return df2
 
 
 class MatrixStopStopViewSet(ExcelTemplateMixin,
@@ -195,22 +118,15 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         return params
 
     @staticmethod
-    def process_excelfile(df: pd.DataFrame,
-                          queryset,
+    def process_excelfile(queryset,
                           logger,
-                          excel_file,
+                          excel_or_visum_file,
                           variant_id,
                           drop_constraints=False,
                           ):
         # read excelfile
-        try:
-            logger.info('Lese Excel-Datei')
-            df = read_traveltime_matrix(excel_or_visum_file, variant_id)
-        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
-            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
-            logger.error(msg)
-            return Response({'Fehler': msg},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        logger.info('Lese Excel-Datei')
+        df = read_traveltime_matrix(excel_or_visum_file, variant_id)
 
         # write_df
         write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
@@ -241,7 +157,7 @@ def read_traveltime_matrix(excel_or_visum_file, variant_id) -> pd.DataFrame:
 
     # assert the stopnumbers are in stops
     cols = ['id', 'name', 'hstnr']
-    df_stops = pd.DataFrame(Stop.objects.filter(variant=variant).values(*cols),
+    df_stops = pd.DataFrame(Stop.objects.filter(variant=variant_id).values(*cols),
                             columns=cols)\
         .set_index('hstnr')
     assert df['from_stop'].isin(df_stops.index).all(), 'Von-Haltestelle nicht in Haltestellennummern'

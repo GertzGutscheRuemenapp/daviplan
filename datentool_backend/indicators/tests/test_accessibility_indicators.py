@@ -8,7 +8,7 @@ from datentool_backend.api_test import LoginTestCase
 
 from datentool_backend.user.factories import ProfileFactory
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
-from datentool_backend.indicators.views.transit import MatrixCellPlaceRouter
+from datentool_backend.indicators.views.routing import MatrixCellPlaceRouter
 from datentool_backend.modes.factories import ModeVariantFactory, Mode, ModeVariant
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Capacity

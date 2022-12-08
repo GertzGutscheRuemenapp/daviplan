@@ -1,9 +1,7 @@
-from django.db import models, transaction
-import os
+from django.db import models
 
 from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin, )
-from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.infrastructure.models.infrastructures import Infrastructure
 
 

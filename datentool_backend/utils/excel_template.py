@@ -1,6 +1,7 @@
 from abc import abstractstaticmethod
 from io import StringIO
 from distutils.util import strtobool
+from typing import Dict
 import sys
 import traceback
 import logging
@@ -84,17 +85,6 @@ class ExcelTemplateMixin:
             request.data.get('drop_constraints', 'False')))
         run_sync = bool(strtobool(request.data.get('sync', 'False')))
 
-        try:
-            logger.info('Lese Excel-Datei')
-            excel_file = request.FILES['excel_file']
-
-            df = serializer.read_excel_file(request, **kwargs)
-        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
-            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
-            logger.error(msg)
-            return Response({'Fehler': msg},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
         with ProtectedProcessManager(
             user=request.user,
             scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
@@ -110,6 +100,11 @@ class ExcelTemplateMixin:
                         drop_constraints=drop_constraints,
                         sync=run_sync,
                         **params)
+            except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
+                msg = str(e)
+                logger.error(msg)
+                return Response({'Fehler': msg},
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -123,10 +118,10 @@ class ExcelTemplateMixin:
 
 
     @abstractstaticmethod
-    def process_excelfile(df: pd.DataFrame,
-                                 queryset,
-                                 logger,
-                                 drop_constraints=False):
+    def process_excelfile(queryset,
+                          logger,
+                          drop_constraints=False,
+                          **params):
         # read excelfile
         # write_df
         # postprocess (optional)

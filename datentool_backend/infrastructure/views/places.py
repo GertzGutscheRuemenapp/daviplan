@@ -1,3 +1,4 @@
+from typing import Dict, Tuple
 from io import StringIO
 import logging
 logger = logging.getLogger('infrastructure')
@@ -161,25 +162,17 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
         return params
 
     @staticmethod
-    def process_excelfile(df: pd.DataFrame,
-                          queryset,
+    def process_excelfile(queryset,
                           logger,
                           excel_file,
                           infrastructure_id,
                           drop_constraints=False,
                           ):
         # read excelfile
-        if infrastructure_id is None:
-            raise Exception(f'Die ID der Infrastruktur muss im Formular mit übergeben werden.')
-        'Upload/Geocoding gestartet'
-        try:
-            logger.info('Lese Excel-Datei')
-            df = read_excel_file(excel_file, infrastructure_id)
-        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
-            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
-            logger.error(msg)
-            return Response({'Fehler': msg},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        assert infrastructure_id is not None, 'Die ID der Infrastruktur muss im Formular mit übergeben werden.'
+
+        logger.info('Lese Excel-Datei')
+        read_excel_file(excel_file, infrastructure_id)
 
         # write_df is skipped, because data is uploaded directly
 
@@ -305,7 +298,7 @@ def read_excel_file(excel_file, infrastructure_id: int):
                         fieldtype_name = place_field['field_type__name']
                         msg = f'Wert {attr} existiert nicht für Klassifizierung '\
                             f'{fieldtype_name} in Spalte {place_field_name}'
-                        raise BadRequest(msg)
+                        raise ColumnError(msg)
                 attribute = (place.id, place_field['id'], str_value, num_value, class_value)
                 place_attributes.append(attribute)
 

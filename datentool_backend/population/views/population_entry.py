@@ -1,24 +1,17 @@
+from typing import Dict
 import pandas as pd
-import math
-from io import StringIO
-from django.http.request import QueryDict
-from django_filters import rest_framework as filters
-from django.db.models import Max, Min
 
 from openpyxl.reader.excel import load_workbook
 
 from drf_spectacular.utils import (extend_schema,
-                                   OpenApiResponse,
                                    inline_serializer)
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db import transaction
-from django.core.exceptions import PermissionDenied, BadRequest
+from django.core.exceptions import BadRequest
 from rest_framework.response import Response
 
-from datentool_backend.utils.crypto import decrypt
 from datentool_backend.utils.excel_template import (ColumnError,
                                                     write_template_df,
                                                     ExcelTemplateMixin)
@@ -26,29 +19,18 @@ from datentool_backend.utils.excel_template import (ColumnError,
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
 from datentool_backend.utils.pop_aggregation import (
-    intersect_areas_with_raster, aggregate_population, aggregate_many,
+    aggregate_many,
     disaggregate_population)
-from datentool_backend.utils.regionalstatistik import Regionalstatistik
 from datentool_backend.population.models import (
-    PopulationRaster,
-    Prognosis,
     Population,
+    Gender,
     PopulationEntry,
-    RasterCellPopulationAgeGender,
-    AreaCell,
     Year
 )
 
-from datentool_backend.demand.constants import RegStatAgeGroups, regstatgenders
 from datentool_backend.demand.models import AgeGroup
-from datentool_backend.utils.serializers import (MessageSerializer,
-                                                 use_intersected_data,
-                                                 drop_constraints,
-                                                 area_level)
+from datentool_backend.utils.serializers import drop_constraints
 from datentool_backend.population.serializers import (
-    PrognosisSerializer,
-    PopulationSerializer,
-    PopulationDetailSerializer,
     PopulationEntrySerializer,
     PopulationTemplateSerializer,
     prognosis_id_serializer,
@@ -56,10 +38,7 @@ from datentool_backend.population.serializers import (
     years_serializer,
     get_area_level_key,
 )
-from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
-from datentool_backend.utils.processes import (ProcessScope,
-                                               ProtectedProcessManager)
 
 import logging
 
@@ -116,22 +95,15 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
         return params
 
     @staticmethod
-    def process_excelfile(df: pd.DataFrame,
-                          queryset,
+    def process_excelfile(queryset,
                           logger,
                           excel_file,
                           prognosis_id,
                           drop_constraints=False,
                    ):
         # read excelfile
-        try:
-            logger.info('Lese Excel-Datei')
-            df = read_excel_file(excel_file, prognosis_id)
-        except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
-            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
-            logger.error(msg)
-            return Response({'Fehler': msg},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        logger.info('Lese Excel-Datei')
+        df = read_excel_file(excel_file, prognosis_id)
 
         # write_df
         write_template_df(df, queryset, logger, drop_constraints=drop_constraints)

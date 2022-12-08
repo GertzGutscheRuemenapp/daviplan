@@ -10,7 +10,6 @@ from rest_framework import serializers
 from rest_framework.fields import FileField, BooleanField
 
 from django.conf import settings
-from django.contrib.gis.geos import Point
 
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.indicators.models import Stop
