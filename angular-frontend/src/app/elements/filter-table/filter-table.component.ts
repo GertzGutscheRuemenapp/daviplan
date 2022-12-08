@@ -4,9 +4,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { Service } from "../../rest-interfaces";
 
-// type Operator = '>' | '<' | '=' | '>=' | '<=';
-
-enum Operator {
+export enum FilterOperator {
   gt = '>',
   lt = '<',
   eq = '=',
@@ -15,6 +13,8 @@ enum Operator {
   in = 'in',
   contains = 'contains'
 }
+
+export type ColumnFilterType = 'CLA' | 'NUM' | 'STR' | 'BOOL';
 
 const opText: Record<any, string> = {
   '>': 'größer' ,
@@ -27,22 +27,22 @@ const opText: Record<any, string> = {
 }
 
 export interface FilterColumn {
-  name: string,
-  attribute?: string,
-  service?: Service,
-  type: 'CLA' | 'NUM' | 'STR' | 'BOOL',
-  classes?: string[],
-  filter?: Filter,
-  unit?: string
+  id?: string | number;
+  name: string;
+  type: ColumnFilterType;
+  classes?: string[];
+  filter?: ColumnFilter;
+  unit?: string;
+  changed: boolean;
 }
 
-abstract class Filter {
-  operator: Operator;
+export abstract class ColumnFilter {
+  operator: FilterOperator;
   active: boolean;
-  name = 'Filter';
+  name = 'ColumnFilter';
   value?: any;
-  allowedOperators: Operator[] = Object.values(Operator);
-  constructor(operator: Operator = Operator.eq, active = false) {
+  allowedOperators: FilterOperator[] = Object.values(FilterOperator);
+  constructor(operator: FilterOperator = FilterOperator.eq, active = false) {
     this.operator = operator;
     this.active = active;
   }
@@ -51,19 +51,19 @@ abstract class Filter {
     return values.map(v => this.filter(v));
   };
   filter(value: any): boolean {
-    if (!this.active) return false;
+    if (!this.active) return true;
     switch (this.operator) {
-      case Operator.gt:
+      case FilterOperator.gt:
         return (value > this.value);
-      case Operator.lt:
+      case FilterOperator.lt:
         return (value < this.value);
-      case Operator.eq:
+      case FilterOperator.eq:
         return (value == this.value);
-      case Operator.gte:
+      case FilterOperator.gte:
         return (value >= this.value);
-      case Operator.lte:
+      case FilterOperator.lte:
         return (value <= this.value);
-      case Operator.in:
+      case FilterOperator.in:
         if (!this.value) return true;
         return this.value.split(',').indexOf(value) >= 0;
       default:
@@ -74,10 +74,10 @@ abstract class Filter {
   getDescription(): string {
     let val;
     switch (this.operator) {
-      case Operator.in:
+      case FilterOperator.in:
         val = `(${this.value.split(',').length} Einträge)`;
         break;
-      case Operator.contains:
+      case FilterOperator.contains:
         val = `"${this.value}"`;
         break;
       default:
@@ -87,33 +87,33 @@ abstract class Filter {
   }
 }
 
-class StrFilter extends Filter {
+export class StrFilter extends ColumnFilter {
   name = 'Zeichenfilter';
   value = '';
-  allowedOperators = [Operator.in, Operator.contains];
+  allowedOperators = [FilterOperator.in, FilterOperator.contains];
 
-  constructor(operator: Operator = Operator.in, active: boolean = false) {
+  constructor(operator: FilterOperator = FilterOperator.in, active: boolean = false) {
     super(operator, active);
   }
 
   filter(value: string): boolean {
-    if (this.operator === Operator.contains)
+    if (this.operator === FilterOperator.contains)
       return value.indexOf(this.value) >= 0;
     return super.filter(value);
   }
 }
 
-class NumFilter extends Filter {
+export class NumFilter extends ColumnFilter {
   name = 'Zahlenfilter';
   value = 0;
-  allowedOperators = [Operator.gt, Operator.lt, Operator.eq, Operator.gte, Operator.lte];
+  allowedOperators = [FilterOperator.gt, FilterOperator.lt, FilterOperator.eq, FilterOperator.gte, FilterOperator.lte];
 
   filter(value: number): boolean {
     return super.filter(value);
   }
 }
 
-class BoolFilter extends Filter {
+export class BoolFilter extends ColumnFilter {
   name = 'Booleanfilter';
   value = false;
 
@@ -122,14 +122,14 @@ class BoolFilter extends Filter {
   }
 }
 
-class ClassFilter extends Filter {
+export class ClassFilter extends ColumnFilter {
   name = 'Klassenfilter';
   classes: string[];
-  allowedOperators = [Operator.in];
+  allowedOperators = [FilterOperator.in];
   value = '';
 
-  constructor(classes: string[] = [], operator: Operator = Operator.eq, active: boolean = false) {
-    super(Operator.in, active);
+  constructor(classes: string[] = [], operator: FilterOperator = FilterOperator.eq, active: boolean = false) {
+    super(FilterOperator.in, active);
     this.classes = classes;
   }
 
@@ -144,7 +144,6 @@ class ClassFilter extends Filter {
   styleUrls: ['../data-table/data-table.component.scss', './filter-table.component.scss']
 })
 export class FilterTableComponent implements OnInit {
-  @Output() filtersChanged = new EventEmitter<FilterColumn[]>();
   @Input() maxTableHeight = '100%';
   _columns: FilterColumn[] = [];
   processedRows: any[][] = [];
@@ -156,7 +155,7 @@ export class FilterTableComponent implements OnInit {
   @ViewChild('classFilter') classFilter?: TemplateRef<any>;
   @ViewChild('boolFilter') boolFilter?: TemplateRef<any>;
   opText = opText;
-  Operator = Operator;
+  Operator = FilterOperator;
 
   constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {}
 
@@ -204,7 +203,7 @@ export class FilterTableComponent implements OnInit {
       this.openFilterDialog(col);
     else {
       column.filter.active = !column.filter.active;
-      this.emitChange();
+      column.changed = true;
       this.filterAndSort();
     }
   }
@@ -257,7 +256,7 @@ export class FilterTableComponent implements OnInit {
       else {
         let value = this.filterForm.value.value;
         if (column.type === 'BOOL') value = value === '1';
-        if (this.filterForm.value.operator === Operator.in) {
+        if (this.filterForm.value.operator === FilterOperator.in) {
           const checked = context['options'].filter((o: any, i: number) => this.filterForm.value.options[i]);
           value = checked.join(',');
         }
@@ -267,14 +266,10 @@ export class FilterTableComponent implements OnInit {
         column.filter!.value = value;
         column.filter!.active = true;
       }
-      this.emitChange();
-      this.filterAndSort()
+      column.changed = true;
+      this.filterAndSort();
       dialogRef.close(true);
     });
-  }
-
-  private emitChange(): void {
-    this.filtersChanged.emit(this._columns.filter(col => col.filter?.active));
   }
 
   private filterAndSort(): void {
@@ -283,8 +278,10 @@ export class FilterTableComponent implements OnInit {
   }
 
   removeAllFilters(): void {
-    this._columns.forEach(column => column.filter!.active = false);
-    this.emitChange();
+    this._columns.forEach(column => {
+      if (column.filter!.active) column.changed = true;
+      column.filter!.active = false;
+    });
     this.filterAndSort();
   }
 
@@ -304,7 +301,7 @@ export class FilterTableComponent implements OnInit {
 
   private filter(rows: any[][]): any[][] {
     let filtered: any[][] = [];
-    const filters: [number, Filter][] = this._columns.map((column, i) => [i, column.filter!]);
+    const filters: [number, ColumnFilter][] = this._columns.map((column, i) => [i, column.filter!]);
     const activeFilters = filters.filter(ifs => ifs && ifs[1].active);
     if (activeFilters.length === 0) return [...rows];
     rows.forEach(row => {

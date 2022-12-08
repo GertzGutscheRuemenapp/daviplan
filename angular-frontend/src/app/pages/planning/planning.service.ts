@@ -5,7 +5,7 @@ import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import {
-  Capacity,
+  Capacity, FieldType,
   Indicator,
   Infrastructure,
   Place,
@@ -16,21 +16,23 @@ import {
 } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
-import { FilterColumn } from "../../elements/filter-table/filter-table.component";
+import { ColumnFilter, FilterColumn } from "../../elements/filter-table/filter-table.component";
 import { map } from "rxjs/operators";
 import { wktToGeom } from "../../helpers/utils";
 import { Geometry } from "ol/geom";
 import { reset } from "ol/transform";
+import { PlaceFilterColumn } from "./place-filter/place-filter.component";
 
 @Injectable({
   providedIn: 'root'
 })
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
-  placeFilterColumns: Record<number, FilterColumn[]> = {};
-  ignoreCapacitySupplyFilter: boolean = false;
+  private placeFilterColumns: Record<number, PlaceFilterColumn[]> = {};
+  // private placeFilters: Record<number, { attribute: string, service: Service, filter: ColumnFilter }[]> = {};
   // cache already requested capacities: {scenario_id: {service_id: {year: capacity}}}
   private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
+  private fieldTypes: FieldType[] = [];
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
@@ -44,15 +46,42 @@ export class PlanningService extends RestCacheService {
   showScenarioMenu = false;
   scenarioChanged = new EventEmitter<Scenario>();
 
-  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService) {
+  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
+              private cookies: CookieService) {
     super(http, rest);
     // store the current states in variables, easier to access than subscribing to observables
     // could also be done later with [...].pipe(take(1)).subscribe(...), easier by remembering in separate variable
-    this.activeInfrastructure$.subscribe(infrastructure => this.activeInfrastructure = infrastructure);
+    this.getFieldTypes().pipe(map(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+    }))
+    this.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+      if (infrastructure)
+        this.placeFilterColumns[infrastructure.id] = this.createPlaceFilters(infrastructure);
+    });
     this.activeService$.subscribe(service => this.activeService = service);
     this.year$.subscribe(year => this.activeYear = year);
     this.activeProcess$.subscribe(process => this.activeProcess = process);
     this.activeScenario$.subscribe(scenario => this.activeScenario = scenario);
+  }
+
+  createPlaceFilters(infrastructure: Infrastructure): PlaceFilterColumn[]{
+    let infraColumns = [];
+    // filters for service capacities
+    infrastructure.services.forEach(service => {
+      infraColumns.push(new PlaceFilterColumn({service: service}));
+    })
+    // filters for placefields
+    infrastructure.placeFields?.forEach(placeField => {
+      this.fieldTypes.find(ft => ft.id === placeField.fieldType);
+      infraColumns.push(new PlaceFilterColumn({
+        field: { placeField: placeField, fieldType: this.fieldTypes.find(ft => ft.id === placeField.fieldType) }
+      }))
+    })
+    // filter for place name (no attribute but property of Place)
+    infraColumns.push(new PlaceFilterColumn({ name: 'Name', property: 'name' }));
+    return infraColumns;
+    // this.placeFilterColumns[infrastructure.id] = this.cookies.get(`planning-filter-${infrastructure.id}`, 'json') || [];
   }
 
   getIndicators(serviceId: number): Observable<Indicator[]>{
@@ -270,22 +299,42 @@ export class PlanningService extends RestCacheService {
     return cap?.capacity || 0;
   }
 
+  setPlaceFilterColumns(infrastructure: Infrastructure, filterColumns: PlaceFilterColumn[]): void{
+    this.placeFilterColumns[infrastructure.id] = filterColumns;
+    this.cookies.set(`planning-filter-${infrastructure.id}`, filterColumns, {type: 'json'});
+  }
+
+  getPlaceFilterColumns(infrastructure: Infrastructure | undefined, options?: { active?: boolean }): PlaceFilterColumn[] {
+    if (!infrastructure) return [];
+    const filterColumns = this.placeFilterColumns[infrastructure.id] || [];
+    if (options?.active !== undefined)
+      return filterColumns.filter(c => c.isActive() === options?.active);
+    return filterColumns;
+  }
+
+  activeFilterCount(infrastructure: Infrastructure | undefined): number {
+    if (!infrastructure) return 0;
+    return this.placeFilterColumns[infrastructure.id].filter(c => c.isActive()).length;
+  }
+
   private _filterPlace(place: Place): boolean {
     if (!this.activeInfrastructure) return false;
-    const filterColumns = this.placeFilterColumns[this.activeInfrastructure.id] || [];
+    const filterColumns = (this.placeFilterColumns[this.activeInfrastructure.id] || []).filter(c => c.isActive());
     if (filterColumns.length === 0) return true;
-    let match = false;
+    // all filters have to match (AND-linked in loop)
+    let match = true;
+    // cloned place with current capacity
     filterColumns.forEach((filterColumn, i) => {
-      const filter = filterColumn.filter!;
+      // depending on service, a different capacity has to be filtered. it is a little clunky to do it here.
+      // ideally the filter column should do all the work, but it can not access the angular-service to fetch the capacities (would be even clunkier to pass the angular-service)
       if (filterColumn.service) {
         const cap = this.getPlaceCapacity(place, { service: filterColumn.service });
-        if (!filter.filter(cap)) return;
+        const clone = Object.assign({}, place);
+        clone.capacity = cap;
+        match = match && filterColumn.filter(clone);
       }
-      else if (filterColumn.attribute) {
-        const value = (filterColumn.attribute === '_placeName_')? place.name: place.attributes[filterColumn.attribute];
-        if (!filter.filter(value)) return;
-      }
-      if (i === filterColumns.length - 1) match = true;
+      else
+        match = match && filterColumn.filter(place);
     })
     return match;
   }
