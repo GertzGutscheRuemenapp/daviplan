@@ -1,5 +1,6 @@
 from django.http import HttpRequest
 from collections import OrderedDict
+from typing import Dict
 
 from rest_framework_gis.fields import GeoJsonDict
 from django.utils.encoding import force_str
@@ -233,10 +234,21 @@ class BasicModelPutPatchTest:
     def test_put_patch(self):
         self._test_put_patch()
 
+    def get_kwargs_without_data(self) -> Dict:
+        """get kwargs without data and extra keys"""
+        kwargs = self.kwargs.copy()
+        # avoid conficting kwargs
+        kwargs.pop('data', None)
+        kwargs.pop('extra', None)
+        return kwargs
+
+
     def _test_put_patch_forbidden(self):
         """Test that put, patch methods are forbidden and return 403"""
         url = self.url_key + '-detail'
-        kwargs = self.kwargs
+
+        kwargs = self.get_kwargs_without_data()
+
         formatjson = dict(format='json')
         response = self.put(url, **kwargs,
                             data=self.put_data,
@@ -249,11 +261,13 @@ class BasicModelPutPatchTest:
     def _test_put_patch(self):
         """Test get, put, patch methods for the detail-view"""
         url = self.url_key + '-detail'
-        kwargs = self.kwargs
+
+        kwargs = self.get_kwargs_without_data()
+
         formatjson = dict(format='json')
 
         # test get
-        response = self.get_check_200(url, **kwargs)
+        response = self.get_check_200(url, **self.kwargs)
         if 'id' in response.data:
             assert response.data['id'] == self.obj.pk
 
@@ -267,7 +281,7 @@ class BasicModelPutPatchTest:
         self.response_200(msg=response.content)
         assert response.status_code == status.HTTP_200_OK
         # check if values have changed
-        response = self.get_check_200(url, **kwargs)
+        response = self.get_check_200(url, **self.kwargs)
 
         expected = self.put_data.copy()
         expected.update(self.expected_put_data)
@@ -282,7 +296,7 @@ class BasicModelPutPatchTest:
         self.response_200(msg=response.content)
 
         # check if name has changed
-        response = self.get_check_200(url, **kwargs)
+        response = self.get_check_200(url, **self.kwargs)
 
         expected = self.patch_data.copy()
         expected.update(self.expected_patch_data)

@@ -11,7 +11,7 @@ use_intersected_data = serializers.BooleanField(
 
 
 drop_constraints = serializers.BooleanField(
-    default=True,
+    default=False,
     label='temporarily delete constraints and indices',
     help_text='Set to False in unittests')
 

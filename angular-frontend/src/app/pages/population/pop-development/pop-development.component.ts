@@ -231,10 +231,16 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const fillColor = (this.compareYears)? {
         colorFunc: (value: number) => (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey'
       }: undefined;
-      const max = Math.max(...popData.values.map(d => Math.abs(d.value)));
+      const values = popData.values.map(d => d.value);
+      const absMax = Math.max(...values);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      let description = `<b>${this.getLayerDescription()}</b>
+                         <br>Minimum: ${this.compareYears && min > 0?'+':''}${min.toLocaleString()} Ew.
+                         <br>Maximum: ${this.compareYears && max > 0?'+':''}${max.toLocaleString()} Ew.`;
       this.populationLayer = new VectorLayer(this.activeLevel!.name,{
         order: 0,
-        description: this.activeLevel!.name,
+        description: description,
         opacity: 1,
         style: {
           strokeColor: 'white',
@@ -268,26 +274,35 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           },
           fillColor: fillColor,
           min: 0,
-          max: max || 1
+          max: absMax || 1
         },
         labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.populationLayer);
       const hasProg = this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1;
-      this.areas.forEach(area => {
+      // "clone" areas and set values to them
+      const displayedAreas: Area[] = this.areas.map(area => {
         const data = popData.values.find(d => d.areaId == area.id);
         const value = (data)? Math.round(data.value): 0;
-        area.properties.value = value;
         let description = `<b>${area.properties.label}</b><br>`;
-        description += (this.compareYears && !value)? 'keine Änderung ': `${this.compareYears && value > 0? '+': ''}${area.properties.value.toLocaleString()} Ew. `;
+        description += (this.compareYears && !value)? 'keine Änderung ': `${this.compareYears && value > 0? '+': ''}${value.toLocaleString()} Ew. `;
         description += (this.compareYears)? `zwischen ${this.comparedYear} und ${this.year}`: `im Jahr ${this.year}`;
         if (hasProg)
-          description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`
-        area.properties.description = description;
+          description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`;
+        return {
+          id: area.id,
+          geometry: area.centroid!,
+          properties: {
+            value: value,
+            areaLevel: area.properties.areaLevel,
+            description: description,
+            label: area.properties.label,
+            attributes: area.properties.attributes,
+          }
+        }
       })
-      this.populationLayer.addFeatures(this.areas,{
+      this.populationLayer.addFeatures(displayedAreas,{
         properties: 'properties',
-        geometry: 'centroid',
         zIndex: 'value'
       });
       if (this.activeArea)
@@ -378,7 +393,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const first = stackedData[0].values;
       let relData = stackedData.map(d => { return {
         group: d.group,
-        values: d.values.map((v, i) => first[i]? (100 * v / first[i]): 100 )
+        values: d.values.map((v, i) => first[i]? (Math.round(10 * (100 * v / first[i])) / 10): 100 )
       }})
       let max = Math.max(...relData.map(d => Math.max(...d.values))),
         min = Math.min(...relData.map(d => Math.min(...d.values)));
@@ -447,15 +462,20 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
-      const pre = this.compareYears? 'Bevölkerungsentwicklung für': 'Zahl der Einwohner:innen nach'
-      description = `${pre} ${this.activeLevel.name} ${this.year}`;
-      if (this.compareYears)
-        description += ` im Vergleich zu ${this.comparedYear}`
+      description = this.getLayerDescription();
       if (this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1)
         description += `<br>Prognoseszenario: ${this.activePrognosis?.name || '-'}`;
       description += `<br>${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);
+  }
+
+  private getLayerDescription(): string {
+    const pre = this.compareYears? 'Bevölkerungsentwicklung für': 'Zahl der Einwohner:innen nach'
+    let description = `${pre} ${this.activeLevel?.name} ${this.year}`;
+    if (this.compareYears)
+      description += ` im Vergleich zu ${this.comparedYear}`
+    return description;
   }
 
   onUpdateCompare(): void {
@@ -465,7 +485,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.layerGroup)  this.mapControl?.removeGroup(this.layerGroup);
+    if (this.layerGroup)
+      this.mapControl?.removeGroup(this.layerGroup);
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

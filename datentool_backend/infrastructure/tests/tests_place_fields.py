@@ -385,7 +385,8 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                   scenario: int = None,
                                   year: int = None,
                                   expected_place_ids: Set[int] = None,
-                                  expected: List[int] = None):
+                                  expected: List[int] = None,
+                                  expect_forbidden: bool = False):
         data = dict(service=service.id)
         if scenario is not None:
             data['scenario'] = scenario
@@ -395,6 +396,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             data['place'] = place
         response = self.get(self.capacity_url + '-list',
                             data=data)
+
+        if expect_forbidden:
+            self.response_403(msg=response.content)
+            return
+
         self.response_200(msg=response.content)
         if expected_place_ids is not None:
             self.assertSetEqual({d['place'] for d in response.data},
@@ -404,9 +410,31 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             self.assertListEqual(
                 [d['capacity'] for d in response.data], expected)
 
+    def create_testusers(self, scenario: Scenario, infrastructure: Infrastructure):
+        """Create testusers with no access to service or planning process"""
+        self.profile2 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+        self.profile3 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+        self.profile4 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+        self.profile5 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+
+        infrastructure.accessible_by.add(self.profile3)
+        infrastructure.accessible_by.add(self.profile4)
+        planning_process = scenario.planning_process
+        planning_process.users.add(self.profile4)
+        planning_process.users.add(self.profile5)
+
     def test_check_capacity_for_scenario(self):
         scenario1 = ScenarioFactory()
         planning_process = scenario1.planning_process
+        planning_process.users.add(self.profile)
         scenario2 = ScenarioFactory(planning_process=planning_process)
         scenario3 = ScenarioFactory(planning_process=planning_process)
 
@@ -472,7 +500,6 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.check_place_with_capacity(service1, year=0, scenario=scenario2.id, expected=[50, 33])
         self.check_place_with_capacity(service1, year=0, scenario=scenario3.id, expected=[100, 88])
 
-
         """Test the number of places and the total capacity by scenario"""
         self.check_total_nplaces_capacity(
             planning_process=planning_process.pk,
@@ -514,12 +541,87 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             year=2030,
             expected_values=[(2, 77 + 33)])
 
+        # test the permissions for other users
+        self.create_testusers(scenario1, place1.infrastructure)
+
+
+        # profile 3 is allowed to infrastructure but not to planning process
+        self.client.force_login(self.profile3.user)
+        self.check_place_with_capacity(service1,
+                                       year=2023,
+                                       scenario=scenario1.id,
+                                       expect_forbidden=True)
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service2.pk,
+            scenario=scenario2.pk,
+            year=2030,
+            expect_forbidden=True)
+
+        # profile 4 is allowed to infrastructure and to planning process
+        self.client.force_login(self.profile4.user)
+        self.check_place_with_capacity(service1,
+                                       year=0,
+                                       scenario=scenario1.id,
+                                       expected=[100, 55]
+                                       )
+        self.check_total_nplaces_capacity(
+            scenario=scenario2.pk,
+            service=service1.pk,
+            year=2030,
+            expected_values=[(2, 77 + 33)])
+
+        # profile 5 is not allowed to infrastructure but to planning process
+        self.client.force_login(self.profile5.user)
+        self.check_place_with_capacity(service1,
+                                       year=2023,
+                                       scenario=scenario1.id,
+                                       expect_forbidden=True)
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service2.pk,
+            scenario=scenario2.pk,
+            year=2030,
+            expect_forbidden=True)
+
+        # profile 2 is not allowed to infrastructure and not to planning process
+        self.client.force_login(self.profile2.user)
+        self.check_place_with_capacity(service1, year=2023, expect_forbidden=True)
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service2.pk,
+            year=2030,
+            expect_forbidden=True)
+
+        # profile 3 is allowed to infrastructure but not to planning process
+        # but may see base scenario
+        self.client.force_login(self.profile3.user)
+        self.check_place_with_capacity(service1, year=2023, expected=[50, 99])
+
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service2.pk,
+            year=2018,
+            expected_values=[(1, 99), (1, 99), (1, 99), (1, 99)])
+
+        # profile 5 is not allowed to infrastructure but to planning process
+        # is forbidden to see the indicator
+        self.client.force_login(self.profile5.user)
+        self.check_place_with_capacity(service1, year=2023, expect_forbidden=True)
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service2.pk,
+            scenario=scenario2.pk,
+            year=2030,
+            expect_forbidden=True)
+
     def check_total_nplaces_capacity(self,
                                      service: int,
                                      year: int,
-                                     expected_values: List[Tuple[int, float]],
+                                     expected_values: List[Tuple[int, float]] = [],
                                      planning_process: int = None,
                                      scenario: int = None,
+                                     expect_forbidden: bool = False,
                                      ):
         params = {'year': year}
         if planning_process:
@@ -529,6 +631,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         response = self.get('services-total-capacity-in-year',
                             pk=service,
                             data=params)
+
+        if expect_forbidden:
+            self.response_403(msg=response.content)
+            return
+
         self.response_200(msg=response.content)
         r1 = json.loads(response.content)
         expected = []
@@ -545,6 +652,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                              'nPlaces': expected_value[0],
                              'totalCapacity': expected_value[1], })
         self.assert_response_equals_expected(r1, expected)
+
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
@@ -571,6 +679,8 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+        cls.query_params = {'service': service, }
 
 
 class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,

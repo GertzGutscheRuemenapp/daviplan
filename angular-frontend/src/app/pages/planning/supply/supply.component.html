@@ -31,14 +31,24 @@
     <app-place-filter-button
       #placeFilter
       style="margin-top: 7px;"
+      [showIgnoreCapacitiesToggle]="true"
+      [ignoreCapacities]="ignoreCapacities"
       (onFilter)="onFilter()"
-      [infrastructure]="this.activeInfrastructure"
+      [infrastructure]="activeInfrastructure"
       [scenario]="activeScenario"
       [service]="activeService"
       [year]="year">
 <!--        [service]="activeService"-->
     </app-place-filter-button>
   </div>
+  <mat-slide-toggle [(ngModel)]="ignoreCapacities"
+                    (change)="onIgnoreCapacitiesChange()"
+                    color="primary"
+                    style="margin-top: 10px; margin-bottom: 20px;">
+    <span>
+      Auch Standorte ohne ausgewählte Leistung anzeigen
+    </span>
+  </mat-slide-toggle>
   <mat-divider></mat-divider>
   <div>
     <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
@@ -56,7 +66,7 @@
       </li>
     </ul>
   </div>
-  <ng-container *ngIf="activeScenario && !activeScenario.isBase">
+  <ng-container *ngIf="activeScenario && !activeScenario.isBase && processEditable">
     <mat-divider></mat-divider>
     <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="togglePlaceMode()" style="padding-left: 10px;">
       <label i18n>Neuen Standort hinzufügen</label>
@@ -83,7 +93,7 @@
             <td><i>{{place.attributes[field.name] || '-'}}</i></td>
           </tr>
         </table>
-        <button *ngIf="place.scenario !== null"
+        <button *ngIf="place.scenario !== null || !processEditable"
                 mat-button class="mat-button-dv"
                 (click)="showEditPlace(place)"
                 color="primary">
@@ -100,14 +110,14 @@
         <table *ngVar="getCapacities(place) as capacities" style="margin-top: 10px;">
           <tr *ngFor="let capacity of capacities;">
             <td style="padding-right: 10px;">
-              {{(capacity.fromYear === 0)? realYears[0]: 'ab ' + capacity.fromYear}}
+              ab {{(capacity.fromYear === 0)? realYears[0]: capacity.fromYear}}
             </td>
             <td *ngIf="activeService.hasCapacity">{{capacity.capacity}} {{(capacity.capacity === 1)? activeService.capacitySingularUnit: activeService.capacityPluralUnit}}</td>
             <td *ngIf="!activeService.hasCapacity">{{(capacity.capacity)? 'Ja': 'Nein'}}</td>
           </tr>
         </table>
       </div>
-      <button *ngIf="!activeScenario?.isBase"
+      <button *ngIf="!activeScenario?.isBase || !processEditable"
               mat-button class="mat-button-dv"
               (click)="showEditCapacities(place)"
               color="primary">

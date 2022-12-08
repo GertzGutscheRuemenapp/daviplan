@@ -198,6 +198,8 @@ export class ServicesComponent implements AfterViewInit {
       ).subscribe(service => {
         const infrastructure = this.infrastructures!.find(i => i.id === service.infrastructure);
         infrastructure?.services.push(service);
+        this.activeService = service;
+        this.onServiceChange();
         dialogRef.close();
       },(error) => {
         showAPIError(error, this.dialog);
@@ -220,7 +222,7 @@ export class ServicesComponent implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.services}${this.activeService!.id}/`
+        this.http.delete(`${this.rest.URLS.services}${this.activeService!.id}/?force=true`
         ).subscribe(res => {
           const infrastructure = this.infrastructures!.find(i => i.id === this.activeService!.infrastructure);
           if (!infrastructure) return;

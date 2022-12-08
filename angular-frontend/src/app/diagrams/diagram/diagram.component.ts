@@ -35,7 +35,7 @@ export class DiagramComponent {
     }
     this.svg = figure.append('svg')
       .attr('viewBox', `0 0 ${this.width!} ${this.height!}`);
-    this.svg.append("style").text('text {font-family: sans-serif}')
+    this.svg.append("style").text('text {font-family: sans-serif}');
   }
 
   clear(): void {

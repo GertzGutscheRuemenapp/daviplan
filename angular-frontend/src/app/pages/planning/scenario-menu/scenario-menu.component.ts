@@ -1,4 +1,14 @@
-import { Component, OnInit, ViewChildren, QueryList, ElementRef, ViewChild, TemplateRef, Input } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+  ViewChild,
+  TemplateRef,
+  Input,
+  OnDestroy
+} from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { environment } from "../../../../environments/environment";
@@ -11,14 +21,15 @@ import {
   Prognosis,
   Scenario,
   Service, TotalCapacityInScenario,
-  TransportMode
+  TransportMode, User
 } from "../../../rest-interfaces";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
 import { showAPIError } from "../../../helpers/utils";
-import { TRUE } from "ol/functions";
+import { AuthService } from "../../../auth.service";
+import { Subscription } from "rxjs";
 
 interface LabelledTotalCapacity extends TotalCapacityInScenario{
   labelPlaces: string;
@@ -30,7 +41,7 @@ interface LabelledTotalCapacity extends TotalCapacityInScenario{
   templateUrl: './scenario-menu.component.html',
   styleUrls: ['./scenario-menu.component.scss']//, '../../../elements/side-toggle/side-toggle.component.scss']
 })
-export class ScenarioMenuComponent implements OnInit {
+export class ScenarioMenuComponent implements OnInit, OnDestroy {
   @Input() domain!: 'demand' | 'reachabilities' | 'rating' | 'supply';
   @Input() helpText = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
@@ -44,43 +55,50 @@ export class ScenarioMenuComponent implements OnInit {
   backend: string = environment.backend;
   editScenarioForm: FormGroup;
   process?: PlanningProcess;
+  user?: User;
+  processEditable = false;
   demandRateSets: DemandRateSet[] = [];
   transitVariants: ModeVariant[] = [];
   prognoses: Prognosis[] = [];
   year?: number;
   totalCapacities: Record<number, LabelledTotalCapacity> = {};
   service?:Service;
+  subscriptions: Subscription[] = [];
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
-              private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
-    this.planningService.activeProcess$.subscribe(process => {
-      this.planningService.getBaseScenario().subscribe(scenario => {
-        this.baseScenario = scenario;
-        this.onProcessChange(process);
-      });
+              private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI, private auth: AuthService) {
+    this.auth.getCurrentUser().subscribe(user => {
+      this.user = user;
+      this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
+        this.processEditable = (process?.owner === this.user?.id) || !!process?.allowSharedChange;
+        this.planningService.getBaseScenario().subscribe(scenario => {
+          this.baseScenario = scenario;
+          this.onProcessChange(process);
+        });
+      }))
     })
-    this.planningService.scenarioChanged.subscribe(changed => {
+    this.planningService.scenarioChanged.subscribe(scenario => {
       if (this.domain==="supply") {
-        this.updateTotalCapacities({scenario:this.activeScenario, reset:true});
+        this.updateTotalCapacities({scenario: scenario, reset:true});
       }
     })
-    this.planningService.activeScenario$.subscribe(scenario => {
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
        if (scenario)
          this.setScenario(scenario, {silent: true});
-    })
+    }))
     this.editScenarioForm = this.formBuilder.group({
       scenarioName: new FormControl('')
     });
-    this.planningService.activeService$.subscribe(service => {
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
       this.service= service;
       this.onServiceChange(service);
-    });
-    this.planningService.year$.subscribe(year => {
+    }));
+    this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year=year;
       if (this.domain==="supply"){
         this.updateTotalCapacities();
       }
-    });
+    }));
     this.planningService.getPrognoses().subscribe(pr => this.prognoses = pr);
   }
 
@@ -197,7 +215,7 @@ export class ScenarioMenuComponent implements OnInit {
           }
           this.activeScenario = this.baseScenario;
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });
@@ -211,7 +229,7 @@ export class ScenarioMenuComponent implements OnInit {
         title: $localize`Szenario erstellen`,
         // confirmButtonText: $localize`erstellen`,
         template: this.editScenarioTemplate,
-        closeOnConfirm: true
+        closeOnConfirm: false
       }
     });
     dialogRef.afterOpened().subscribe(() => {
@@ -230,6 +248,8 @@ export class ScenarioMenuComponent implements OnInit {
         if(!this.process!.scenarios) this.process!.scenarios = []
         this.process!.scenarios.push(scenario);
         this.scenarios.push(scenario);
+        this.planningService.scenarioChanged.emit(scenario);
+        dialogRef.close();
       },(error) => {
         showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
@@ -368,5 +388,9 @@ export class ScenarioMenuComponent implements OnInit {
       this.planningService.clearCache(scenario.id.toString());
       this.planningService.activeScenario$.next(scenario);
     });
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }
