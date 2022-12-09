@@ -287,7 +287,7 @@ export class PlanningService extends RestCacheService {
     const serialized = this.cookies.get(`planning-filter-${infrastructure.id}`, 'json') || [];
     const filters: PlaceFilter[] = [];
     serialized.forEach((obj: any) => {
-      if (!obj.filter) return;
+      if (!obj || !obj.filter) return;
       const columnFilter = deSerializeFilter(obj.filter);
       if (!columnFilter) return;
       filters.push({

@@ -173,9 +173,9 @@
       <th>Anzeigename</th>
       <th>Attributtyp / Klassifikation</th>
       <th style="text-align: center;">Einheit</th>
-<!--      <th style="width: 1%; text-align: center;">
+      <th style="width: 1%; text-align: center;">
         sensible Information
-      </th>-->
+      </th>
       <th></th>
     </tr>
     <ng-container *ngFor="let field of editFields">
@@ -214,12 +214,12 @@
           </ng-container>
           <ng-template #nounit>-</ng-template>
         </td>
-<!--        <td style="text-align: center;">
+        <td style="text-align: center;">
           <mat-checkbox color="primary"
                         [(ngModel)]="field.sensitive"
                         (change)="field.edited = true;">
           </mat-checkbox>
-        </td>-->
+        </td>
         <td>
           <button mat-button color="warn"
                   class="mat-button-dv"
