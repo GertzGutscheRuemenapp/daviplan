@@ -160,7 +160,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
         }
         i += 1;
       });
-      this.planningService.setPlaceFilterColumns(this.infrastructure, placeFilters);
+      this.planningService.setPlaceFilters(this.infrastructure, placeFilters);
       this.onFilter.emit(placeFilters);
     });
   }

@@ -60,7 +60,7 @@
 
 <ng-template #numberFilter let-unit="unit" let-filter="filter">
   <form [formGroup]="filterForm">
-    <div style="display: flex; align-items: baseline;">
+    <div style="display: flex;">
       <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
         <mat-select formControlName="operator" required>
           <mat-option *ngFor="let operator of filter.allowedOperators" [value]="operator">
@@ -86,7 +86,7 @@
 
 <ng-template #stringFilter let-unit="unit" let-filter="filter" let-options="options">
   <form [formGroup]="filterForm">
-    <div style="display: flex; align-items: baseline;">
+    <div style="display: flex;">
       <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
         <mat-select formControlName="operator"
                     (selectionChange)="filterForm.controls['value'].setValue('')"
@@ -151,11 +151,34 @@
   </form>
 </ng-template>
 
-<ng-template #boolFilter>
-  <form [formGroup]="filterForm" style="display: flex; padding: 10px;">
-    <mat-radio-group formControlName="value" required>
-      <mat-radio-button value="1" checked style="margin-right: 10px;" >Ja</mat-radio-button>
-      <mat-radio-button value="0">Nein</mat-radio-button>
-    </mat-radio-group>
+<ng-template #boolFilter let-filter="filter">
+  <form style="display: grid;" [formGroup]="filterForm">
+    <div style="display: flex; align-items: baseline;">
+      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of filter.allowedOperators" [value]="operator">
+            {{opText[operator]}}
+          </mat-option>
+          <mat-divider></mat-divider>
+          <mat-option *ngIf="filter.active"
+                      value="-1">
+            Filter deaktivieren
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div *ngIf="filterForm.value.operator === Operator.eq">
+        <mat-radio-group formControlName="value"
+                         class="options-control"
+                         style="display: grid; padding-top: 15px;">
+          <mat-radio-button color="primary" value="1"
+                            style="margin-right: 10px;">
+            Ja
+          </mat-radio-button>
+          <mat-radio-button color="primary" value="0">
+            Nein
+          </mat-radio-button>
+        </mat-radio-group>
+      </div>
+    </div>
   </form>
 </ng-template>

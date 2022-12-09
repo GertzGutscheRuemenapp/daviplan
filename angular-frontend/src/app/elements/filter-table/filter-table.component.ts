@@ -1,8 +1,38 @@
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
-import { Service } from "../../rest-interfaces";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+
+export function serializeFilter(filter: ColumnFilter): string {
+  const obj = {
+    value: filter.value,
+    active: filter.active,
+    operator: filter.operator,
+    classes: filter.hasOwnProperty('classes')? filter['classes' as keyof ColumnFilter]: [],
+    filterClass: filter.constructor.name
+  }
+  return JSON.stringify(obj);
+}
+
+export function deSerializeFilter(serialized: string): ColumnFilter | undefined {
+  let obj;
+  try {
+    obj = JSON.parse(serialized);
+  }
+  catch {
+    return;
+  }
+  switch (obj.filterClass) {
+    case 'NumFilter':
+      return new NumFilter({ value: obj.value, active: obj.active, operator: obj.operator });
+    case 'ClassFilter':
+      return new ClassFilter({ value: obj.value, active: obj.active, operator: obj.operator, classes: obj.classes });
+    case 'BoolFilter':
+      return new BoolFilter({ value: obj.value, active: obj.active, operator: obj.operator });
+    default:
+      return new StrFilter({ value: obj.value, active: obj.active, operator: obj.operator })
+  }
+}
 
 export enum FilterOperator {
   gt = '>',
@@ -36,19 +66,19 @@ export interface FilterColumn {
 }
 
 export abstract class ColumnFilter {
-  operator: FilterOperator;
+  operator: FilterOperator = FilterOperator.eq;
   active: boolean;
   name = 'ColumnFilter';
   value?: any;
   allowedOperators: FilterOperator[] = Object.values(FilterOperator);
-  constructor(operator: FilterOperator = FilterOperator.eq, active = false) {
-    this.operator = operator;
-    this.active = active;
+
+  constructor(options?: { operator?: FilterOperator, active?: boolean, value?: any }) {
+    if (options?.operator)
+      this.operator = options.operator;
+    if (options?.value !== undefined)
+      this.value = options.value;
+    this.active = !!options?.active;
   }
-  filterColumn(values: any[]): boolean[]{
-    if (!this.active) return Array(values.length).fill(true);
-    return values.map(v => this.filter(v));
-  };
   filter(value: any): boolean {
     switch (this.operator) {
       case FilterOperator.gt:
@@ -91,13 +121,7 @@ export abstract class ColumnFilter {
 
 export class StrFilter extends ColumnFilter {
   name = 'Zeichenfilter';
-  value = '';
   allowedOperators = [FilterOperator.in, FilterOperator.contains];
-
-  constructor(operator: FilterOperator = FilterOperator.in, active: boolean = false) {
-    super(operator, active);
-  }
-
   filter(value: string): boolean {
     if (this.operator === FilterOperator.contains)
       return value.indexOf(this.value) >= 0;
@@ -107,7 +131,6 @@ export class StrFilter extends ColumnFilter {
 
 export class NumFilter extends ColumnFilter {
   name = 'Zahlenfilter';
-  value = 0;
   allowedOperators = [FilterOperator.gt, FilterOperator.lt, FilterOperator.eq, FilterOperator.gte, FilterOperator.lte];
 
   filter(value: number): boolean {
@@ -118,21 +141,28 @@ export class NumFilter extends ColumnFilter {
 export class BoolFilter extends ColumnFilter {
   name = 'Booleanfilter';
   value = false;
+  allowedOperators = [FilterOperator.eq];
 
   filter(value: number | boolean): boolean {
     return this.value === !!value;
+  }
+
+  getDescription(): string {
+    return this.value? 'Ja': 'Nein';
   }
 }
 
 export class ClassFilter extends ColumnFilter {
   name = 'Klassenfilter';
-  classes: string[];
+  operator = FilterOperator.in;
+  classes: string[] = [];
   allowedOperators = [FilterOperator.in];
   value = '';
 
-  constructor(classes: string[] = [], operator: FilterOperator = FilterOperator.eq, active: boolean = false) {
-    super(FilterOperator.in, active);
-    this.classes = classes;
+  constructor(options?: { active?: boolean, value?: any, operator?: FilterOperator, classes?: string []}) {
+    super({ active: options?.active, value: options?.value, operator: options?.operator })
+    if (options?.classes)
+      this.classes = options.classes;
   }
 
   filter(value: string): boolean {
@@ -171,9 +201,9 @@ export class FilterTableComponent implements OnInit {
         if (column.type === 'NUM')
           column.filter = new NumFilter();
         else if (column.type === 'STR')
-          column.filter = new StrFilter();
+          column.filter = new StrFilter({ operator: FilterOperator.contains });
         else if (column.type === 'CLA')
-          column.filter = new ClassFilter(column.classes || []);
+          column.filter = new ClassFilter({ operator: FilterOperator.in, classes: column.classes });
         else if (column.type === 'BOOL')
           column.filter = new BoolFilter();
       })
@@ -221,9 +251,12 @@ export class FilterTableComponent implements OnInit {
       unit: column.unit || '' ,
       filter: column.filter
     }
+    const formValue = (column.type === 'BOOL')? ((column.filter.value)? '1': '0'):
+                      (column.type === 'NUM')? column.filter.value || 0:
+                      column.filter.value || ''
     const formConfig: any = {
       operator: new FormControl(column.filter.operator),
-      value: new FormControl(column.filter.value || ((column.type === 'NUM')? 0: ''))
+      value: new FormControl(formValue)
     }
     if (column.type === 'CLA' || column.type === 'STR') {
       // take classes as options or all unique strings that contain sth different than whitespaces
@@ -263,7 +296,7 @@ export class FilterTableComponent implements OnInit {
           value = checked.join(',');
         }
         // no input > do nothing (keeping dialog open) ToDo: error message?
-        if (!value && value !== 0) return;
+        if (!value && value !== 0 && value !== false) return;
         column.filter!.operator = this.filterForm.value.operator;
         column.filter!.value = value;
         column.filter!.active = true;

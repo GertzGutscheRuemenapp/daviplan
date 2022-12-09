@@ -16,7 +16,7 @@ import {
 } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
-import { ColumnFilter } from "../../elements/filter-table/filter-table.component";
+import { ColumnFilter, deSerializeFilter, serializeFilter } from "../../elements/filter-table/filter-table.component";
 import { map } from "rxjs/operators";
 import { wktToGeom } from "../../helpers/utils";
 import { Geometry } from "ol/geom";
@@ -56,35 +56,14 @@ export class PlanningService extends RestCacheService {
     }))
     this.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
-      // if (infrastructure)
-      //   this.placeFilters[infrastructure.id] = this.createPlaceFilters(infrastructure);
+      if (infrastructure)
+        this.placeFilters[infrastructure.id] = this.restoreFilters(infrastructure);
     });
     this.activeService$.subscribe(service => this.activeService = service);
     this.year$.subscribe(year => this.activeYear = year);
     this.activeProcess$.subscribe(process => this.activeProcess = process);
     this.activeScenario$.subscribe(scenario => this.activeScenario = scenario);
   }
-/*
-
-  createPlaceFilters(infrastructure: Infrastructure): PlaceFilter[]{
-    let infraColumns = [];
-    // filters for service capacities
-    infrastructure.services.forEach(service => {
-      infraColumns.push(new PlaceFilter({service: service}));
-    })
-    // filters for placefields
-    infrastructure.placeFields?.forEach(placeField => {
-      this.fieldTypes.find(ft => ft.id === placeField.fieldType);
-      infraColumns.push(new PlaceFilter({
-        field: { placeField: placeField, fieldType: this.fieldTypes.find(ft => ft.id === placeField.fieldType) }
-      }))
-    })
-    // filter for place name (no attribute but property of Place)
-    infraColumns.push(new PlaceFilter({ name: 'Name', property: 'name' }));
-    return infraColumns;
-    // this.placeFilters[infrastructure.id] = this.cookies.get(`planning-filter-${infrastructure.id}`, 'json') || [];
-  }
-*/
 
   getIndicators(serviceId: number): Observable<Indicator[]>{
     const url = `${this.rest.URLS.services}${serviceId}/get_indicators/`;
@@ -301,9 +280,36 @@ export class PlanningService extends RestCacheService {
     return cap?.capacity || 0;
   }
 
-  setPlaceFilterColumns(infrastructure: Infrastructure, placeFilter: PlaceFilter[]): void{
-    this.placeFilters[infrastructure.id] = placeFilter;
-    // this.cookies.set(`planning-filter-${infrastructure.id}`, filterColumns, {type: 'json'});
+  /**
+   * restore filters for given infrastructure from cookies
+   */
+  restoreFilters(infrastructure: Infrastructure): PlaceFilter[] {
+    const serialized = this.cookies.get(`planning-filter-${infrastructure.id}`, 'json') || [];
+    const filters: PlaceFilter[] = [];
+    serialized.forEach((obj: any) => {
+      if (!obj.filter) return;
+      const columnFilter = deSerializeFilter(obj.filter);
+      if (!columnFilter) return;
+      filters.push({
+        name: obj.name,
+        service: obj.service,
+        property: obj.property,
+        field: obj.field,
+        filter: columnFilter
+      })
+    })
+    return filters;
+  }
+
+  setPlaceFilters(infrastructure: Infrastructure, placeFilters: PlaceFilter[]): void{
+    this.placeFilters[infrastructure.id] = placeFilters;
+    let filtersSerialized = placeFilters.map(pf => {
+      let clone: any = Object.assign({}, pf);
+      // serialize the filter object
+      clone.filter = serializeFilter(pf.filter);
+      return clone;
+    })
+    this.cookies.set(`planning-filter-${infrastructure.id}`, filtersSerialized, {type: 'json'});
   }
 
   getPlaceFilters(infrastructure: Infrastructure | undefined): PlaceFilter[] {
