@@ -17,7 +17,7 @@ class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
     '''
     name = models.TextField()
     description = models.TextField(default='', blank=True)
-    owner = models.ForeignKey(Profile, on_delete=models.RESTRICT)
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     users = models.ManyToManyField(Profile, related_name='shared_with_users',
                                    blank=True)
     infrastructures = models.ManyToManyField(
