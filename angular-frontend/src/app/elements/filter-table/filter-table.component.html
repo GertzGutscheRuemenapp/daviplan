@@ -30,7 +30,7 @@
      <td *ngFor="let value of row; let i = index"
          style="max-width: 250px; white-space: normal;">
        <ng-container *ngIf="_columns[i].type === 'BOOL'; else rawContent">{{value? 'Ja': 'Nein'}}</ng-container>
-       <ng-template #rawContent>{{value}}</ng-template>
+       <ng-template #rawContent>{{(value && value.toLocaleString)? value.toLocaleString(): value}}</ng-template>
      </td>
     </tr>
   </table>
