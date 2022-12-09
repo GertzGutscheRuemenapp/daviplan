@@ -27,7 +27,6 @@ const opText: Record<any, string> = {
 }
 
 export interface FilterColumn {
-  id?: string | number;
   name: string;
   type: ColumnFilterType;
   classes?: string[];
@@ -51,7 +50,6 @@ export abstract class ColumnFilter {
     return values.map(v => this.filter(v));
   };
   filter(value: any): boolean {
-    if (!this.active) return true;
     switch (this.operator) {
       case FilterOperator.gt:
         return (value > this.value);
@@ -64,7 +62,7 @@ export abstract class ColumnFilter {
       case FilterOperator.lte:
         return (value <= this.value);
       case FilterOperator.in:
-        if (!this.value) return true;
+        if (this.value === undefined) return true;
         return this.value.split(',').indexOf(value) >= 0;
       default:
         return false;
@@ -84,6 +82,10 @@ export abstract class ColumnFilter {
         val = this.value;
     }
     return `${opText[this.operator]} ${val}`;
+  }
+
+  clone(): ColumnFilter {
+    return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
   }
 }
 

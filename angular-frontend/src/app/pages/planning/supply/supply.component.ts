@@ -348,7 +348,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     const desc = `${this.activeScenario?.name}<br>
                   Angebot für Leistung "${this.activeService?.name}"<br>
                   <b>${this.activeService?.facilityPluralUnit} ${this.year} mit Anzahl ${this.activeService?.capacityPluralUnit}
-                  ${(this.planningService.activeFilterCount(this.activeInfrastructure))? ' (gefiltert)': ''}</b>`
+                  ${(this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)? ' (gefiltert)': ''}</b>`
     this.mapControl?.setDescription(desc);
   }
 

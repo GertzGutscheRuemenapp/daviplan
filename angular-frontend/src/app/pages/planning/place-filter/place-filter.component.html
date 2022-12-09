@@ -1,5 +1,5 @@
 <button mat-icon-button color="primary" class="filter-button small"
-        [ngClass]="{ inverted: planningService.activeFilterCount(infrastructure) }"
+        [ngClass]="{ inverted: planningService.getPlaceFilters(infrastructure).length > 0 }"
         [disabled]="!infrastructure"
         [ngbPopover]="filterPopover"
         placement="right"
@@ -48,10 +48,10 @@
 </ng-template>
 
 <ng-template #filterPopover>
-  <ng-container *ngIf="planningService.activeFilterCount(infrastructure) else noFilter">
+  <ng-container *ngIf="planningService.getPlaceFilters(infrastructure).length > 0 else noFilter">
     <p><b>aktive Filter:</b></p>
-    <p *ngFor="let column of planningService.getPlaceFilterColumns(infrastructure, { active: true })">
-      {{column.name}} | {{column.getDescription()}}
+    <p *ngFor="let column of planningService.getPlaceFilters(infrastructure)">
+      {{column.name}} | {{column.filter.getDescription()}}
     </p>
   </ng-container>
   <ng-template #noFilter>

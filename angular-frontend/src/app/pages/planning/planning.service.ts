@@ -16,19 +16,19 @@ import {
 } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
-import { ColumnFilter, FilterColumn } from "../../elements/filter-table/filter-table.component";
+import { ColumnFilter } from "../../elements/filter-table/filter-table.component";
 import { map } from "rxjs/operators";
 import { wktToGeom } from "../../helpers/utils";
 import { Geometry } from "ol/geom";
-import { reset } from "ol/transform";
-import { PlaceFilterColumn } from "./place-filter/place-filter.component";
+
+export type PlaceFilter = { name: string, property?: string, service?: number, field?: string, filter: ColumnFilter };
 
 @Injectable({
   providedIn: 'root'
 })
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
-  private placeFilterColumns: Record<number, PlaceFilterColumn[]> = {};
+  private placeFilters: Record<number, PlaceFilter[]> = {};
   // private placeFilters: Record<number, { attribute: string, service: Service, filter: ColumnFilter }[]> = {};
   // cache already requested capacities: {scenario_id: {service_id: {year: capacity}}}
   private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
@@ -56,33 +56,35 @@ export class PlanningService extends RestCacheService {
     }))
     this.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
-      if (infrastructure)
-        this.placeFilterColumns[infrastructure.id] = this.createPlaceFilters(infrastructure);
+      // if (infrastructure)
+      //   this.placeFilters[infrastructure.id] = this.createPlaceFilters(infrastructure);
     });
     this.activeService$.subscribe(service => this.activeService = service);
     this.year$.subscribe(year => this.activeYear = year);
     this.activeProcess$.subscribe(process => this.activeProcess = process);
     this.activeScenario$.subscribe(scenario => this.activeScenario = scenario);
   }
+/*
 
-  createPlaceFilters(infrastructure: Infrastructure): PlaceFilterColumn[]{
+  createPlaceFilters(infrastructure: Infrastructure): PlaceFilter[]{
     let infraColumns = [];
     // filters for service capacities
     infrastructure.services.forEach(service => {
-      infraColumns.push(new PlaceFilterColumn({service: service}));
+      infraColumns.push(new PlaceFilter({service: service}));
     })
     // filters for placefields
     infrastructure.placeFields?.forEach(placeField => {
       this.fieldTypes.find(ft => ft.id === placeField.fieldType);
-      infraColumns.push(new PlaceFilterColumn({
+      infraColumns.push(new PlaceFilter({
         field: { placeField: placeField, fieldType: this.fieldTypes.find(ft => ft.id === placeField.fieldType) }
       }))
     })
     // filter for place name (no attribute but property of Place)
-    infraColumns.push(new PlaceFilterColumn({ name: 'Name', property: 'name' }));
+    infraColumns.push(new PlaceFilter({ name: 'Name', property: 'name' }));
     return infraColumns;
-    // this.placeFilterColumns[infrastructure.id] = this.cookies.get(`planning-filter-${infrastructure.id}`, 'json') || [];
+    // this.placeFilters[infrastructure.id] = this.cookies.get(`planning-filter-${infrastructure.id}`, 'json') || [];
   }
+*/
 
   getIndicators(serviceId: number): Observable<Indicator[]>{
     const url = `${this.rest.URLS.services}${serviceId}/get_indicators/`;
@@ -299,42 +301,42 @@ export class PlanningService extends RestCacheService {
     return cap?.capacity || 0;
   }
 
-  setPlaceFilterColumns(infrastructure: Infrastructure, filterColumns: PlaceFilterColumn[]): void{
-    this.placeFilterColumns[infrastructure.id] = filterColumns;
-    this.cookies.set(`planning-filter-${infrastructure.id}`, filterColumns, {type: 'json'});
+  setPlaceFilterColumns(infrastructure: Infrastructure, placeFilter: PlaceFilter[]): void{
+    this.placeFilters[infrastructure.id] = placeFilter;
+    // this.cookies.set(`planning-filter-${infrastructure.id}`, filterColumns, {type: 'json'});
   }
 
-  getPlaceFilterColumns(infrastructure: Infrastructure | undefined, options?: { active?: boolean }): PlaceFilterColumn[] {
+  getPlaceFilters(infrastructure: Infrastructure | undefined): PlaceFilter[] {
     if (!infrastructure) return [];
-    const filterColumns = this.placeFilterColumns[infrastructure.id] || [];
-    if (options?.active !== undefined)
-      return filterColumns.filter(c => c.isActive() === options?.active);
-    return filterColumns;
-  }
-
-  activeFilterCount(infrastructure: Infrastructure | undefined): number {
-    if (!infrastructure) return 0;
-    return this.placeFilterColumns[infrastructure.id].filter(c => c.isActive()).length;
+    return (this.placeFilters[infrastructure.id] || []).filter(pf => pf.filter.active);
   }
 
   private _filterPlace(place: Place): boolean {
     if (!this.activeInfrastructure) return false;
-    const filterColumns = (this.placeFilterColumns[this.activeInfrastructure.id] || []).filter(c => c.isActive());
-    if (filterColumns.length === 0) return true;
+    const filterColumns = this.getPlaceFilters(this.activeInfrastructure);
     // all filters have to match (AND-linked in loop)
     let match = true;
     // cloned place with current capacity
     filterColumns.forEach((filterColumn, i) => {
-      // depending on service, a different capacity has to be filtered. it is a little clunky to do it here.
-      // ideally the filter column should do all the work, but it can not access the angular-service to fetch the capacities (would be even clunkier to pass the angular-service)
+      // service capacity filter
       if (filterColumn.service) {
-        const cap = this.getPlaceCapacity(place, { service: filterColumn.service });
-        const clone = Object.assign({}, place);
-        clone.capacity = cap;
-        match = match && filterColumn.filter(clone);
+        const service = this.activeInfrastructure!.services.find(s => s.id === filterColumn.service);
+        const cap = this.getPlaceCapacity(place, { service: service });
+        match = match && filterColumn.filter.filter(cap);
       }
-      else
-        match = match && filterColumn.filter(place);
+      // field filter
+      else if (filterColumn.field) {
+        const value = place.attributes[filterColumn.field];
+        match = match && filterColumn.filter.filter(value);
+      }
+      // property filter
+      else if (filterColumn.property){
+        // if no property was given take the given name as a last resort
+        if (place.hasOwnProperty(filterColumn.property)) {
+          const value = place[filterColumn.property as keyof Place];
+          match = match && filterColumn.filter.filter(value);
+        }
+      }
     })
     return match;
   }
