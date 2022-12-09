@@ -43,6 +43,9 @@ class RunProcessMixin:
                 ppm.logger.error(msg)
                 return Response({'Fehler': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({'message': 'Upload beendet'},
+                            status=status.HTTP_202_ACCEPTED)
+
         else:
             ppm.run(func,
                     queryset,
