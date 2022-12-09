@@ -201,7 +201,7 @@ export class FilterTableComponent implements OnInit {
         if (column.type === 'NUM')
           column.filter = new NumFilter();
         else if (column.type === 'STR')
-          column.filter = new StrFilter({ operator: FilterOperator.contains });
+          column.filter = new StrFilter({ operator: FilterOperator.in });
         else if (column.type === 'CLA')
           column.filter = new ClassFilter({ operator: FilterOperator.in, classes: column.classes });
         else if (column.type === 'BOOL')

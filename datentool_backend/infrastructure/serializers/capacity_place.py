@@ -37,18 +37,21 @@ class PlaceAttributeField(serializers.DictField):
     """remove sensitive fields if the user is not allowed to see them"""
 
     def get_attribute(self, instance):
-        try:
-            # use the prefetched data
-            users_infra_access = instance.infrastructure.users_infra_access
-        except AttributeError:
-            # after put and post, no infra_access information is prefetched
-            profile = self.context['request'].user.profile
-            users_infra_access = instance.infrastructure.infrastructureaccess_set.filter(profile=profile)
-        try:
-            allow_sensitive_data = users_infra_access[0].allow_sensitive_data
-        except IndexError:
-            # if no infra_access is defined, allow only if user is admin
-            allow_sensitive_data = self.context['request'].user.profile.admin_access
+        user = self.context['request'].user
+        if user.is_superuser or user.profile.admin_access:
+            allow_sensitive_data = True
+        else:
+            try:
+                # use the prefetched data
+                users_infra_access = instance.infrastructure.users_infra_access
+            except AttributeError:
+                # after put and post, no infra_access information is prefetched
+                profile = user.profile
+                users_infra_access = instance.infrastructure.infrastructureaccess_set.filter(profile=profile)
+            try:
+                allow_sensitive_data = users_infra_access[0].allow_sensitive_data
+            except IndexError:
+                allow_sensitive_data = False
 
         attributes = {pa.field.name: pa.value
                       for pa in instance.placeattribute_set.all()
