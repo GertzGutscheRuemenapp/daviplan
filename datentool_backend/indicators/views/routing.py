@@ -295,13 +295,13 @@ class MatrixCellPlaceViewSet(TravelTimeRouterViewMixin):
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING) as ppm:
+                                     scope=ProcessScope.ROUTING,
+                                     run_sync=run_sync) as ppm:
             try:
                 ppm.run(self.calc, self.router, variant_ids, places,
                         drop_constraints, logger, max_distance,
                         access_variant_id, max_access_distance,
-                        air_distance_routing, max_direct_walktime,
-                        sync=run_sync)
+                        air_distance_routing, max_direct_walktime)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -369,13 +369,13 @@ class TransitAccessRouterViewMixin(TravelTimeRouterViewMixin):
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING) as ppm:
+                                     scope=ProcessScope.ROUTING,
+                                     run_sync=run_sync) as ppm:
             try:
                 ppm.run(self.calc, self.router, variant_ids, places,
                         drop_constraints, logger,
                         max_distance, access_variant_id,
-                        max_access_distance, air_distance_routing,
-                        sync=True)
+                        max_access_distance, air_distance_routing)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)

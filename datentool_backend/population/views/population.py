@@ -263,13 +263,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         drop_constraints = request.data.get('drop_constraints', False)
-        run_sync = request.data.get('sync', False)
+        run_sync = self.settings['Q_CLUSTER']['sync'] or request.data.get('sync', False)
 
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.POPULATION) as ppm:
+                                     scope=ProcessScope.POPULATION,
+                                     run_sync=run_sync) as ppm:
             try:
                 ppm.run(self._pull_regionalstatistik, area_level,
-                        drop_constraints=drop_constraints, sync=run_sync)
+                        drop_constraints=drop_constraints)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)

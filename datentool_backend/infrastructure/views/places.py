@@ -266,7 +266,8 @@ def read_excel_file(excel_file, infrastructure_id: int):
                     # ToDo: ????
                     pass
             else:
-                raise ConnectionError(bkg_error)
+                from django.core.exceptions import ValidationError
+                raise ValidationError(bkg_error)
         else:
             # create the geometry and transform to WebMercator
             geom = Point(lon, lat, srid=4326)

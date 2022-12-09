@@ -51,9 +51,10 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     def pull_base_network(self, request, **kwargs):
         run_sync = request.data.get('sync', False)
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING) as ppm:
+                                     scope=ProcessScope.ROUTING,
+                                     run_sync=run_sync) as ppm:
             try:
-                ppm.run(self._pull_base_network, sync=run_sync)
+                ppm.run(self._pull_base_network)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -107,9 +108,10 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING) as ppm:
+                                     scope=ProcessScope.ROUTING,
+                                     run_sync=run_sync) as ppm:
             try:
-                ppm.run(self._build_project_network, sync=run_sync)
+                ppm.run(self._build_project_network)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)

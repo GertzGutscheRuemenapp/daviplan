@@ -77,10 +77,11 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
         run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.POPULATION) as ppm:
+                                     scope=ProcessScope.POPULATION,
+                                     run_sync=run_sync) as ppm:
             try:
                 ppm.run(self._pull_regionalstatistik, area_level,
-                        drop_constraints=drop_constraints, sync=run_sync)
+                        drop_constraints=drop_constraints)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -363,6 +363,8 @@ Q_CLUSTER = {
         'db': 0, }
 }
 
+USE_DJANGO_Q = True
+
 def load_stats_json():
     fn = os.path.join(FRONTEND_APP_DIR,
                       *FRONTEND_DIST.split('/'),

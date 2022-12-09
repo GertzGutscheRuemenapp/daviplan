@@ -345,10 +345,11 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.AREAS) as ppm:
+                                     scope=ProcessScope.AREAS,
+                                     run_sync=run_sync) as ppm:
             try:
                 ppm.run(self._pull_areas, area_level, project_area,
-                        truncate=truncate, simplify=simplify, sync=run_sync)
+                        truncate=truncate, simplify=simplify)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -501,10 +502,11 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.AREAS) as ppm:
+                                     scope=ProcessScope.AREAS,
+                                     run_sync=run_sync) as ppm:
             try:
                 ppm.run(self._upload_shapefile, area_level, fp.name,
-                        project_area, sync=run_sync)
+                        project_area)
             except Exception as e:
                 return Response({'message': str(e)},
                                 status.HTTP_500_INTERNAL_SERVER_ERROR)
