@@ -136,9 +136,33 @@ class PlaceSerializer(serializers.ModelSerializer):
         return instance
 
 
+class PlaceFieldListSerializer(serializers.ListSerializer):
+    '''
+    only list fields the requesting user has access to (not sensitive or in
+    an infrastructure marked as allowed for her/him)
+    '''
+    def to_representation(self, data):
+        user = self.context['request'].user
+        if (user.is_superuser or user.profile.admin_access):
+            return super().to_representation(data)
+        accessible_data = []
+        for infrastructure_id in data.values_list(
+            'infrastructure', flat=True).distinct():
+            infrastructure = Infrastructure.objects.get(id=infrastructure_id)
+            users_infra_access = infrastructure.infrastructureaccess_set.filter(
+                profile=user.profile)
+            allow_sensitive_data = users_infra_access[0].allow_sensitive_data
+            fields = data.filter(infrastructure=infrastructure)
+            for field in fields:
+                if not field.sensitive or allow_sensitive_data:
+                    accessible_data.append(field)
+        return super().to_representation(accessible_data)
+
+
 class PlaceFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceField
+        list_serializer_class = PlaceFieldListSerializer
         fields = ('id', 'name', 'label', 'unit', 'infrastructure',
                   'field_type', 'sensitive')
 
@@ -148,6 +172,7 @@ class PlaceFieldNestedSerializer(serializers.ModelSerializer):
     # in the validated data
     id = serializers.IntegerField(required=False)
     class Meta:
+        list_serializer_class = PlaceFieldListSerializer
         model = PlaceField
         fields = ('id', 'name', 'label', 'unit', 'field_type', 'sensitive',
                   'is_preset')
