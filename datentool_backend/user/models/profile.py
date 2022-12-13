@@ -4,7 +4,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from datentool_backend.base import DatentoolModelMixin
-from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
 
 class Profile(DatentoolModelMixin, models.Model):

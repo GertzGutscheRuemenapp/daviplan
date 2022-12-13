@@ -24,15 +24,10 @@
     </a>
   </span>
   <span class="fill-space"></span>
-  <button mat-button [matMenuTriggerFor]="infoMenu">
-    <mat-icon>info_outline</mat-icon>
-    Informationen
-  </button>
-  <mat-menu #infoMenu>
-    <a mat-menu-item routerLink="">Willkommen</a>
-    <a mat-menu-item routerLink="/impressum">Impressum</a>
-    <a mat-menu-item routerLink="/datenschutz">Datenschutz</a>
-  </mat-menu>
+
+  <button mat-button routerLink="/impressum"> Impressum </button>
+  <button mat-button routerLink="/datenschutz"> Datenschutz </button>
+
   <button mat-button [matMenuTriggerFor]="profileMenu">
     <mat-icon>person_outline</mat-icon>
     {{(user)? user.username: 'Profil'}}

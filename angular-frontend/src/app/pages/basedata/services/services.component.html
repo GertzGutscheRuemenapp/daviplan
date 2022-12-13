@@ -131,7 +131,8 @@
         </table>
       </div>
     </app-input-card>
-    <app-dash-card subtitle="Beispieltexte auf Basis der aktuellen Einstellungen für die ausgewählte Leistung {{activeService?.name}}" *ngIf="(indicators.length > 0)">
+    <app-dash-card *ngIf="(indicators.length > 0)"
+                   subtitle='Beispieltexte auf Basis der aktuellen Einstellungen für die ausgewählte Leistung "{{activeService?.name}}"'>
       <ul>
         <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
           {{indicator.description}}

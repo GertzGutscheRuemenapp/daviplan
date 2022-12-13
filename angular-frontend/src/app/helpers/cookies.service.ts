@@ -26,32 +26,50 @@ export class CookieService {
   public get(name: string, type: 'json'): any;
   public get(name: string, type: string = 'string'): unknown {
     let val = this.ngxCookies.get(name);
-    if (type === 'boolean') {
-      if (val === undefined || val === '') return;
-      if (val.toLocaleLowerCase() === 'false')
-        return false;
-      return true;
+    switch (type) {
+      case 'boolean':
+        if (val === undefined || val === '') return;
+        if (val.toLocaleLowerCase() === 'false')
+          return false;
+        return true;
+      case 'array':
+        if (!val) return [];
+        return val.split(',');
+      case 'number':
+        if (val === undefined || val === '') return;
+        return Number(val);
+      case 'string':
+        return val || '';
+      case 'json':
+        try {
+          val = JSON.parse(val);
+        }
+        catch {
+          return;
+        }
+        return val;
+      default:
+        return val;
     }
-    if (type === 'array'){
-      if (!val) return [];
-      return val.split(',');
-    }
-    if (type === 'number'){
-      if (val === undefined || val === '') return;
-      return Number(val);
-    }
-    if (type === 'string'){
-      return val || '';
-    }
-    if (type === 'json'){
-      return JSON.parse(val) || {};
-    }
-    return val;
   }
 
-  public set(name: string, val: any, path?: string | undefined) {
-    const strVal = (val !== undefined && val.toString)? val.toString(): (val instanceof Object)? JSON.stringify(val): String(val);
-    this.ngxCookies.set(name, strVal, { path: path, expires: 3650 });
+  public set(name: string, val: any, options?: { path?: string | undefined, type?: 'string' | 'boolean' | 'json' | 'array' | 'number'}) {
+    let serialVal;
+    switch (options?.type) {
+      case 'boolean': case 'array': case 'number':
+        serialVal = val.toString();
+        break;
+      case 'string':
+        serialVal = val;
+        break;
+      case 'json':
+        serialVal = JSON.stringify(val);
+        break;
+      default:
+        // try to stringify the value
+        serialVal = (val !== undefined && val.toString)? val.toString(): (val instanceof Object)? JSON.stringify(val): String(val);
+    }
+    this.ngxCookies.set(name, serialVal, { path: options?.path, expires: 3650 });
   }
 
   public has(name: string) {

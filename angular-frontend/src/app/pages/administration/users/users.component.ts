@@ -151,7 +151,8 @@ export class UsersComponent implements AfterViewInit  {
         const ua = this.userAccess(this.selectedUser, infrastructure);
         const access = {
           infrastructure: infrastructure,
-          hasAccess: ua !== undefined
+          hasAccess: ua !== undefined,
+          allowSensitiveData: ua?.allowSensitiveData || false
         }
         accessControl[infrastructure.id] = this.formBuilder.group(access);
       })
@@ -164,7 +165,8 @@ export class UsersComponent implements AfterViewInit  {
         const control = this.accessForm.value[infrastructureId];
         if (control.hasAccess) {
           access.push({
-            infrastructure: infrastructureId
+            infrastructure: infrastructureId,
+            allowSensitiveData: control.allowSensitiveData
           })
         }
       })

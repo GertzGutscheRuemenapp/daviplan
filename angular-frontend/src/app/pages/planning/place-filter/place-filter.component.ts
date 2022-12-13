@@ -1,10 +1,13 @@
 import { AfterViewInit, Component, EventEmitter, Input, Output, TemplateRef, ViewChild } from '@angular/core';
-import { FieldType, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
-import { PlanningService } from "../planning.service";
+import { FieldType, Infrastructure, Place, PlaceField, Scenario, Service } from "../../../rest-interfaces";
+import { PlaceFilter, PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
 import { forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { FilterTableComponent, FilterColumn } from "../../../elements/filter-table/filter-table.component";
+import {
+  FilterTableComponent,
+  FilterColumn
+} from "../../../elements/filter-table/filter-table.component";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
@@ -25,8 +28,8 @@ export class PlaceFilterComponent  implements AfterViewInit {
   @Input() service?: Service;
   @Input() scenario?: Scenario;
   @Input() year?: number;
-  @Output() onFilter = new EventEmitter<FilterColumn[]>();
-  public columns: FilterColumn[] = [];
+  @Output() onFilter = new EventEmitter<PlaceFilter[]>();
+  public _columnDescriptors: FilterColumn[] = [];
   _filterColumnsTemp: FilterColumn[] = [];
   years: number[] = [];
   prognosisYears: number[] = [];
@@ -38,8 +41,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
   constructor(public dialog: MatDialog, public planningService: PlanningService) {
   }
 
-  ngAfterViewInit(): void {
-  };
+  ngAfterViewInit(): void {};
 
   onClick() {
     if (!this.infrastructure) return;
@@ -47,7 +49,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
     let observables: Observable<any>[] = [];
     observables.push(this.planningService.getFieldTypes().pipe(map(fieldTypes => {
       this.fieldTypes = fieldTypes;
-      this.columns = this.getColumns();
+      this._columnDescriptors = this.getColumnDescriptors();
     })))
     observables.push(this.planningService.getRealYears().pipe(map(years => {
       this.realYears = years;
@@ -68,6 +70,44 @@ export class PlaceFilterComponent  implements AfterViewInit {
     })
   }
 
+  getColumnDescriptors(): FilterColumn[] {
+    const placeFilters = this.planningService.getPlaceFilters(this.infrastructure) || [];
+    // order: name > fields > capacities
+    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR', changed: false }];
+    const nameFilter = placeFilters.find(p => p.property === 'name');
+    if (nameFilter)
+      columns[0].filter = nameFilter.filter.clone();
+    this.infrastructure!.placeFields?.forEach(field => {
+      const fieldType = this.fieldTypes.find(ft => ft.id == field.fieldType);
+      if (!fieldType) return;
+      const column: FilterColumn = {
+        name: field.label || field.name,
+        type: fieldType.ftype,
+        classes: fieldType.classification?.map(c => c.value),
+        unit: field.unit,
+        changed: false
+      };
+      const filterInput = placeFilters.find(c => c.field === field.name);
+      if (filterInput)
+        column.filter = filterInput.filter.clone();
+      columns.push(column);
+    })
+    this.infrastructure!.services!.forEach(service => {
+      const column: FilterColumn = {
+        // name: service.hasCapacity? `${service.name} (Kapazität)`: service.name,
+        name: service.name,
+        type: service.hasCapacity? 'NUM' : 'BOOL',
+        unit: service.hasCapacity? service.capacityPluralUnit: '',
+        changed: false
+      };
+      const filterInput = placeFilters.find(c => c.service === service.id);
+      if (filterInput)
+        column.filter = filterInput.filter.clone();
+      columns.push(column);
+    })
+    return columns;
+  }
+
   updateTable(): void {
     this.planningService.updateCapacities({ infrastructure: this.infrastructure, year: this.year, scenario: this.scenario }
     ).subscribe(() => this.rows = this.placesToRows(this.places!));
@@ -75,7 +115,6 @@ export class PlaceFilterComponent  implements AfterViewInit {
 
   private openDialog(): void {
     if (!this.infrastructure) return;
-    this._filterColumnsTemp = this.planningService.placeFilterColumns[this.infrastructure.id];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       // width: '100%',
@@ -98,63 +137,49 @@ export class PlaceFilterComponent  implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.planningService.placeFilterColumns[this.infrastructure!.id] = this._filterColumnsTemp;
-      this.onFilter.emit(this.planningService.placeFilterColumns[this.infrastructure!.id]);
+      if (!this.infrastructure) return;
+      let placeFilters: PlaceFilter[] = [];
+      // filters are changed in place on _columnDescriptors by filter table
+      // order of _columnDescriptors: name > fields > capacities
+      const nameFilterColumn = this._columnDescriptors[0];
+      if (nameFilterColumn.filter?.active){
+        placeFilters.push({ name: nameFilterColumn.name, property: 'name', filter: nameFilterColumn.filter });
+      }
+      let i = 1;
+      this.infrastructure!.placeFields?.forEach(field => {
+        const filterColumn = this._columnDescriptors[i];
+        if (filterColumn.filter?.active) {
+          placeFilters.push({ name: filterColumn.name, field: field.name, filter: filterColumn.filter });
+        }
+        i += 1;
+      });
+      this.infrastructure!.services!.forEach(service => {
+        const filterColumn = this._columnDescriptors[i];
+        if (filterColumn.filter?.active) {
+          placeFilters.push({ name: filterColumn.name, service: service.id, filter: filterColumn.filter });
+        }
+        i += 1;
+      });
+      this.planningService.setPlaceFilters(this.infrastructure, placeFilters);
+      this.onFilter.emit(placeFilters);
     });
-  }
-
-  private getColumns(): FilterColumn[] {
-    function cloneFilter(filterColumn: FilterColumn): any {
-      return Object.assign(Object.create(Object.getPrototypeOf(filterColumn.filter)), filterColumn.filter);
-    }
-    const filterColumns = (this.infrastructure? this.planningService.placeFilterColumns[this.infrastructure.id]: []) || [];
-    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR', attribute: '_placeName_' }];
-    const nameFilter = filterColumns.find(p => p.attribute === '_placeName_');
-    if (nameFilter)
-      columns[0].filter = cloneFilter(nameFilter);
-    this.infrastructure!.services!.forEach(service => {
-      const column: FilterColumn = {
-        // name: service.hasCapacity? `${service.name} (Kapazität)`: service.name,
-        name: service.name,
-        service: service,
-        type: service.hasCapacity? 'NUM' : 'BOOL',
-        unit: service.hasCapacity? service.capacityPluralUnit: ''
-      };
-      const filterInput = filterColumns.find(c => c.service === service);
-      if (filterInput)
-        column.filter = cloneFilter(filterInput);
-      columns.push(column);
-    })
-    this.infrastructure!.placeFields?.forEach(field => {
-      const fieldType = this.fieldTypes.find(ft => ft.id == field.fieldType);
-      if (!fieldType) return;
-      const column: FilterColumn = {
-        name: field.label || field.name,
-        attribute: field.name,
-        type: fieldType.ftype,
-        classes: fieldType.classification?.map(c => c.value),
-        unit: field.unit
-      };
-      const filterInput = filterColumns.find(c => c.attribute === field.name);
-      if (filterInput)
-        column.filter = cloneFilter(filterInput);
-      columns.push(column);
-    })
-    return columns;
   }
 
   private placesToRows(places: Place[]): any[][]{
     const rows: any[][] = [];
     places.forEach(place => {
+      // skip rows with capacity of 0 in active service (except the switch to show them is toggled on)
       if (this.service && !this._ignoreCapacities && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
+
+      const fieldValues: any[] = this.infrastructure!.placeFields!.map(field => {
+        return place.attributes[field.name] || '';
+      })
       const capValues = this.infrastructure!.services!.map(service => {
         const capacity = this.planningService.getPlaceCapacity(place, { service: service, year: this.year, scenario: this.scenario });
         return service.hasCapacity? capacity: !!capacity;
       })
-      const values: any[] = this.infrastructure!.placeFields!.map(field => {
-        return place.attributes[field.name] || '';
-      })
-      rows.push([place.name as any].concat(capValues).concat(values));
+      // order: name > fields > capacities
+      rows.push([place.name as any].concat(fieldValues).concat(capValues));
     })
     return rows;
   }
@@ -168,9 +193,5 @@ export class PlaceFilterComponent  implements AfterViewInit {
     this.year = years[newIdx];
     this.timeSlider!.value = this.year;
     this.updateTable();
-  }
-
-  onFilterChange(columns: FilterColumn[]): void {
-    this._filterColumnsTemp = columns;
   }
 }

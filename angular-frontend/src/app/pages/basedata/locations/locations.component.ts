@@ -304,7 +304,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   addField(): void {
     this.editFields?.push({
-      name: '', label: '', unit: '',// sensitive: false,
+      name: '', label: '', unit: '', sensitive: false,
       fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
       new: true, removed: false
     })
