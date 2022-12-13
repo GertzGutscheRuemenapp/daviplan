@@ -332,7 +332,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
           this.planningService.getAgeGroups().subscribe(ageGroups => {
             const service = this.planningService.activeService;
             const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-              width: '900px',
+              width: '100%',
               panelClass: 'absolute',
               data: {
                 title: 'Nachfragequoten',
@@ -341,6 +341,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
                 template: this.demandQuotaTemplate,
                 context: {
                   years: realYears.concat(prognosisYears),
+                  year: this.year,
                   scenario: scenario,
                   demandRateSet: demandRateSet,
                   genders: genders,

@@ -18,7 +18,7 @@
       </th>
     </tr>
     <tr *ngFor="let row of sortedRows">
-      <td *ngFor="let value of row">{{value}}</td>
+      <td *ngFor="let value of row">{{(value && value.toLocaleString)? value.toLocaleString(): value}}</td>
     </tr>
   </table>
 </div>

@@ -127,8 +127,9 @@ class ExcelTemplateMixin:
             if drop_constraints:
                 manager.drop_constraints()
                 manager.drop_indexes()
-            logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
-            queryset.delete()
+            if (len(queryset)):
+                logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
+                queryset.delete()
             try:
                 if len(df):
                     logger.info('Schreibe Daten in Datenbank')
@@ -152,5 +153,6 @@ class ExcelTemplateMixin:
                     manager.restore_constraints()
                     manager.restore_indexes()
 
-        msg = f'{len(df)} Einträge geschrieben'
-        logger.info(msg)
+        if (len(df)):
+            msg = f'{len(df)} Einträge geschrieben'
+            logger.info(msg)
