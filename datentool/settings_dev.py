@@ -40,4 +40,4 @@ ENCRYPT_KEY = os.environ.get('ENCRYPT_KEY',
 
 # set to True to run  django_q tasks synchronous in dev mode without
 # needing running seperate q-cluster
-Q_CLUSTER['sync'] = False
+USE_DJANGO_Q = False
