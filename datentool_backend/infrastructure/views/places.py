@@ -263,8 +263,9 @@ def read_excel_file(excel_file, infrastructure_id: int):
                     lon, lat = res
                     geom = Point(lon, lat, srid=3857)
                 else:
-                    # ToDo: ????
-                    pass
+                    logger.error(f'''Konnte Adresse für {place_row.Name} mit folgender Adresse nicht finden:
+                    Ort: {place_row.Ort}, PLZ: {place_row.PLZ}, strasse: {place_row.Straße}, Haus: {place_row.Hausnummer}''')
+                    continue
             else:
                 from django.core.exceptions import ValidationError
                 raise ValidationError(bkg_error)
