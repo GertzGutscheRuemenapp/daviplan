@@ -168,7 +168,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       this.indicatorLayer = this.layerGroup?.addVectorTileLayer( this.selectedIndicator!.title, url, {
-        description: this.selectedIndicator!.title,
+        description: `<p><b>${this.selectedIndicator!.title}</b></p><p>${this.selectedIndicator!.description}</p>`,
         order: 0,
         style: {
           fillColor: 'grey',
@@ -248,7 +248,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
         this.indicatorLayer = this.layerGroup?.addVectorLayer(this.selectedIndicator!.title, {
           order: 0,
-          description: this.selectedIndicator!.title,
+          description: `<p><b>${this.selectedIndicator!.title}</b></p><p>${this.selectedIndicator!.description}</p>`,
           style: {
             fillColor: '#2171b5',
             strokeWidth: 2,
@@ -334,7 +334,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         }
         this.indicatorLayer = this.layerGroup?.addVectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
           order: 0,
-          description: this.selectedIndicator!.description,
+          description: `<p><b>${this.selectedIndicator!.title}</b></p><p>${this.selectedIndicator!.description}</p>`,
           style: {
             strokeColor: 'white',
             fillColor: 'rgba(165, 15, 21, 0.9)',

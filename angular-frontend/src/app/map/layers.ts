@@ -21,8 +21,7 @@ interface LegendEntry {
 }
 
 interface ColorLegend {
-  entries: LegendEntry[],
-  elapsed?: boolean
+  entries: LegendEntry[]
 }
 
 export interface LayerOptions {
@@ -35,7 +34,8 @@ export interface LayerOptions {
   opacity?: number,
   visible?: boolean,
   active?: boolean,
-  legend?: ColorLegend
+  legend?: ColorLegend,
+  legendElapsed?: boolean
 }
 
 export abstract class MapLayer {
@@ -52,6 +52,7 @@ export abstract class MapLayer {
   map?: OlMap;
   active?: boolean;
   legend?: ColorLegend;
+  legendElapsed?: boolean
   protected _legend?: ColorLegend;
   attributeChanged = new EventEmitter<{attribute: string, value: any}>();
 
@@ -59,6 +60,7 @@ export abstract class MapLayer {
     this.name = name;
     this.id = options?.id;
     this.url = options?.url;
+    this.legendElapsed = options?.legendElapsed;
     this.description = options?.description;
     this.attribution = options?.attribution;
     this.opacity = options?.opacity;
@@ -75,6 +77,11 @@ export abstract class MapLayer {
     // if no zIndex defined try to derive it from the layer order
     let zIndex = 90 - (this.order || 0);
     return zIndex;
+  }
+
+  setLegendElapsed(elapsed: boolean) {
+    this.legendElapsed = elapsed;
+    this.attributeChanged.emit({ attribute: 'legendElapsed', value: elapsed });
   }
 
   setOpacity(opacity: number) {
@@ -334,12 +341,11 @@ export class VectorLayer extends MapLayer {
     })
   }
 
-  protected _getColorLegend(): ColorLegend | undefined {
+  protected updateLegend(): ColorLegend | undefined {
     if (this._legend) return this._legend;
     if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
     let legend: ColorLegend = {
-      entries: [],
-      elapsed: true
+      entries: []
     }
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     if (this.valueStyles.fillColor.bins){
@@ -413,7 +419,7 @@ export class VectorLayer extends MapLayer {
       olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
     }
     this.map.addFeatures(this.mapId!, olFeatures);
-    this.legend = this._getColorLegend();
+    this.legend = this.updateLegend();
     return olFeatures;
   }
 
@@ -487,7 +493,7 @@ export class VectorTileLayer extends VectorLayer {
     this.initFunctions();
     this.initSelect();
     if (this.valueStyles?.fillColor)
-      this.legend = this._getColorLegend();
+      this.legend = this.updateLegend();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
       zIndex: this.getZIndex(),
       visible: this.visible,

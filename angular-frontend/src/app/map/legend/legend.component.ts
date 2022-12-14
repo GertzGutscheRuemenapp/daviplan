@@ -69,7 +69,7 @@ export class LegendComponent implements AfterViewInit {
 
   toggleLayerLegend(layer: VectorLayer): void {
     if (!layer.legend) return;
-    layer.legend.elapsed = !layer.legend.elapsed;
+    layer.setLegendElapsed(!layer.legendElapsed);
   }
 
   setBGOpacity(value: number | null) {

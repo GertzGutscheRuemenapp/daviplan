@@ -145,11 +145,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getPlaces(placeOptions).pipe(map(places => this.places = places)));
 
     forkJoin(...observables).subscribe(() => {
-      let legendElapsed = true;
-      if (this.placesLayer) {
-        legendElapsed = !!this.placesLayer.legend?.elapsed
-        this.layerGroup?.removeLayer(this.placesLayer);
-      }
+      this.layerGroup?.clear();
       let mapPlaces: any[] = [];
       this.places?.forEach(place => {
         const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
@@ -217,8 +213,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           entries: [
             { label: `mit Leistung "${this.activeService?.name}"`, color: '#2171b5', strokeColor: 'black' },
             { label: `ohne Leistung "${this.activeService?.name}"`, color: 'lightgrey', strokeColor: 'black' }
-          ],
-          elapsed: legendElapsed
+          ]
         }
       });
 
@@ -273,8 +268,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               { label: 'Kapazität verringert', color: 'rgba(0,0,0,0)', strokeColor: '#fc450c' },
               { label: 'Kapazität erhöht', color: 'rgba(0,0,0,0)', strokeColor: '#00ff28' },
               { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#00c4ff' },
-            ],
-            elapsed: legendElapsed
+            ]
           }
         });
         // only add places with changes (compared to status quo) to marker layer
