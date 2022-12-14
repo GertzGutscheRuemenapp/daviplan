@@ -146,7 +146,6 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
         symbol: 'circle'
       },
       labelField: 'value',
-      showLabel: true,
       tooltipField: 'description',
       mouseOver: {
         enabled: true,

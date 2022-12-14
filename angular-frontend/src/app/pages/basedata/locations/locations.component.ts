@@ -126,7 +126,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    const showLabel = (this.placesLayer?.showLabel !== undefined)? this.placesLayer.showLabel: true;
     if (this.placesLayer) {
       this.layerGroup?.removeLayer(this.placesLayer);
       this.placesLayer = undefined;
@@ -147,7 +146,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           enabled: true,
           multi: true
         },
-        showLabel: showLabel,
         labelOffset: { y: 15 },
       });
     this.placesLayer?.addFeatures(this.places.map(place => { return {

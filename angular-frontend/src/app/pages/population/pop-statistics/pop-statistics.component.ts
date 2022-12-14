@@ -184,7 +184,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           symbol: 'circle'
         },
         labelField: 'value',
-        showLabel: true,
         tooltipField: 'description',
         mouseOver: {
           enabled: true,

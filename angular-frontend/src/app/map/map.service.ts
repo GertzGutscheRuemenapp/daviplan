@@ -305,10 +305,11 @@ export class MapControl {
   private addCookieOptions(layerId: string | number, options: LayerOptions): LayerOptions {
     const clonedOpt = Object.assign({}, options);
     const defaults = [1, true, true];
+    const types: ('number' | 'boolean')[] = ['number', 'boolean', 'boolean'];
     ['opacity', 'visible', 'showLabel'].forEach((attr, i) => {
       const key = attr as keyof LayerOptions;
       if (clonedOpt[key] === undefined){
-        clonedOpt[key] = this.getCookieLayerAttr(layerId, attr, {default: defaults[i]});
+        clonedOpt[key] = this.getCookieLayerAttr(layerId, attr, {default: defaults[i], type: types[i]});
       }
     })
     return clonedOpt;
@@ -365,13 +366,10 @@ export class MapControl {
    */
   private getCookieLayerAttr(layerId: string | number, attribute: string, options?: { type?: 'number' | 'boolean', default?: any } ): any {
     const cookieStr = `Layer-${layerId}-${attribute}`;
-    if (options?.type === 'boolean')
-      return this.cookies.get(cookieStr, 'boolean') || false;
-    else {
-      const value = this.cookies.get(cookieStr, 'number');
-      const defaultVal = (options?.default !== undefined)? options.default: 1;
-      return (value !== undefined)? value: defaultVal;
-    }
+    // can't pass type to cookies.get directly, TS2769 error
+    const value = (options?.type === 'boolean')? this.cookies.get(cookieStr, 'boolean'): this.cookies.get(cookieStr, 'number');
+    const defaultVal = (options?.default !== undefined)? options.default: (options?.type === 'boolean')? false: 1;
+    return (value !== undefined)? value: defaultVal;
   }
 
   private getServiceLayerGroups(options?: { internal?: boolean, external?: boolean, reset?: boolean }): void {

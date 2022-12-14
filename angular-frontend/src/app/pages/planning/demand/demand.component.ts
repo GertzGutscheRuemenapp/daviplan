@@ -137,7 +137,6 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
           symbol: 'line'
         },
         labelField: 'value',
-        showLabel: true,
         tooltipField: 'description',
         mouseOver: {
           enabled: true,

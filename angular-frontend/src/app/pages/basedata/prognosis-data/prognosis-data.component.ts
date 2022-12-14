@@ -208,7 +208,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
             fillColor: 'rgba(255, 255, 0, 0.9)'
           }
         },
-        showLabel: true,
         valueStyles: {
           field: 'value',
           radius: {

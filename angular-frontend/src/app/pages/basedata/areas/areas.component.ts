@@ -163,7 +163,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
             strokeColor: 'orange'
           },
           tooltipField: 'label',
-          showLabel: true,
           labelField: 'label',
           mouseOver: {
             enabled: true,

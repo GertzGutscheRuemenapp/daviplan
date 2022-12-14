@@ -49,7 +49,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   selectedIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
   activeScenario?: Scenario;
-  showLabel = true;
   mapControl?: MapControl;
   indicatorLayer?: MapLayer;
   layerGroup?: MapLayerGroup;
@@ -177,7 +176,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           symbol: 'line'
         },
         labelField: 'value',
-        showLabel: this.showLabel,
         valueStyles: style,
         valueMap: {
           field: 'cellcode',
@@ -259,7 +257,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           },
           radius: 7,
           labelField: 'label',
-          showLabel: this.showLabel,
           tooltipField: 'description',
           valueStyles: style,
           mouseOver: {
@@ -344,7 +341,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             symbol: 'line'
           },
           labelField: 'label',
-          showLabel: this.showLabel,
           tooltipField: 'description',
           mouseOver: {
             enabled: true,

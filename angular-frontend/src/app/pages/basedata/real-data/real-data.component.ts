@@ -225,7 +225,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           symbol: 'circle'
         },
         labelField: 'value',
-        showLabel: true,
         tooltipField: 'description',
         labelOffset: { y: 10 },
         mouseOver: {
