@@ -263,13 +263,13 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayer>(this.rest.URLS.layers, attributes).subscribe(layer => {
         const group = this.getGroup(layer.group);
-        group?.addServiceLayer(layer.name, layer.url, 'wms', {
+        group?.appendLayer(new WMSLayer(layer.name, layer.url, {
           id: layer.id,
           order: layer.order,
           description: layer.description,
           layerName: layer.layerName,
           active: layer.active
-        });
+        }));
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
         this.layerTree.select(layer);

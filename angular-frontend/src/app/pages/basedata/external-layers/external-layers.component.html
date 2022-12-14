@@ -64,7 +64,7 @@
                     [editTemplate]="editLayerTemplate"
                     infoText="<p>Klicken Sie auf „Editieren“, um die URL des WMS-Dienstes (und weitere ggf. relevante Informationen) einzutragen oder diese zu verändern.</p>
                     <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
-      <table>
+      <table class="layer-preview-table">
         <tr>
           <td>URL</td>
           <td style="color: grey">{{selectedLayer?.url}}</td>
@@ -142,6 +142,7 @@
             <p>{{ layer.description || 'kein Beschreibungstext' }}</p>
           </ng-template>
           <mat-radio-button [value]="layer.id"
+                            style="width: 100%;"
                             (change)="onAvLayerSelected($event.value)"
                             [checked]="first"
                             color="primary"
