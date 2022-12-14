@@ -1239,9 +1239,11 @@ mat-checkbox.reverse {
 
 .oltooltip {
   background: white;
-  padding: 4px;
+  padding: 4px 10px;
   pointer-events: none;
   user-select: none;
+  border-radius: 4px;
+  box-shadow: 1px 0px 3px 1px rgba(189, 189, 189, 0.75);
 }
 
 .dotted-fill {

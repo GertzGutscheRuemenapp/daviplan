@@ -39,6 +39,7 @@ export class OlMap {
   mapProjection: string;
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
+  tooltipFeature?: Feature<any>;
   // emits all selected features
   // selected = new EventEmitter<{ layer: MapLayer, selected: Feature<any>[], deselected: Feature<any>[] }>();
   selected = new EventEmitter<{ layer: OlLayer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
@@ -78,11 +79,12 @@ export class OlMap {
     this.div!.appendChild(tooltip);
     this.tooltipOverlay = new Overlay({
       element: tooltip,
-      offset: [10, 0],
+      offset: [15, -10],
       positioning: 'bottom-left'
     });
     this.map.addOverlay(this.tooltipOverlay);
     this.map.getViewport().addEventListener('mouseout', event => {
+      this.tooltipFeature = undefined;
       tooltip.style.display = 'none';
     });
     this.map.on('singleclick', evt => {
@@ -568,15 +570,20 @@ export class OlMap {
         if (options.tooltipField && layer.get('showTooltip')) {
           let tooltip = this.tooltipOverlay.getElement();
           if (features.length > 0) {
-            this.tooltipOverlay.setPosition(event.coordinate);
             const feature = features[0];
-            // let coords = this.map.getCoordinateFromPixel(pixel);
-            // const text = (options.valueMap && options.tooltipField === 'value')? options.valueMap.values[feature.get(options?.valueMap.field)]: feature.get(options.tooltipField);
-            const text = feature.get(options.tooltipField);
-            tooltip!.innerHTML = text; // + `<br>${coords[0]}, ${coords[1]}`;
-            tooltip!.style.display = text? '': 'none';
-          } else
+            if (this.tooltipFeature !== feature) {
+              this.tooltipFeature = feature;
+              this.tooltipOverlay.setPosition(event.coordinate);
+              // let coords = this.map.getCoordinateFromPixel(pixel);
+              // const text = (options.valueMap && options.tooltipField === 'value')? options.valueMap.values[feature.get(options?.valueMap.field)]: feature.get(options.tooltipField);
+              const text = feature.get(options.tooltipField);
+              tooltip!.innerHTML = text; // + `<br>${coords[0]}, ${coords[1]}`;
+              tooltip!.style.display = text ? '' : 'none';
+            }
+          } else {
+            this.tooltipFeature = undefined;
             tooltip!.style.display = 'none';
+          }
         }
         if (options.cursor) {
           this.div!.style.cursor = features.length > 0 ? options.cursor : this.cursor;
