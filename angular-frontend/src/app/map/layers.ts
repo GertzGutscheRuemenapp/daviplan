@@ -4,8 +4,11 @@ import { OlMap } from "./map";
 import { Feature } from "ol";
 import { Layer as OlLayer } from "ol/layer";
 import { v4 as uuid } from "uuid";
-import { sortBy } from "../helpers/utils";
 import * as d3 from "d3";
+
+/**
+ * wrappers for ol-map layers
+ */
 
 export interface LayerStyle extends Symbol {
   strokeWidth?: number
@@ -22,52 +25,8 @@ interface ColorLegend {
   elapsed?: boolean
 }
 
-export class MapLayerGroup {
-  name: string;
-  id?: number | string;
-  children: MapLayer[] = [];
-  external?: boolean;
-  map?: OlMap;
-  order?: number;
-
-  constructor(name: string, options?: {
-    order?: number,
-    external?: boolean,
-    id?: number,
-    global?: boolean
-  }) {
-    this.id = options?.id;
-    this.name = name;
-    this.external = options?.external;
-    this.order = options?.order;
-  }
-
-  addLayer(layer: MapLayer): void {
-    layer.group = this;
-    // only add if not already a child
-    if (this.children.indexOf(layer) < 0) {
-      this.children.push(layer);
-      this.children = sortBy(this.children, 'order');
-      layer.addToMap(this.map);
-    }
-  }
-
-  removeLayer(layer: MapLayer): void {
-    const idx = this.children.indexOf(layer);
-    if (idx < 0) return;
-    this.children.splice(idx, 1);
-    layer.removeFromMap();
-  }
-
-  clear(): void {
-    this.children.forEach(l => l.removeFromMap());
-    this.children = [];
-  }
-}
-
-interface LayerOptions {
+export interface LayerOptions {
   id?: string | number,
-  group?: MapLayerGroup,
   url?: string,
   description?: string,
   order?: number,
@@ -84,7 +43,6 @@ export abstract class MapLayer {
   url?: string;
   id?: number | string;
   mapId?: string;
-  group?: MapLayerGroup;
   description?: string = '';
   order?: number = 1;
   zIndex?: number;
@@ -95,11 +53,11 @@ export abstract class MapLayer {
   active?: boolean;
   legend?: ColorLegend;
   protected _legend?: ColorLegend;
+  attributeChanged = new EventEmitter<{attribute: string, value: any}>();
 
   protected constructor(name: string, options?: LayerOptions) {
     this.name = name;
     this.id = options?.id;
-    this.map = options?.group?.map;
     this.url = options?.url;
     this.description = options?.description;
     this.attribution = options?.attribution;
@@ -109,25 +67,26 @@ export abstract class MapLayer {
     this.active = options?.active;
     this.zIndex = options?.zIndex;
     this._legend = options?.legend;
-    if (options?.group) options?.group.addLayer(this);
   }
 
   getZIndex(): number {
-    if (this.zIndex) return this.zIndex;
+    if (this.zIndex)
+      return this.zIndex;
+    // if no zIndex defined try to derive it from the layer order
     let zIndex = 90 - (this.order || 0);
-    if (this.group?.order)
-      zIndex += 10000 - (this.group.order * 100);
     return zIndex;
   }
 
   setOpacity(opacity: number) {
     this.opacity = opacity;
     this.map?.setOpacity(this.mapId!, opacity);
+    this.attributeChanged.emit({ attribute: 'opacity', value: opacity });
   }
 
   setVisible(visible: boolean) {
     this.visible = visible;
     this.map?.setVisible(this.mapId!, visible);
+    this.attributeChanged.emit({ attribute: 'visible', value: visible });
   }
 
   clearFeatures(): void {
@@ -147,7 +106,7 @@ export abstract class MapLayer {
   abstract addToMap(map?: OlMap): OlLayer<any> | undefined;
 }
 
-interface TileLayerOptions extends LayerOptions {
+export interface ServiceLayerOptions extends LayerOptions {
   legendUrl?: string,
   layerName?: string
 }
@@ -157,7 +116,7 @@ export class TileLayer extends MapLayer {
   layerName?: string;
   legendUrl?: string;
 
-  constructor(name: string, url: string, options?: TileLayerOptions) {
+  constructor(name: string, url: string, options?: ServiceLayerOptions) {
     super(name, options);
     this.url = url;
     this.layerName = options?.layerName;
@@ -171,7 +130,7 @@ export class TileLayer extends MapLayer {
     this.mapId = uuid();
     return this.map.addTileServer(
       this.mapId, this.url!, {
-        zIndex: this.getZIndex(),
+        zIndex: this.zIndex,
         params: { layers: this.layerName },
         visible: this.visible,
         opacity: this.opacity,
@@ -228,7 +187,7 @@ export interface ValueStyle {
   max?: number
 }
 
-interface VectorLayerOptions extends LayerOptions {
+export interface VectorLayerOptions extends LayerOptions {
   showLabel?: boolean,
   tooltipField?: string,
   labelField?: string,
@@ -485,6 +444,7 @@ export class VectorLayer extends MapLayer {
   setShowLabel(show: boolean): void {
     this.showLabel = show;
     this.map?.setShowLabel(this.mapId!, show);
+    this.attributeChanged.emit({ attribute: 'showLabel', value: show });
   }
 
   removeFeature(feature: Feature<any> | number): void {
@@ -505,7 +465,7 @@ interface ValueMap {
   values: Record<string, number>
 }
 
-interface VectorTileLayerOptions extends VectorLayerOptions {
+export interface VectorTileLayerOptions extends VectorLayerOptions {
   valueMap?: ValueMap
 }
 

@@ -3,9 +3,9 @@ import { Coordinate } from 'ol/coordinate';
 import { ScaleLine, defaults as DefaultControls } from 'ol/control';
 import { defaults as DefaultInteractions } from 'ol/interaction';
 import * as olProj from 'ol/proj'
-import { Layer } from 'ol/layer';
+import { Layer as OlLayer } from 'ol/layer';
 import VectorSource from 'ol/source/Vector';
-import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
+import { Tile as OlTileLayer, Vector as OlVectorLayer } from "ol/layer";
 import GeoJSON from 'ol/format/GeoJSON';
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import TileWMS from 'ol/source/TileWMS';
@@ -23,20 +23,25 @@ import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import RenderFeature from "ol/render/Feature";
 import CircleStyle from "ol/style/Circle";
+import { MapLayer, TileLayer, VectorLayer } from "./layers";
 
 export class OlMap {
   target: string;
   view: View;
   map: Map;
   cursor = '';
-  layers: Record<string, Layer<any>> = {};
-  overlays: Record<string, Layer<any>> = {};
-  tileOverlays: Record<string, Layer<any>> = {};
+  // layers: Record<string, MapLayer> = {};
+  // overlays: Record<string, VectorLayer> = {};
+  // tileOverlays: Record<string, TileLayer> = {};
+  layers: Record<string, OlLayer<any>> = {};
+  overlays: Record<string, OlLayer<any>> = {};
+  tileOverlays: Record<string, OlLayer<any>> = {};
   mapProjection: string;
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
   // emits all selected features
-  selected = new EventEmitter<{ layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
+  // selected = new EventEmitter<{ layer: MapLayer, selected: Feature<any>[], deselected: Feature<any>[] }>();
+  selected = new EventEmitter<{ layer: OlLayer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
   mapClicked = new EventEmitter<number[]>();
 
   constructor( target: string,
@@ -85,7 +90,7 @@ export class OlMap {
     });
   }
 
-  getLayer(name: string): Layer<any>{
+  getLayer(name: string): OlLayer<any>{
     return this.layers[name];
   }
 
@@ -123,7 +128,7 @@ export class OlMap {
   }
 
   addTileServer(name: string, url: string, options: { params?: any, zIndex?: number,
-    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string } = {}): Layer<any>{
+    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string } = {}): OlLayer<any>{
 
     if (this.layers[name] != null) this.removeLayer(name)
 
@@ -144,7 +149,7 @@ export class OlMap {
         crossOrigin: '*'
     })
 
-    let layer = new TileLayer({
+    let layer = new OlTileLayer({
       opacity: (options.opacity != undefined) ? options.opacity: 1,
       source: source,
       visible: options.visible === true
@@ -173,7 +178,7 @@ export class OlMap {
       field: string,
       values: Record<string, number>
     }
-  } = {}): Layer<any> {
+  } = {}): OlLayer<any> {
     const source = new VectorTileSource({
       format: new MVT({
         featureClass: (options.featureClass === 'feature')? Feature: RenderFeature,
@@ -364,7 +369,7 @@ export class OlMap {
     valueField?: string,
     showLabel?: boolean,
     zIndex?: number,
-  } = {}): Layer<any> {
+  } = {}): OlLayer<any> {
     // @ts-ignore
     const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
     const strokeColor = (typeof(options?.stroke?.color) === 'string')? options?.stroke?.color: 'rgba(0, 0, 0, 1.0)';
@@ -435,7 +440,7 @@ export class OlMap {
       }
       return style;
     };
-    let layer = new VectorLayer({
+    let layer = new OlVectorLayer({
       source: source,
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
@@ -497,7 +502,7 @@ export class OlMap {
     return layer;
   }
 
-  private setMouseOverLayer(layer: Layer<any>, options: {
+  private setMouseOverLayer(layer: OlLayer<any>, options: {
     cursor?: string,
     tooltipField?: string,
     fillColor?: string,
@@ -543,7 +548,7 @@ export class OlMap {
           stroke: new Stroke({ color: strokeColor, width: strokeWidth })
         })
       }
-      this.overlays[layer.get('name')] = new VectorLayer({
+      this.overlays[layer.get('name')] = new OlVectorLayer({
         source: new VectorSource(),
         map: this.map,
         style: styleFunc

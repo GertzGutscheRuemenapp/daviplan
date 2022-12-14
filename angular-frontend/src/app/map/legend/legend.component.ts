@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../map.service";
+import { MapControl, MapLayerGroup, MapService } from "../map.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { MapLayer, MapLayerGroup, VectorLayer } from '../layers';
+import { MapLayer, VectorLayer } from '../layers';
 
 @Component({
   selector: 'app-legend',

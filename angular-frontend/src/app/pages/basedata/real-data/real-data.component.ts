@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
 import * as fileSaver from 'file-saver';
@@ -23,7 +23,7 @@ import { showAPIError, sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-real-data',
@@ -71,8 +71,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-real-data-map');
-    this.layerGroup = new MapLayerGroup('Bevölkerungsentwicklung', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Bevölkerungsentwicklung', { order: -1 });
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
@@ -217,10 +216,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
         max = Math.max(max, value);
       })
-      this.previewLayer = new VectorLayer(this.popLevel!.name, {
+      this.previewLayer = this.layerGroup?.addVectorLayer(this.popLevel!.name, {
         order: 0,
         description: this.popLevel!.name,
-        opacity: 1,
         style: {
           strokeColor: 'white',
           fillColor: 'rgba(165, 15, 21, 0.9)',
@@ -255,7 +253,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           max: max
         }
       });
-      this.layerGroup?.addLayer(this.previewLayer);
       this.previewLayer?.addFeatures(this.areas, {
         properties: 'properties',
         geometry: 'centroid',

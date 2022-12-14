@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import {
   Infrastructure,
   Place,
@@ -19,7 +19,7 @@ import { showAPIError, sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { PlanningService } from "../../planning/planning.service";
 import { SettingsService } from "../../../settings.service";
 
@@ -68,8 +68,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');
-    this.layerGroup = new MapLayerGroup('Standorte', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Standorte', { order: -1 });
     this.isLoading$.next(true);
     this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
       this.fieldTypes = fieldTypes;
@@ -133,10 +132,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       this.placesLayer = undefined;
     }
     if (!this.places) return;
-    this.placesLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+    this.placesLayer = this.layerGroup?.addVectorLayer(this.selectedInfrastructure!.name, {
         order: 0,
         description: this.selectedInfrastructure!.name,
-        opacity: 1,
         style: {
           fillColor: '#2171b5',
           strokeColor: 'black',
@@ -152,8 +150,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         showLabel: showLabel,
         labelOffset: { y: 15 },
       });
-    this.layerGroup?.addLayer(this.placesLayer);
-    this.placesLayer.addFeatures(this.places.map(place => { return {
+    this.placesLayer?.addFeatures(this.places.map(place => { return {
       id: place.id, geometry: place.geom, properties: { name: place.name } }}));
     this.placesLayer?.featuresSelected?.subscribe(features => {
       features.forEach(f => this.selectPlace(f.get('id'), true));

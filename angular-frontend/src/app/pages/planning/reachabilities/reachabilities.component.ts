@@ -12,10 +12,10 @@ import {
   Service,
   TransportMode
 } from "../../../rest-interfaces";
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { Observable, Subscription } from "rxjs";
 import { Geometry } from "ol/geom";
-import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import { modes } from "../mode-select/mode-select.component";
 
 const modeColorValues = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]];
@@ -66,10 +66,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -1 })
-    this.reachLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -2 })
-    this.mapControl.addGroup(this.placesLayerGroup);
-    this.mapControl.addGroup(this.reachLayerGroup);
+    this.placesLayerGroup = this.mapControl.addGroup('Standorte', { order: -1 });
+    this.reachLayerGroup = this.mapControl.addGroup('Erreichbarkeiten', { order: -2 });
     this.applyUserSettings();
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
@@ -115,16 +113,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
         this.places = places;
-        let showLabel = true;
         if (this.placesLayer) {
           this.placesLayerGroup?.removeLayer(this.placesLayer);
           this.placesLayer = undefined;
         }
-        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        this.placesLayer = this.placesLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
           order: 1,
           zIndex: 99998,
           description: this.activeInfrastructure!.name,
-          opacity: 1,
           radius: 7,
           style: {
             fillColor: '#2171b5',
@@ -132,7 +128,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             symbol: 'circle'
           },
           labelField: 'name',
-          showLabel: showLabel,
           tooltipField: 'name',
           mouseOver: {
             enabled: true,
@@ -146,8 +141,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           },
           labelOffset: { y: 15 }
         });
-        this.placesLayerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(places.map(place => {
+        this.placesLayer?.addFeatures(places.map(place => {
           return { id: place.id, geometry: place.geom, properties: { name: place.name } }
         }));
         this.placesLayer?.setSelectable(this.indicator === 'place');
@@ -175,7 +169,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (this.selectedPlaceId === undefined || !this.activeScenario) return;
     this.updateMapDescription('zur ausgewählten Einrichtung');
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode, { scenario: this.activeScenario }).subscribe(cellResults => {
-      let showLabel = this.reachRasterLayer?.showLabel;
       this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};
       cellResults.values.forEach(cellResult => {
@@ -196,17 +189,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       const place = this.places.find(p => p.id === this.selectedPlaceId);
-      this.reachRasterLayer = new VectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
+      this.reachRasterLayer = this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
         order: 0,
         description: `Erreichbarkeit des gewählten Standorts (${place?.name}) ${modes[this.activeMode]}`,
-        opacity: 1,
         style: {
           fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
           symbol: 'line'
         },
         labelField: 'value',
-        showLabel: showLabel,
         valueStyles: style,
         valueMap: {
           field: 'cellcode',
@@ -214,7 +205,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         },
         unit: 'Minuten'
       });
-      this.reachLayerGroup?.addLayer(this.reachRasterLayer);
     })
   }
 
@@ -227,7 +217,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeMarker();
       this.mapControl?.addMarker(cell.geom as Geometry);
       this.planningService.getCellReachability(cell.cellcode, this.activeMode, { scenario: this.activeScenario }).subscribe(placeResults => {
-        let showLabel = this.placeReachabilityLayer?.showLabel;
         this.reachLayerGroup?.clear();
         const valueBins = modeBins[this.activeMode];
         let style: ValueStyle = {};
@@ -243,11 +232,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           };
         }
 
-        this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        this.placeReachabilityLayer = this.reachLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
           order: 0,
           zIndex: 99999,
           description: this.activeInfrastructure!.name,
-          opacity: 1,
           radius: 7,
           style: {
             fillColor: 'green',
@@ -256,14 +244,12 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             strokeWidth: 1
           },
           labelField: 'label',
-          showLabel: showLabel,
           tooltipField: 'tooltip',
           valueStyles: style,
           unit: 'Minuten',
           labelOffset: { y: 10 }
         });
-        this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
-        this.placeReachabilityLayer.addFeatures(this.places.map(place => {
+        this.placeReachabilityLayer?.addFeatures(this.places.map(place => {
           const res = placeResults.values.find(p => p.placeId === place.id);
           const value = (res?.value !== undefined)? Math.round(res?.value): undefined;
           const label = (value !== undefined)? `${value} Minuten`: `nicht erreichbar innerhalb von ${valueBins[valueBins.length - 1]} Minuten`;
@@ -279,7 +265,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (!this.year || !this.activeService || !this.activeScenario) return;
     this.updateMapDescription('von allen Wohnstandorten zum jeweils nächsten Angebot');
     this.planningService.getNextPlaceReachability([this.activeService], this.activeMode, { scenario: this.activeScenario, year: this.year, places: this.places }).subscribe(cellResults => {
-      let showLabel = this.nextPlaceReachabilityLayer?.showLabel;
       this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};
       cellResults.values.forEach(cellResult => {
@@ -298,17 +283,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         };
       }
 
-      this.nextPlaceReachabilityLayer = new VectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
+      this.nextPlaceReachabilityLayer = this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
         order: 0,
         description: 'Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot',
-        opacity: 1,
         style: {
           fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
           symbol: 'line'
         },
         labelField: 'value',
-        showLabel: showLabel,
         // tooltipField: 'value',
         valueStyles: style,
         valueMap: {
@@ -317,7 +300,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         },
         unit: 'Minuten'
       });
-      this.reachLayerGroup?.addLayer(this.nextPlaceReachabilityLayer);
     });
   }
 

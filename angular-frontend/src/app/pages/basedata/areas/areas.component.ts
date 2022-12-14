@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { Area, AreaLevel, LogEntry } from "../../../rest-interfaces";
 import { BehaviorSubject, forkJoin, Observable, Subscription } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
@@ -15,7 +15,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
 import { showAPIError } from "../../../helpers/utils";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { SettingsService } from "../../../settings.service";
 
 @Component({
@@ -62,8 +62,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-areas-map');
-    this.layerGroup = new MapLayerGroup('Auswahl', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Auswahl', { order: -1 });
     this.isLoading$.next(true);
     this.fetchAreaLevels().subscribe(res => {
       this.selectAreaLevel(this.presetLevels[0]);
@@ -154,7 +153,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.restService.getAreas(this.activeLevel.id,
       {targetProjection: this.mapControl?.map?.mapProjection, reset: true}).subscribe(areas => {
         this.areas = areas;
-        this.areaLayer = new VectorLayer(this.activeLevel!.name, {
+        this.areaLayer = new VectorLayer(this.activeLevel!.name, )
+        this.layerGroup?.addVectorLayer(this.activeLevel!.name, {
           description: 'Gebiete der ausgewählten Gebietseinheit',
           order: 0,
           opacity: 0.7,
@@ -172,8 +172,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
               strokeColor: 'blue'
             }
           }
-        })
-        this.layerGroup?.addLayer(this.areaLayer);
+        });
         this.areaLayer.addFeatures(this.areas);
         this.activeLevel!.areaCount = this.areas.length;
         this.isLoading$.next(false);

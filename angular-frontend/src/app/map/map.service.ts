@@ -12,8 +12,81 @@ import { Geometry, Polygon, Point } from "ol/geom";
 import { getCenter } from 'ol/extent';
 import { Icon, Style } from "ol/style";
 import { RestCacheService } from "../rest-cache.service";
-import { MapLayerGroup, MapLayer, VectorTileLayer, WMSLayer, TileLayer, VectorLayer } from "./layers";
-import { Service } from "../rest-interfaces";
+import {
+  MapLayer,
+  VectorTileLayer,
+  WMSLayer,
+  TileLayer,
+  VectorLayer,
+  VectorLayerOptions, ServiceLayerOptions, LayerOptions, VectorTileLayerOptions
+} from "./layers";
+import { CookieService } from "../helpers/cookies.service";
+
+interface MapLayerGroupOptions {
+  order?: number,
+  external?: boolean,
+  id?: number
+}
+
+export class MapLayerGroup {
+  name: string;
+  mapControl?: MapControl;
+  id?: number | string;
+  children: MapLayer[] = [];
+  external?: boolean;
+  map?: OlMap;
+  order?: number;
+
+  constructor(name: string, options?: {
+    order?: number,
+    external?: boolean,
+    mapControl?: MapControl,
+    id?: number
+  }) {
+    this.id = options?.id;
+    this.mapControl = options?.mapControl;
+    if (this.id === undefined)
+      this.id = uuid();
+    this.name = name;
+    this.external = options?.external;
+    this.order = options?.order;
+  }
+
+  appendLayer(layer: MapLayer | undefined){
+    if (layer) this.children.push(layer);
+  }
+
+  addVectorLayer(name: string, options: VectorLayerOptions): VectorLayer | undefined {
+    if (!this.mapControl) return;
+    const layer = this.mapControl?.addVectorLayer(name, options);
+    this.appendLayer(layer);
+    return layer;
+  }
+  addVectorTileLayer(name: string, url: string, options: VectorTileLayerOptions): VectorTileLayer | undefined  {
+    if (!this.mapControl) return;
+    const layer = this.mapControl.addVectorTileLayer(name, url, options);
+    this.appendLayer(layer);
+    return layer;
+  };
+  addServiceLayer(name: string, url: string, type: 'tile' | 'wms', options: ServiceLayerOptions): WMSLayer | TileLayer | undefined {
+    if (!this.mapControl) return;
+    const layer = this.mapControl.addServiceLayer(name, url, type, options);
+    this.appendLayer(layer);
+    return layer;
+  }
+
+  removeLayer(layer: MapLayer): void {
+    const idx = this.children.indexOf(layer);
+    if (idx < 0) return;
+    this.children.splice(idx, 1);
+    layer.removeFromMap();
+  }
+
+  clear(): void {
+    this.children.forEach(l => l.removeFromMap());
+    this.children = [];
+  }
+}
 
 interface BackgroundLayerDef {
   id: string | number,
@@ -58,12 +131,13 @@ const backgroundLayerDefs: BackgroundLayerDef[] = [
 export class MapService {
   private controls: Record<string, MapControl> = {};
 
-  constructor(private http: HttpClient, private restService: RestCacheService, private settings: SettingsService) { }
+  constructor(private http: HttpClient, private restService: RestCacheService, private settings: SettingsService,
+              private cookies: CookieService) { }
 
   get(target: string): MapControl {
     let control = this.controls[target];
     if(!control){
-      control = new MapControl(target, this, this.settings);
+      control = new MapControl(target, this, this.settings, this.cookies);
       control.destroyed.subscribe(target => delete this.controls[target]);
       control.init();
       this.controls[target] = control;
@@ -115,7 +189,7 @@ export class MapService {
           layers.push(mLayer);
         });
         if (layers) {
-          layers.forEach(mlayer => group.addLayer(mlayer));
+          layers.forEach(mlayer => group.appendLayer(mlayer));
           groups.push(group);
         }
         subscriber.next(groups);
@@ -146,7 +220,7 @@ export class MapService {
                 order: layer.order,
                 active: layer.active
               })
-              mGroup.addLayer(mLayer);
+              mGroup.appendLayer(mLayer);
             }
           })
           subscriber.next(mGroups.filter(g => g.children.length > 0));
@@ -176,7 +250,7 @@ export class MapControl {
   searchCursorImg = `${environment.backend}/static/img/location-searching.png`;
 
 
-  constructor(target: string, private mapService: MapService, private settings: SettingsService) {
+  constructor(target: string, private mapService: MapService, private settings: SettingsService, private cookies: CookieService) {
     this.target = target;
     // call destroy on page reload
     window.onbeforeunload = () => this.destroy();
@@ -193,18 +267,18 @@ export class MapControl {
       this.editMode = (editMode != undefined)? editMode : true;
       const backgroundId = this.mapSettings['background-layer'] || backgroundLayerDefs[1].id;
       backgroundLayerDefs.forEach(layerDef => {
-        const opacity = parseFloat(this.mapSettings[`layer-opacity-${layerDef.id}`]) || 1;
         const LayerCls = (layerDef.type === 'wms')? WMSLayer: TileLayer;
         const bg = new LayerCls(layerDef.name, layerDef.url, {
           id: layerDef.id,
           description: layerDef.description,
           visible: layerDef.id === backgroundId,
           layerName: layerDef.layerName,
-          opacity: opacity,
+          opacity: this.getCookieLayerAttr(layerDef.id, 'opacity'),
           attribution: layerDef.attribution
         });
         this.backgroundLayers.push(bg);
         bg.addToMap(this.map);
+        bg.attributeChanged.subscribe(c => this.setCookieLayerAttr(layerDef.id, c.attribute, c.value));
       });
       this.background = this.backgroundLayers.find(l => { return l.id === backgroundId });
       this.getServiceLayerGroups({ internal: true, external: true });
@@ -215,18 +289,105 @@ export class MapControl {
     this.markerLayer.addToMap(this.map);
   }
 
+  addVectorLayer(name: string, options: VectorLayerOptions): VectorLayer | undefined {
+    return this._addLayer(name, 'vector', options) as VectorLayer;
+  };
+  addVectorTileLayer(name: string, url: string, options: VectorTileLayerOptions): VectorTileLayer | undefined  {
+    return this._addLayer(name, 'vector-tile', options, url) as VectorTileLayer;
+  };
+  addServiceLayer(name: string, url: string, type: 'tile' | 'wms', options: ServiceLayerOptions): WMSLayer | TileLayer | undefined {
+    const layer = this._addLayer(name, type, options, url);
+    if (type === 'tile')
+      return layer as TileLayer;
+    return layer as WMSLayer;
+  }
+
+  private addCookieOptions(layerId: string | number, options: LayerOptions): LayerOptions {
+    const clonedOpt = Object.assign({}, options);
+    const defaults = [1, true, true];
+    ['opacity', 'visible', 'showLabel'].forEach((attr, i) => {
+      const key = attr as keyof LayerOptions;
+      if (clonedOpt[key] === undefined){
+        clonedOpt[key] = this.getCookieLayerAttr(layerId, attr, {default: defaults[i]});
+      }
+    })
+    return clonedOpt;
+  }
+
+  private _addLayer(name: string, type: 'wms' | 'tile' | 'vector-tile' | 'vector', options: LayerOptions, url?: string): MapLayer | undefined {
+    // restore attributes from cookies by id if it is given in layer options or by name
+    options = this.addCookieOptions(options?.id || name, options);
+    let layer;
+    switch (type) {
+      case 'wms':
+        if (!url) return;
+        layer = new WMSLayer(name, url, options);
+        break;
+      case 'tile':
+        if (!url) return;
+        layer = new TileLayer(name, url, options);
+        break;
+      case 'vector-tile':
+        if (!url) return;
+        layer = new VectorTileLayer(name, url, options);
+        break;
+      default:
+        layer = new VectorLayer(name, options);
+    }
+    layer.attributeChanged.subscribe(c => this.setCookieLayerAttr(name, c.attribute, c.value));
+    layer.addToMap(this.map);
+    return layer;
+  }
+
+  private createTileLayer(name: string, url: string, options: ServiceLayerOptions): TileLayer {
+    options = this.addCookieOptions(name, options);
+    const layer = new TileLayer(name, url, options);
+    return layer;
+  }
+
+
+  /**
+   * store attribute changes of layer in cookies by identifier (name or actual id)
+   *
+   * @private
+   */
+  private setCookieLayerAttr(layerId: string | number, attribute: string, value: any) {
+    this.cookies.set(`Layer-${layerId}-${attribute}`, value);
+  }
+
+  /**
+   * get value of layer attribute from cookies, if not in cookies yet defaults to a default value
+   *
+   * @param layerId
+   * @param attribute name of layer attribute
+   * @param options type defaults to 'number', default defaults to 1
+   * @private
+   */
+  private getCookieLayerAttr(layerId: string | number, attribute: string, options?: { type?: 'number' | 'boolean', default?: any } ): any {
+    const cookieStr = `Layer-${layerId}-${attribute}`;
+    if (options?.type === 'boolean')
+      return this.cookies.get(cookieStr, 'boolean') || false;
+    else {
+      const value = this.cookies.get(cookieStr, 'number');
+      const defaultVal = (options?.default !== undefined)? options.default: 1;
+      return (value !== undefined)? value: defaultVal;
+    }
+  }
+
   private getServiceLayerGroups(options?: { internal?: boolean, external?: boolean, reset?: boolean }): void {
     this.mapService.getLayers({ reset: options?.reset, external: options?.external, internal: options?.internal, active: true }).subscribe(layerGroups => {
       // ToDo: remember former checked layers on reset
       layerGroups.forEach(group => {
         if (!group.children) return;
+        // clone group because it will be altered when appending
+        group = Object.assign({}, group);
         group.children.forEach(layer => {
           layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
           layer.visible = this.mapSettings[`layer-visibility-${layer.id}`];
           if (layer instanceof VectorTileLayer)
             layer.showLabel = this.mapSettings[`layer-label-${layer.id}`] || true;
         })
-        this.addGroup(group);
+        this._appendGroup(group);
       })
     })
   }
@@ -248,19 +409,6 @@ export class MapControl {
   getGroup(id: number | string): MapLayerGroup | undefined {
     // ToDo: background as well?
     return this.layerGroups.find(g => g.id === id);
-  }
-
-  addLayer(layer: MapLayer): void {
-    // if (layer.map) throw `Layer ${layer.name} already set to another map`;
-    if (layer.map !== this.map) layer.map = this.map;
-    if (!layer.group) {
-      let group = this.layerGroups.find(group => group.name === 'Sonstiges');
-      if (!group){
-        group = new MapLayerGroup('Sonstiges', { order: 0 });
-        this.addGroup(group);
-      }
-      group.addLayer(layer);
-    }
   }
 
   addMarker(geometry: Geometry): Feature<any> {
@@ -298,6 +446,14 @@ export class MapControl {
     this.getServiceLayerGroups({ reset: true, internal: options?.internal, external: options?.external });
   }
 
+  addGroup(name: string, options: MapLayerGroupOptions): MapLayerGroup {
+    const group = new MapLayerGroup(name, options);
+    group.mapControl = this;
+    this.layerGroups.push(group);
+    this.layerGroups = sortBy(this.layerGroups, 'order');
+    return group;
+  }
+
   /**
    * add a layer-group to this map only
    * sets unique id if id is undefined
@@ -305,13 +461,14 @@ export class MapControl {
    * @param group
    * @param emit
    */
-  addGroup(group: MapLayerGroup): void {
+  private _appendGroup(group: MapLayerGroup): void {
     if (group.id == undefined)
       group.id = uuid();
     if (!group.map) {
       group.map = this.map;
       group.children.forEach(layer => layer.addToMap(this.map));
     }
+    group.mapControl = this;
     this.layerGroups.push(group);
     this.layerGroups = sortBy(this.layerGroups, 'order');
   }

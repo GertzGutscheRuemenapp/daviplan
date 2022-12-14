@@ -8,11 +8,11 @@ import {
   Service,
   Scenario, FieldType, PlaceField, Capacity, User
 } from "../../../rest-interfaces";
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { PlaceFilterComponent } from "../place-filter/place-filter.component";
 import { Geometry, Point } from "ol/geom";
 import { transform } from "ol/proj";
@@ -76,8 +76,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Angebot', { order: -1 });
     this.applyUserSettings();
     this.initData();
   }
@@ -146,10 +145,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getPlaces(placeOptions).pipe(map(places => this.places = places)));
 
     forkJoin(...observables).subscribe(() => {
-      let showLabel = true;
       let legendElapsed = true;
       if (this.placesLayer) {
-        showLabel = !!this.placesLayer.showLabel;
         legendElapsed = !!this.placesLayer.legend?.elapsed
         this.layerGroup?.removeLayer(this.placesLayer);
       }
@@ -179,10 +176,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
                   Minimum: ${min.toLocaleString()}<br>
                   Maximum: ${max.toLocaleString()}`;
       // ToDo description with filter
-      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+      this.placesLayer = this.layerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
         order: 0,
         description: desc,
-        opacity: 1,
         style: {
           fillColor: '#2171b5',
           strokeWidth: 1,
@@ -190,7 +186,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           symbol: 'circle'
         },
         labelField: 'name',
-        showLabel: showLabel,
         tooltipField: 'tooltip',
         select: {
           enabled: true,
@@ -226,9 +221,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           elapsed: legendElapsed
         }
       });
-      this.layerGroup?.addLayer(this.placesLayer);
 
-      this.placesLayer.addFeatures(mapPlaces);
+      this.placesLayer?.addFeatures(mapPlaces);
       if (options?.selectPlaceId !== undefined) {
         const place = this.places.find(p => p.id === options.selectPlaceId);
         if (place) {
@@ -253,11 +247,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
       // add layer for marking changes in scenario
       if (!this.activeScenario?.isBase) {
-        this.scenarioMarkerLayer = new VectorLayer('Änderungen zu Status Quo', {
+        this.scenarioMarkerLayer = this.layerGroup?.addVectorLayer('Änderungen zu Status Quo', {
           order: 1,
-          zIndex: this.placesLayer.getZIndex() + 1,
+          zIndex: (this.placesLayer?.getZIndex() || 0) + 1,
           description: 'im Szenario verändert',
-          opacity: 1,
           style: {
             strokeWidth: 3,
             symbol: 'circle'
@@ -284,8 +277,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             elapsed: legendElapsed
           }
         });
-        this.layerGroup?.addLayer(this.scenarioMarkerLayer);
-        this.scenarioMarkerLayer.addFeatures(mapPlaces.filter(place => place.properties.scenarioPlace || place.properties.capDecreased || place.properties.capIncreased));
+        // only add places with changes (compared to status quo) to marker layer
+        this.scenarioMarkerLayer?.addFeatures(mapPlaces.filter(
+          place => place.properties.scenarioPlace || place.properties.capDecreased || place.properties.capIncreased
+        ));
       }
 
       this.placePreviewDialogRef?.componentInstance?.setLoading(false);

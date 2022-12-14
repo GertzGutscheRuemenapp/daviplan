@@ -1,16 +1,11 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import {
-  Area,
-  AreaLevel,
-  Infrastructure,
-  PlanningProcess
-} from "../../../rest-interfaces";
+import { Area, AreaLevel, Infrastructure } from "../../../rest-interfaces";
 import { map } from "rxjs/operators";
 import { forkJoin, Observable, Subscription } from "rxjs";
-import { MapControl, MapService } from "../../../map/map.service";
-import { MapLayerGroup, ValueStyle, VectorLayer } from "../../../map/layers";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
+import { ValueStyle, VectorLayer } from "../../../map/layers";
 import * as d3 from "d3";
 
 @Component({
@@ -37,8 +32,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Nachfrage', { order: -1 });
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.updateMap();
     }));
@@ -134,29 +128,27 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
           }
         }
       }
-      this.demandLayer = new VectorLayer(this.planningService.activeService?.demandPluralUnit || 'Nachfragende',{
-          order: 0,
-          description: desc,
-          opacity: 1,
+      this.demandLayer = this.layerGroup!.addVectorLayer(this.planningService.activeService?.demandPluralUnit || 'Nachfragende',{
+        order: 0,
+        description: desc,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'line'
+        },
+        labelField: 'value',
+        showLabel: true,
+        tooltipField: 'description',
+        mouseOver: {
+          enabled: true,
           style: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'line'
-          },
-          labelField: 'value',
-          showLabel: true,
-          tooltipField: 'description',
-          mouseOver: {
-            enabled: true,
-            style: {
-              strokeColor: 'yellow',
-              fillColor: 'rgba(255, 255, 0, 0.7)'
-            }
-          },
-          valueStyles: style
-        });
-      this.layerGroup?.addLayer(this.demandLayer);
-      this.demandLayer.addFeatures(this.areas, { properties: 'properties' });
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
+        },
+        valueStyles: style
+      });
+      this.demandLayer?.addFeatures(this.areas, { properties: 'properties' });
     })
   }
 

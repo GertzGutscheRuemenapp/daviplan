@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import {
   Area,
   AreaLevel,
@@ -24,7 +24,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { BehaviorSubject, Subscription } from "rxjs";
 import * as fileSaver from "file-saver";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-prognosis-data',
@@ -78,8 +78,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   // ToDo: shares a lot of Code with real-data-component, at least the map view should be seperated into reusable view
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-prog-data-map');
-    this.layerGroup = new MapLayerGroup('Bevölkerungsentwicklung (Prognose)', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Bevölkerungsentwicklung (Prognose)', { order: -1 });
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
@@ -185,10 +184,9 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
         max = Math.max(max, value);
       })
-      this.previewLayer = new VectorLayer(this.popLevel!.name, {
+      this.previewLayer = this.layerGroup?.addVectorLayer(this.popLevel!.name, {
         order: 0,
         description: this.popLevel!.name,
-        opacity: 1,
         style: {
           strokeColor: 'white',
           fillColor: 'rgba(165, 15, 21, 0.9)',
@@ -221,8 +219,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           max: max
         }
       });
-      this.layerGroup?.addLayer(this.previewLayer);
-      this.previewLayer.addFeatures(this.areas, {
+      this.previewLayer?.addFeatures(this.areas, {
         properties: 'properties',
         geometry: 'centroid',
         zIndex: 'value'
@@ -230,11 +227,11 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       if (this.previewArea)
         this.previewLayer?.selectFeatures([this.previewArea.id], { silent: true });
       this.updateAgeTree();
-      this.previewLayer!.featuresSelected.subscribe(features => {
+      this.previewLayer?.featuresSelected.subscribe(features => {
         this.previewArea = this.areas.find(area => area.id === features[0].get('id'));
         this.updateAgeTree();
       })
-      this.previewLayer!.featuresDeselected.subscribe(features => {
+      this.previewLayer?.featuresDeselected.subscribe(features => {
         if (this.previewArea?.id === features[0].get('id')) {
           this.previewArea = undefined;
           this.updateAgeTree();
