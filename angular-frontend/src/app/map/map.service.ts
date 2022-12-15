@@ -380,10 +380,11 @@ export class MapControl {
         // clone group because it will be altered when appending
         group = Object.assign({}, group);
         group.children.forEach(layer => {
-          layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
-          layer.visible = this.mapSettings[`layer-visibility-${layer.id}`];
+          layer.setOpacity(this.getCookieLayerAttr(layer.id!, 'opacity'));
+          layer.setVisible(this.getCookieLayerAttr(layer.id!, 'visible', { type: 'boolean' }));
           if (layer instanceof VectorTileLayer)
-            layer.showLabel = this.mapSettings[`layer-label-${layer.id}`] || true;
+            layer.setShowLabel(this.getCookieLayerAttr(layer.id!, 'showLabel', { type: 'boolean' }));
+          layer.attributeChanged.subscribe(c => this.setCookieLayerAttr(layer.id!, c.attribute, c.value));
         })
         this._appendGroup(group);
       })
