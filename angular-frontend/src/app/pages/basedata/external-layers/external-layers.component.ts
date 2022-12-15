@@ -38,7 +38,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   selectedLayer?: MapLayer;
   selectedGroup?: MapLayerGroup;
   availableLayers: MapLayer[] = [];
-  isLoading$ = new BehaviorSubject<boolean>(false);
+  isLoading$ = new BehaviorSubject<boolean>(true);
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private restService: RestCacheService, private formBuilder: FormBuilder) {
@@ -60,7 +60,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.isLoading$.next(true);
     this.mapService.fetchExternalLayers({ reset: true }).subscribe(groups => {
       this.layerGroups = groups;
       this.layerTree.setItems(this.layerGroups);

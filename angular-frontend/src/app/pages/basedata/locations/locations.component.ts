@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import {
   Infrastructure,
@@ -34,7 +34,7 @@ interface PlaceEditField extends PlaceField {
   templateUrl: './locations.component.html',
   styleUrls: ['./locations.component.scss']
 })
-export class LocationsComponent implements AfterViewInit, OnDestroy {
+export class LocationsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   @ViewChild('editAttributesCard') editAttributesCard!: InputCardComponent;
@@ -51,13 +51,13 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   placesLayer?: VectorLayer;
   addPlaceMode = false;
   isLoading$ = new BehaviorSubject<boolean>(false);
+  isProcessing$ = new BehaviorSubject<boolean>(false);
   places?: Place[];
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   file?: File;
-  isProcessing = false;
   subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
@@ -66,10 +66,10 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.restService.reset();
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit() {
+    this.isLoading$.next(true);
     this.mapControl = this.mapService.get('base-locations-map');
     this.layerGroup = this.mapControl.addGroup('Standorte', { order: -1 });
-    this.isLoading$.next(true);
     this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
       this.fieldTypes = fieldTypes;
       this.restService.getInfrastructures().subscribe(infrastructures => {
@@ -78,8 +78,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       })
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
-      this.isProcessing = bs.processes?.routing || false;
+      this.isProcessing$.next(bs.processes?.routing || false);
     }));
+  }
+
+  ngAfterViewInit(): void {
     this.setupAttributeCard();
   }
 
@@ -345,11 +348,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       formData.append('infrastructure', this.selectedInfrastructure!.id.toString());
       formData.append('excel_file', this.file);
       const url = `${this.rest.URLS.places}upload_template/`;
-      this.isProcessing = true;
+      this.isProcessing$.next(true);
       this.http.post(url, formData).subscribe(res => {
       }, error => {
         showAPIError(error, this.dialog);
-        this.isProcessing = false;
+        this.isProcessing$.next(false);
       });
     });
   }
@@ -385,7 +388,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.onInfrastructureChange({ reset: true });
     }
   }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { Infrastructure, Service } from "../../../rest-interfaces";
@@ -16,7 +16,7 @@ import { showAPIError } from "../../../helpers/utils";
   templateUrl: './services.component.html',
   styleUrls: ['./services.component.scss']
 })
-export class ServicesComponent implements AfterViewInit {
+export class ServicesComponent implements OnInit, AfterViewInit {
   @ViewChild('createService') createServiceTemplate?: TemplateRef<any>;
   @ViewChild('propertiesCard') propertiesCard!: InputCardComponent;
   @ViewChild('capacitiesCard') capacitiesCard!: InputCardComponent;
@@ -58,7 +58,7 @@ export class ServicesComponent implements AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
@@ -70,6 +70,9 @@ export class ServicesComponent implements AfterViewInit {
         this.onServiceChange();
       }
     })
+  }
+
+  ngAfterViewInit(): void {
     this.setupPropertiesCard();
     this.setupCapacitiesCard();
     this.setupDemandCard();

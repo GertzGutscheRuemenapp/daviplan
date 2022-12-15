@@ -10,12 +10,12 @@
   <p>Die eingelesenen Standorte werden anschließend in der Karte angezeigt. Eine Listendarstellung erreichen Sie über die Schaltfläche „Standortliste anzeigen“ in der Box „Schritt 2“.</p>
   <p>Wenn Sie Änderungen, Ergänzungen oder Aktualisierungen vornehmen möchten, laden Sie die Vorlage der Standortliste erneut herunter. Diese enthält stets aller bereits vorliegenden Daten. Ändern Sie diese anschließend in Excel und laden Sie sie wieder hoch.</p>
 </app-header-card>
-<app-status-card *ngIf="isProcessing">
+<app-status-card *ngIf="(isProcessing$ | async)">
   Es läuft gerade eine Berechnung im Bereich „Standorte“
 </app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Infrastrukturbereiche'"
-                  [disabled]="isProcessing"
+                  [disabled]="!!(isProcessing$ | async)"
                   width="300px"
                   subtitle="Infrastrukturbereich auswählen, um Standorte anzuzeigen bzw. einzutragen"
                   infoText="<p>Wählen Sie in der Liste den Infrastrukturbereich aus, dessen Standort sie anzeigen, hochladen oder verändern möchten.</p>
@@ -32,10 +32,9 @@
   <div fxLayout="column">
     <app-input-card #editAttributesCard
                     [title]="'Schritt 1: Weitere Standorteigenschaften (optional)'"
-                    [disabled]="isProcessing"
+                    [disabled]="!!(isProcessing$ | async)"
                     [editTemplate]="editAttributesTemplate"
                     [class.hidden]="!selectedInfrastructure"
-                    [disabled]="isProcessing"
                     [subtitle]="selectedInfrastructure?.name || ''"
                     dialogWidth="1000px"
                     width="400px"
@@ -61,7 +60,7 @@
     </app-input-card>
     <app-input-card [title]="'Schritt 2: Standortdaten und Kapazitäten hochladen'"
                     [class.hidden]="!selectedInfrastructure"
-                    [disabled]="isProcessing"
+                    [disabled]="!!(isProcessing$ | async)"
                     [subtitle]="selectedInfrastructure?.name || ''"
                     width="400px"
                     infoText="<p>Nachdem Sie in der Box „Schritt 1: Weitere Standorteigenschaften“ der Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs optional weitere Eigenschaftsfelder hinzugefügt haben, können Sie sich nun hier über die Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excel-Format herunterladen. Sofern Sie bereits Daten hochgeladen haben, enthält die Vorlage alle bereits vorliegenden Daten.</p>
@@ -90,7 +89,7 @@
 </div>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Standortliste mit Eigenschaften und Kapazitäten'"
-                  [disabled]="isProcessing"
+                  [disabled]="!!(isProcessing$ | async)"
                   [class.hidden]="!selectedInfrastructure"
                   class="spaced"
                   [topRightHelp]="true"

@@ -9,7 +9,7 @@
   <p>Ihnen werden dann in der Box „Jahre“ die Jahre angezeigt, für die aus dem Online-Angebot der Regionalstatistik Daten über Ihr Projektgebiet heruntergeladen werden konnten. Wenn Sie eines dieser Jahre in der Liste auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
   <p>Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
 </app-header-card>
-<app-status-card *ngIf="isProcessing">
+<app-status-card *ngIf="isProcessing$ | async">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
 </app-status-card>
 <app-status-card *ngIf="areaLevel?.areaCount === 0" [showSpinner]="false"
@@ -18,7 +18,7 @@
 </app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Online-Datenabruf '"
-                  [disabled]="isProcessing || areaLevel?.areaCount === 0"
+                  [disabled]="(isProcessing$ | async)! || areaLevel?.areaCount === 0"
                   width="300px"
                   infoText="<p>Klicken Sie auf „Abrufen“, um die Daten der natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) sowie zu den Wanderungen (Zu- und Fortzüge) aus dem Online-Angebot der Regionalstatistik herunterzuladen.</p>
                   <p>Nach dem erfolgreichen Abruf werden Ihnen in der Box „Jahre“ die Jahre angezeigt, für die nun Daten zur Verfügung stehen. Wenn Sie eines dieser Jahre auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
@@ -38,7 +38,7 @@
     </button>
   </app-input-card>
   <app-input-card [title]="'Jahre'"
-                  [disabled]="isProcessing || areaLevel?.areaCount === 0"
+                  [disabled]="(isProcessing$ | async)! || areaLevel?.areaCount === 0"
                   width="300px"
                   subtitle="Verfügbare Jahre"
                   infoText="<p>Die Liste in dieser Box enthält die Jahre, für die Daten aus dem Online-Angebot der Regionalstatistik heruntergeladen werden konnten.</p>
@@ -69,7 +69,7 @@
 </div>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Daten des ausgewählten Jahres'"
-                  [disabled]="isProcessing"
+                  [disabled]="(isProcessing$ | async)!"
                   [topRightHelp]="true"
                   width="1040px"
                   infoText="<p>Die Karte veranschaulicht Ihnen die Daten für das in der Box „Jahre“ ausgewählte Jahr.</p>

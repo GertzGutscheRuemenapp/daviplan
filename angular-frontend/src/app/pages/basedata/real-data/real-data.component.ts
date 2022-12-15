@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
@@ -30,13 +30,14 @@ import { VectorLayer } from "../../../map/layers";
   templateUrl: './real-data.component.html',
   styleUrls: ['./real-data.component.scss']
 })
-export class RealDataComponent implements AfterViewInit, OnDestroy {
+export class RealDataComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild('yearCard') yearCard?: InputCardComponent;
   @ViewChild('ageTree') ageTree?: AgeTreeComponent;
   @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
   isLoading$ = new BehaviorSubject<boolean>(false);
+  isProcessing$ = new BehaviorSubject<boolean>(false);
   backend: string = environment.backend;
   mapControl?: MapControl;
   ageGroupsRegStatValid = false;
@@ -59,7 +60,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   dataTableRows: any[][] = [];
   dataTableYear?: Year;
   file?: File;
-  isProcessing = false;
   subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, public popService: PopulationService,
@@ -69,7 +69,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.popService.reset();
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     this.mapControl = this.mapService.get('base-real-data-map');
     this.layerGroup = this.mapControl.addGroup('Bevölkerungsentwicklung', { order: -1 });
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
@@ -80,10 +80,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       }
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
-      this.isProcessing = baseSettings.processes?.population || false;
+      this.isProcessing$.next(baseSettings.processes?.population || false);
     }));
     this.settings.fetchBaseDataSettings();
     this.fetchData();
+  }
+
+  ngAfterViewInit(): void {
     this.setupYearCard();
   }
 
@@ -326,7 +329,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
       this.http.post(url, {}).subscribe(() => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
       }, error => {
         showAPIError(error, this.dialog);
       })
@@ -395,7 +398,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       formData.append('excel_file', this.file);
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
         dialogRef.close();
       }, error => {
         showAPIError(error, this.dialog);
@@ -406,7 +409,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.popService.reset();
       this.fetchData();
     }

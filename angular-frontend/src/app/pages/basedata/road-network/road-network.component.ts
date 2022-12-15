@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { MatDialog } from "@angular/material/dialog";
@@ -14,10 +14,10 @@ import { showAPIError } from "../../../helpers/utils";
   templateUrl: './road-network.component.html',
   styleUrls: ['./road-network.component.scss']
 })
-export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
+export class RoadNetworkComponent implements OnInit, OnDestroy {
   baseDataSettings?: BasedataSettings;
   modeVariants: ModeVariant[] = [];
-  isProcessing = false;
+  isProcessing$ = new BehaviorSubject<boolean>(false);
   subscriptions: Subscription[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
   statistics: Record<number, number> = {};
@@ -29,11 +29,11 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
     this.restService.reset();
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit() {
     this.settings.baseDataSettings$.subscribe(baseSettings => this.baseDataSettings = baseSettings);
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
       this.baseDataSettings = bs;
-      this.isProcessing = bs.processes?.routing || false;
+      this.isProcessing$.next(bs.processes?.routing || false);
     }));
     this.settings.fetchBaseDataSettings();
     this.isLoading$.next(true);
@@ -70,7 +70,7 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
         this.baseDataSettings.routing.baseNet = false;
       }
       this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
       }, (error) => {
         showAPIError(error, this.dialog);
       })
@@ -93,7 +93,7 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
         this.baseDataSettings.routing.projectAreaNet = false;
       }
       this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
       },(error) => {
         showAPIError(error, this.dialog);
       })
@@ -114,7 +114,7 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
         dialogRef.close();
       }, (error) => {
         showAPIError(error, this.dialog);
@@ -125,7 +125,7 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.settings.fetchBaseDataSettings();
       this.getStatistics();
     }
