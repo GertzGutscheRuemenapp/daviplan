@@ -448,12 +448,12 @@ div.d3-tooltip, div.tooltip {
   padding: 10px;
   font: 12px sans-serif;
   background: white;
-  border-radius: 5px;
-  border: solid 1px grey;
+  border-radius: 4px;
+  border: solid 1px lightgrey;
   pointer-events: none;
   //opacity: 0.9;
   z-index: 1000;
-  box-shadow: 0px 0px 5px 1px #a7a7a7!important;
+  box-shadow: 1px 0px 3px 1px rgba(189, 189, 189, 0.75) !important;
 }
 
 .separator {
@@ -641,7 +641,7 @@ mat-option.selected {
   }
 
   mat-icon {
-    margin: -2px 2px 0 0;
+    margin: -3px 2px 0 0;
   }
 }
 .mat-button-dv.mat-button-base:not(.mat-button-disabled) :hover {
@@ -1243,6 +1243,7 @@ mat-checkbox.reverse {
   pointer-events: none;
   user-select: none;
   border-radius: 4px;
+  border: solid 1px lightgrey;
   box-shadow: 1px 0px 3px 1px rgba(189, 189, 189, 0.75);
 }
 

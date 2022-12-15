@@ -9,7 +9,6 @@ import {
   Scenario, FieldType, PlaceField, Capacity, User
 } from "../../../rest-interfaces";
 import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
-import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { VectorLayer } from "../../../map/layers";
@@ -25,6 +24,7 @@ import { sortBy } from "../../../helpers/utils";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { AuthService } from "../../../auth.service";
+import { FloatingDialogComponent } from "../../../dialogs/floating-dialog/floating-dialog.component";
 
 @Component({
   selector: 'app-supply',
@@ -314,8 +314,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     if (this.placePreviewDialogRef && this.placePreviewDialogRef.getState() === 0)
       return;
     const template = this.placePreviewTemplate;
-    this.placePreviewDialogRef = this.dialog.open(FloatingDialog, {
-      panelClass: 'help-container',
+    this.placePreviewDialogRef = this.dialog.open(FloatingDialogComponent, {
+      panelClass: 'floating-container',
       hasBackdrop: false,
       autoFocus: false,
       data: {

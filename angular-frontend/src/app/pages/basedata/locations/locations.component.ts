@@ -14,7 +14,6 @@ import { BehaviorSubject, Subscription } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { showAPIError, sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
@@ -22,6 +21,7 @@ import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dia
 import { VectorLayer } from "../../../map/layers";
 import { PlanningService } from "../../planning/planning.service";
 import { SettingsService } from "../../../settings.service";
+import { FloatingDialogComponent } from "../../../dialogs/floating-dialog/floating-dialog.component";
 
 interface PlaceEditField extends PlaceField {
   edited?: boolean;
@@ -177,8 +177,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   showPlaceDialog(): void {
     if (this.placeDialogRef && this.placeDialogRef.getState() === 0)
       return;
-    this.placeDialogRef = this.dialog.open(FloatingDialog, {
-      panelClass: 'help-container',
+    this.placeDialogRef = this.dialog.open(FloatingDialogComponent, {
+      panelClass: 'floating-container',
       hasBackdrop: false,
       autoFocus: false,
       data: {
