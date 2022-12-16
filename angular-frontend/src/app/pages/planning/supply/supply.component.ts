@@ -191,11 +191,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             strokeWidth: 1,
             fillColor: 'yellow',
           },
+          // multi select is allowed in case you hit multiple features with one click
           multi: true
         },
         mouseOver: {
           enabled: true,
-          cursor: 'pointer'
+          cursor: 'pointer',
+          style: {
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
         },
         valueStyles: {
           radius: {
@@ -234,12 +239,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.placesLayer?.selectFeatures(ids, { silent: true });
       }
       this.placesLayer?.featuresSelected?.subscribe(features => {
-        // on map selection deselect the previously selected ones by just setting empty list
+        // on map selection deselect the previously selected ones by setting empty list
         this.selectedPlaces = [];
-        features.forEach(f => this.selectPlace(f.get('id'), true));
+        // that's a little weird but otherwise previous selected features are still marked on map (because multi select enabled)
+        // just wiping everything and selecting the features again silently
+        this.placesLayer?.clearSelection();
+        this.placesLayer?.selectFeatures(features.map(f => f.get('id')), { silent: true });
+        features.forEach(f => this.toggleSelectPlace(f.get('id'), true));
       })
       this.placesLayer?.featuresDeselected?.subscribe(features => {
-        features.forEach(f => this.selectPlace(f.get('id'), false));
+        features.forEach(f => this.toggleSelectPlace(f.get('id'), false));
       })
 
       // add layer for marking changes in scenario
@@ -293,7 +302,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     return `${capacity} ${Array.from(units).join('/')}`
   }
 
-  selectPlace(placeId: number, select: boolean) {
+  toggleSelectPlace(placeId: number, select: boolean) {
     const place = this.places?.find(p => p.id === placeId);
     if (!place) return;
     if (select) {

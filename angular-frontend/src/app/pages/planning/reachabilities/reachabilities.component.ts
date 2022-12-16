@@ -132,8 +132,11 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           tooltipField: 'name',
           mouseOver: {
             enabled: true,
-            // cursor: 'pointer'
-            cursor: ''
+            cursor: '',
+            style: {
+              strokeColor: 'yellow',
+              fillColor: 'rgba(255, 255, 0, 0.7)'
+            }
           },
           select: {
             enabled: this.indicator === 'place',
