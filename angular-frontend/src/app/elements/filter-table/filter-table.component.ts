@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
@@ -175,7 +175,7 @@ export class ClassFilter extends ColumnFilter {
   templateUrl: './filter-table.component.html',
   styleUrls: ['../data-table/data-table.component.scss', './filter-table.component.scss']
 })
-export class FilterTableComponent implements OnInit {
+export class FilterTableComponent {
   @Input() maxTableHeight = '100%';
   _columns: FilterColumn[] = [];
   processedRows: any[][] = [];
@@ -188,8 +188,6 @@ export class FilterTableComponent implements OnInit {
   @ViewChild('boolFilter') boolFilter?: TemplateRef<any>;
   opText = opText;
   Operator = FilterOperator;
-
-  constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {}
 
   @Input() set columns (columns: FilterColumn[]){
     this._columns = columns;
@@ -218,6 +216,8 @@ export class FilterTableComponent implements OnInit {
     this._rows = rows;
     this.filterAndSort();
   };
+
+  constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {}
 
   toggleSort(col: number) {
     const prevOrder = this.sorting[col];
@@ -352,7 +352,19 @@ export class FilterTableComponent implements OnInit {
     return filtered;
   }
 
-  ngOnInit(): void {
+  downloadCSV(filename: string): void {
+    // UTF-8 BOM
+    let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
+    csvContent += this._columns.map(c => c.name).join(';') + "\r\n";
+    this.processedRows.forEach(row => {
+      const rTxt = row.map(d => (typeof d === 'number')? d.toLocaleString(): d).join(';');
+      csvContent += rTxt + "\r\n";
+    });
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
   }
 
 }
