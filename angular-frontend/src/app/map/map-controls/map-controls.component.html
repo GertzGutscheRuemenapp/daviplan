@@ -70,23 +70,26 @@
 </div>
 
 <ng-template #extentDialogTemplate>
-  <p *ngFor="let extent of mapControl?.mapExtents | keyvalue">
-    <button mat-button color="primary"
-            title='Auf Ausschnitt "{{extent.key}}" zoomen'
-            (click)="loadExtent(extent.key)"
-            style="width: calc(100% - 70px); display: inline-flex; overflow: hidden;">
-      <mat-icon>bookmark_border</mat-icon>
-      {{extent.key}}
-    </button>
-    <button mat-button color="primary"
-            (click)="removeExtent(extent.key)"
-            title='Kartenausschnitt "{{extent.key}}" entfernen'
-            style="float: right;">
-      <mat-icon>close</mat-icon>
-    </button>
-  </p>
+  <div style="margin-top: 5px;">
+    <p *ngFor="let extent of mapControl?.mapExtents | keyvalue">
+      <button mat-button
+              title='Auf Ausschnitt "{{extent.key}}" zoomen'
+              (click)="loadExtent(extent.key)"
+              style="width: calc(100% - 40px); display: inline-flex; overflow: hidden; cursor: zoom-in;">
+        <mat-icon>bookmark_border</mat-icon>
+        {{extent.key}}
+      </button>
+      <button mat-icon-button
+              (click)="removeExtent(extent.key)"
+              title='Kartenausschnitt "{{extent.key}}" entfernen'
+              style="float: right;">
+        <mat-icon class="material-icons-outlined">delete_forever</mat-icon>
+      </button>
+    </p>
+  </div>
   <button mat-button color="primary"
           class="mat-button-dv"
+          style="margin: 6px 0 10px 11px"
           (click)="addExtent()" i18n>
     <mat-icon>add</mat-icon>aktuellen Ausschnitt speichern
   </button>
