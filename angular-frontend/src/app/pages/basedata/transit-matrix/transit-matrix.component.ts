@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl } from "../../../map/map.service";
 import {
   LogEntry,
@@ -24,7 +24,7 @@ import { showAPIError } from "../../../helpers/utils";
   templateUrl: './transit-matrix.component.html',
   styleUrls: ['./transit-matrix.component.scss']
 })
-export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
+export class TransitMatrixComponent implements OnInit, OnDestroy {
   backend: string = environment.backend;
   mapControl?: MapControl;
   variants: ModeVariant[] = [];
@@ -33,7 +33,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   file?: File;
   statistics?: ModeStatistics;
   isLoading$ = new BehaviorSubject<boolean>(false);
-  isProcessing = false;
+  isProcessing$ = new BehaviorSubject<boolean>(false);
   @ViewChild('editVariant') editVariantTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
 
@@ -46,7 +46,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     this.fetchVariants();
   }
 
@@ -130,7 +130,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: [this.selectedVariant!.id]}).subscribe(() => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
         dialogRef.close();
       }, (error) => {
         showAPIError(error, this.dialog);
@@ -188,7 +188,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       formData.append('variant', this.selectedVariant!.id.toString());
       const url = `${this.rest.URLS.transitStops}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
         dialogRef.close();
       }, error => {
         showAPIError(error, this.dialog);
@@ -222,7 +222,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       formData.append('variant', this.selectedVariant!.id.toString());
       const url = `${this.rest.URLS.transitMatrix}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
         dialogRef.close();
       }, error => {
         showAPIError(error, this.dialog);
@@ -233,7 +233,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => this.statistics = stats)
     }
   }
@@ -258,7 +258,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/`
+        this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/?force=true`
         ).subscribe(res => {
           this.selectedVariant = undefined;
           // other variants might change on deletion of the default one

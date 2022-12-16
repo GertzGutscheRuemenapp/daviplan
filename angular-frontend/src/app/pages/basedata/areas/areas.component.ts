@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { Area, AreaLevel, LogEntry } from "../../../rest-interfaces";
 import { BehaviorSubject, forkJoin, Observable, Subscription } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
@@ -8,14 +8,13 @@ import { MatDialog } from "@angular/material/dialog";
 import { RestAPI } from "../../../rest-api";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
-import { MatCheckbox } from "@angular/material/checkbox";
 import { environment } from "../../../../environments/environment";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
 import { showAPIError } from "../../../helpers/utils";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { SettingsService } from "../../../settings.service";
 
 @Component({
@@ -23,8 +22,8 @@ import { SettingsService } from "../../../settings.service";
   templateUrl: './areas.component.html',
   styleUrls: ['../../../map/legend/legend.component.scss','./areas.component.scss']
 })
-export class AreasComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('editArealevelCard') editArealevelCard!: InputCardComponent;
+export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('editArealevelCard') editArealevelCard?: InputCardComponent;
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('pullWfsTemplate') pullWfsTemplate?: TemplateRef<any>;
@@ -41,10 +40,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   areas: Area[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
   orderIsChanging$ = new BehaviorSubject<boolean>(false);
+  isProcessing$ = new BehaviorSubject<boolean>(false);
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   file?: File;
-  isProcessing = false;
   subscriptions: Subscription[] = [];
   projectArea?: string;
 
@@ -60,23 +59,25 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit(): void {
-    this.mapControl = this.mapService.get('base-areas-map');
-    this.layerGroup = new MapLayerGroup('Auswahl', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+  ngOnInit(): void {
     this.isLoading$.next(true);
+    this.mapControl = this.mapService.get('base-areas-map');
+    this.layerGroup = this.mapControl.addGroup('Auswahl', { order: -1 });
     this.fetchAreaLevels().subscribe(res => {
       this.selectAreaLevel(this.presetLevels[0]);
       this.colorSelection = this.activeLevel!.symbol?.fillColor || 'black';
       this.isLoading$.next(false);
     })
-    this.setupEditLevelCard();
-    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing$.next(bs.processes?.areas || false)));
     this.subscriptions.push(this.settings.projectSettings$.subscribe(ps => {
       this.projectArea = (ps.projectArea.indexOf('EMPTY') >= 0)? '': ps.projectArea;
     }));
     this.settings.fetchBaseDataSettings();
     this.settings.fetchProjectSettings();
+  }
+
+  ngAfterViewInit() {
+    this.setupEditLevelCard();
   }
 
   /**
@@ -102,7 +103,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   }
 
   setupEditLevelCard(): void {
-    this.editArealevelCard.dialogOpened.subscribe(ok => {
+    this.editArealevelCard?.dialogOpened.subscribe(ok => {
+      console.log(this.activeLevel);
       this.editLevelForm.reset({
         name: this.activeLevel?.name,
         labelField: this.activeLevel?.labelField,
@@ -116,7 +118,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       }
       this.colorSelection = this.activeLevel?.symbol?.strokeColor || 'black';
     })
-    this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
+    this.editArealevelCard?.dialogConfirmed.subscribe((ok)=>{
       this.editLevelForm.markAllAsTouched();
       if (this.editLevelForm.invalid) return;
       let attributes: any =  {
@@ -129,16 +131,16 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         attributes['labelField'] = this.editLevelForm.value.labelField;
         attributes['keyField'] = this.editLevelForm.value.keyField;
       }
-      this.editArealevelCard.setLoading(true);
+      this.editArealevelCard?.setLoading(true);
       this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel?.id}/`, attributes
       ).subscribe(arealevel => {
         Object.assign(this.activeLevel!, arealevel);
-        this.editArealevelCard.closeDialog(true);
+        this.editArealevelCard?.closeDialog(true);
         this.mapControl?.refresh({ internal: true });
         this.selectAreaLevel(arealevel);
       },(error) => {
         showAPIError(error, this.dialog);
-        this.editArealevelCard.setLoading(false);
+        this.editArealevelCard?.setLoading(false);
       });
     })
   }
@@ -154,7 +156,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.restService.getAreas(this.activeLevel.id,
       {targetProjection: this.mapControl?.map?.mapProjection, reset: true}).subscribe(areas => {
         this.areas = areas;
-        this.areaLayer = new VectorLayer(this.activeLevel!.name, {
+        this.areaLayer = new VectorLayer(this.activeLevel!.name, )
+        this.layerGroup?.addVectorLayer(this.activeLevel!.name, {
           description: 'Gebiete der ausgewählten Gebietseinheit',
           order: 0,
           opacity: 0.7,
@@ -163,7 +166,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
             strokeColor: 'orange'
           },
           tooltipField: 'label',
-          showLabel: true,
           labelField: 'label',
           mouseOver: {
             enabled: true,
@@ -172,8 +174,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
               strokeColor: 'blue'
             }
           }
-        })
-        this.layerGroup?.addLayer(this.areaLayer);
+        });
         this.areaLayer.addFeatures(this.areas);
         this.activeLevel!.areaCount = this.areas.length;
         this.isLoading$.next(false);
@@ -262,7 +263,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`, { area_level: this.activeLevel!.id, truncate: true, simplify: false }).subscribe(res => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
       }, error => {
         showAPIError(error, this.dialog);
       });
@@ -294,7 +295,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       const formData = new FormData();
       formData.append('file', this.file);
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
       }, error => {
         showAPIError(error, this.dialog);
       });
@@ -410,7 +411,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.reset();
     }
   }

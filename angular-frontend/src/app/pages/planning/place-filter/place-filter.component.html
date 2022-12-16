@@ -1,4 +1,6 @@
-<button mat-icon-button color="primary" class="filter-button small"
+<button mat-icon-button
+        color="warning"
+        class="filter-button small"
         [ngClass]="{ inverted: planningService.getPlaceFilters(infrastructure).length > 0 }"
         [disabled]="!infrastructure"
         [ngbPopover]="filterPopover"

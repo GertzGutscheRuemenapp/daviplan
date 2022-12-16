@@ -98,8 +98,21 @@
   }
   .label-toggle{
     padding-left: 3px;
-    color: grey;
     cursor: pointer;
+    color: grey;
+    transform: translate(0px, -3px);
+    width: 30px;
+    border-radius: 15px;
+    .mat-icon {
+      transform: translate(0px, 3px);
+    }
+  }
+  .label-toggle:hover:not(.disabled){
+    background-color: #e9e9e9;
+  }
+  .label-toggle.disabled{
+    color: lightgrey;
+    pointer-events: none;
   }
   ::ng-deep {
     .mat-slider-wrapper {

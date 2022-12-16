@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { environment } from "../../../../environments/environment";
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { RestCacheService } from "../../../rest-cache.service";
 import {
   Area,
@@ -10,21 +10,21 @@ import {
   StatisticsData,
 } from "../../../rest-interfaces";
 import { showAPIError, sortBy } from "../../../helpers/utils";
-import { SettingsService, SiteSettings } from "../../../settings.service";
+import { SettingsService } from "../../../settings.service";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-statistics',
   templateUrl: './statistics.component.html',
   styleUrls: ['./statistics.component.scss']
 })
-export class StatisticsComponent implements AfterViewInit, OnDestroy {
+export class StatisticsComponent implements OnInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   backend: string = environment.backend;
   mapControl?: MapControl;
@@ -41,9 +41,9 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   showImmigration: boolean = true;
   showEmigration: boolean = true;
   isLoading$ = new BehaviorSubject<boolean>(false);
+  isProcessing$ = new BehaviorSubject<boolean>(false);
   dataColumns: string[] = ['Gebiet', 'AGS', 'Geburten', 'Sterbefälle', 'Zuzüge', 'Fortzüge'];
   dataRows: any[][] = [];
-  isProcessing = false;
   subscriptions: Subscription[] = [];
   baseSettings?: BasedataSettings;
 
@@ -53,13 +53,12 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     this.restService.reset();
   }
 
-  ngAfterViewInit(): void {
-    this.mapControl = this.mapService.get('base-statistics-map');
-    this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+  ngOnInit(): void {
     this.isLoading$.next(true);
+    this.mapControl = this.mapService.get('base-statistics-map');
+    this.layerGroup = this.mapControl.addGroup('Bevölkerungssalden', { order: -1 });
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
-      this.isProcessing = baseSettings.processes?.population || false;
+      this.isProcessing$.next(baseSettings.processes?.population || false);
       this.baseSettings = baseSettings;
       this.fetchData();
     }));
@@ -139,16 +138,14 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
           (this.theme === 'migration' && this.showEmigration && !this.showImmigration)? 'Fortzüge':
             'Ew.'
 
-    this.statisticsLayer = new VectorLayer(descr, {
+    this.statisticsLayer = this.layerGroup?.addVectorLayer(descr, {
       order: 0,
-      opacity: 1,
       style: {
         strokeColor: 'white',
         fillColor: color,
         symbol: 'circle'
       },
       labelField: 'value',
-      showLabel: true,
       tooltipField: 'description',
       mouseOver: {
         enabled: true,
@@ -171,7 +168,6 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       forceSign: diffDisplay,
       labelOffset: { y: 15 }
     });
-    this.layerGroup?.addLayer(this.statisticsLayer);
     this.areas.forEach(area => {
       const data = this.statisticsData!.find(d => d.area == area.id);
       let value = 0;
@@ -187,7 +183,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       description += (diffDisplay && !value)? 'keine Änderung ': `${diffDisplay && value > 0? '+': ''}${area.properties.value.toLocaleString()} ${unit} im Jahr ${this.year}`;
       area.properties.description = description;
     })
-    this.statisticsLayer.addFeatures(this.areas,{
+    this.statisticsLayer?.addFeatures(this.areas,{
       properties: 'properties',
       geometry: 'centroid',
       zIndex: 'value'
@@ -225,7 +221,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.statistics}pull_regionalstatistik/`;
       this.http.post(url, {}).subscribe(() => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
         }, error => {
         showAPIError(error, this.dialog);
       })
@@ -234,7 +230,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.restService.reset();
       this.fetchData();
     }
