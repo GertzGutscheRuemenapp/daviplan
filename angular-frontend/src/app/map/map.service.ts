@@ -98,6 +98,7 @@ interface BackgroundLayerDef {
   type: 'tiles' | 'wms'
 }
 
+const currentYear = new Date().getFullYear();
 const backgroundLayerDefs: BackgroundLayerDef[] = [
   {
     id: 'osm-back',
@@ -112,6 +113,7 @@ const backgroundLayerDefs: BackgroundLayerDef[] = [
     name: 'TopPlusOpen',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Normalausgabe',
+    attribution: `©<a target="_blank" href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/Datenquellen_TopPlusOpen.html">Bundesamt für Kartographie und Geodäsie (${currentYear})<a>`,
     type: 'wms',
     layerName: 'web'
   },
@@ -120,6 +122,7 @@ const backgroundLayerDefs: BackgroundLayerDef[] = [
     name: 'TopPlusOpen grau',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Graustufendarstellung',
+    attribution: '©<a target="_blank" href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/Datenquellen_TopPlusOpen.html">Bundesamt für Kartographie und Geodäsie (${currentYear})<a>',
     type: 'wms',
     layerName: 'web_grau'
   }
