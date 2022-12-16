@@ -129,6 +129,8 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
         }
       }
       this.demandLayer = this.layerGroup!.addVectorLayer(this.planningService.activeService?.demandPluralUnit || 'Nachfragende',{
+        id: 'demand',
+        visible: true,
         order: 0,
         description: desc,
         style: {

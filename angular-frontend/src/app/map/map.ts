@@ -667,8 +667,9 @@ export class OlMap {
 
   deselectAllFeatures(layerName: string){
     const layer = this.layers[layerName],
-      select = layer.get('select');
-    select.getFeatures().clear();
+          select = layer.get('select');
+    if (select)
+      select.getFeatures().clear();
   }
 
   removeLayer(name: string){

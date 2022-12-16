@@ -173,6 +173,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
                   Maximum: ${max.toLocaleString()}`;
       // ToDo description with filter
       this.placesLayer = this.layerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
+        id: 'supply-places',
+        visible: true,
         order: 0,
         description: desc,
         style: {
@@ -243,6 +245,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       // add layer for marking changes in scenario
       if (!this.activeScenario?.isBase) {
         this.scenarioMarkerLayer = this.layerGroup?.addVectorLayer('Änderungen zu Status Quo', {
+          id: 'supply-marker',
           order: 1,
           zIndex: (this.placesLayer?.getZIndex() || 0) + 1,
           description: 'im Szenario verändert',
@@ -337,7 +340,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     const desc = `${this.activeScenario?.name}<br>
                   Angebot für Leistung "${this.activeService?.name}"<br>
                   <b>${this.activeService?.facilityPluralUnit} ${this.year} mit Anzahl ${this.activeService?.capacityPluralUnit}
-                  ${(this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)? ' (gefiltert)': ''}</b>`
+                  ${(this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)? ' <i class="warning">(gefiltert)</i>': ''}</b>`
     this.mapControl?.setDescription(desc);
   }
 

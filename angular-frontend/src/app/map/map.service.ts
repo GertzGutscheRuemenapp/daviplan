@@ -338,7 +338,7 @@ export class MapControl {
       default:
         layer = new VectorLayer(name, options);
     }
-    layer.attributeChanged.subscribe(c => this.setCookieLayerAttr(name, c.attribute, c.value));
+    layer.attributeChanged.subscribe(c => this.setCookieLayerAttr(options?.id || name, c.attribute, c.value));
     layer.addToMap(this.map);
     return layer;
   }

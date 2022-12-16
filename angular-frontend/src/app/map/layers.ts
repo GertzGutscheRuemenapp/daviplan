@@ -425,7 +425,7 @@ export class VectorLayer extends MapLayer {
 
   protected initSelect() {
     this.map?.selected.subscribe(evt => {
-      if (evt.layer.get('id') !== this.id) return;
+      if (evt.layer.get('name') !== this.mapId) return;
       if (evt.selected && evt.selected.length > 0)
         this.featuresSelected.emit(evt.selected);
       if (evt.deselected && evt.deselected.length > 0)

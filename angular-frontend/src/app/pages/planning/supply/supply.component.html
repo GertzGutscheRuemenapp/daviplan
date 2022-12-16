@@ -81,8 +81,12 @@
 
 <ng-template #placePreviewTemplate><!-- let-place="place">-->
   <div *ngFor="let place of selectedPlaces" style="margin-bottom: 20px; border: 1px solid lightgrey; padding: 10px 5px; ">
-    <div style="margin-bottom: 10px; text-align: center;">
-      <b style="font-size: 1.3em">{{ place.name }}&nbsp;</b> <i *ngIf="place.scenario !== null" style="color: #fc450c;">(Szenariostandort)</i>
+    <div style="margin-bottom: 10px; text-align: center">
+      <b style="font-size: 1.3em; width: 100%;">{{ place.name }}</b>
+      <p *ngIf="place.scenario !== null"
+            style="color: #00c4ff;">
+        <i>(Szenariostandort)</i>
+      </p>
     </div>
     <div style="padding: 5px 10px; margin: 0 5px;">
       <ng-container *ngIf="activeInfrastructure?.placeFields && activeInfrastructure!.placeFields!.length > 0">

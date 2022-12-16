@@ -118,6 +118,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           this.placesLayer = undefined;
         }
         this.placesLayer = this.placesLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
+          id: 'reach-places',
           order: 1,
           zIndex: 99998,
           description: this.activeInfrastructure!.name,
@@ -135,7 +136,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             cursor: ''
           },
           select: {
-            enabled: true,
+            enabled: this.indicator === 'place',
             style: { fillColor: 'yellow' },
             multi: false
           },
@@ -144,7 +145,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         this.placesLayer?.addFeatures(places.map(place => {
           return { id: place.id, geometry: place.geom, properties: { name: place.name } }
         }));
-        this.placesLayer?.setSelectable(this.indicator === 'place');
 
         this.placesLayer?.featuresSelected?.subscribe(features => {
           this.selectedPlaceId = features[0].get('id');
@@ -190,6 +190,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       const place = this.places.find(p => p.id === this.selectedPlaceId);
       this.reachRasterLayer = this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
+        id: 'reachability',
+        visible: true,
         order: 0,
         description: `Erreichbarkeit des gewählten Standorts (${place?.name}) ${modes[this.activeMode]}`,
         style: {
@@ -210,7 +212,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   showCellReachability(): void {
     if (this.pickedCoords === undefined || !this.activeScenario) return;
-    this.updateMapDescription('vom gewählten Wohnstandort zu allen Einrichtungen');
+    let indicatorDesc = 'vom gewählten Wohnstandort zu allen Einrichtungen';
+    if (this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)
+      indicatorDesc += ' <i class="warning">(gefiltert)</i>';
+    this.updateMapDescription(indicatorDesc);
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
@@ -233,6 +238,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         }
 
         this.placeReachabilityLayer = this.reachLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
+          id: 'reachability',
+          visible: true,
           order: 0,
           zIndex: 99999,
           description: this.activeInfrastructure!.name,
@@ -263,7 +270,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   showNextPlaceReachabilities(): void {
     if (!this.year || !this.activeService || !this.activeScenario) return;
-    this.updateMapDescription('von allen Wohnstandorten zum jeweils nächsten Angebot');
+    let indicatorDesc = `von allen Wohnstandorten zum jeweils nächsten Angebot`;
+    if (this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)
+      indicatorDesc += ' <i class="warning">(gefiltert)</i>';
+    this.updateMapDescription(indicatorDesc);
     this.planningService.getNextPlaceReachability([this.activeService], this.activeMode, { scenario: this.activeScenario, year: this.year, places: this.places }).subscribe(cellResults => {
       this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};
@@ -284,6 +294,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       }
 
       this.nextPlaceReachabilityLayer = this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
+        id: 'reachability',
+        visible: true,
         order: 0,
         description: 'Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot',
         style: {

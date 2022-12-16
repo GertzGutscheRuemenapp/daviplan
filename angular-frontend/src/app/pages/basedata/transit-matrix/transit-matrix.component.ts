@@ -258,7 +258,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/`
+        this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/?force=true`
         ).subscribe(res => {
           this.selectedVariant = undefined;
           // other variants might change on deletion of the default one

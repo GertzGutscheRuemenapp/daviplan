@@ -568,10 +568,15 @@ button.mat-icon-button {
 .mini-fab-icon.inverted.primary {
   background-color: $primary;
 }
-
-.mat-icon-button.inverted {
-  background-color: $primary;
+.mat-icon-button.inverted{
   color: white;
+  background-color: $accent;
+}
+.mat-icon-button.inverted[color="primary"] {
+  background-color: $primary;
+}
+.mat-icon-button.inverted[color="warning"] {
+  background-color: $warning;
 }
 
 .mat-icon-button .davicon {
@@ -719,6 +724,10 @@ mat-panel-title {
     position: absolute;
     right: 41px;
   }
+}
+
+.warning {
+  color: $warning;
 }
 
 .context-bar {
