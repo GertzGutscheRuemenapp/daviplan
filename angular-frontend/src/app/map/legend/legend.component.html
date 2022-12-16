@@ -94,11 +94,14 @@
                             [value]="layer.opacity"
                             title="Transparenz">
                 </mat-slider>
-                <div class="label-toggle" *ngIf="$any(layer).labelField"
-                     (click)="toggleLabel($any(layer))" [title]="($any(layer).showLabel)? 'Beschriftung ausschalten': 'Beschriftung einschalten'">
-                  <mat-icon class="material-icons-outlined">
-                    {{($any(layer).showLabel)? 'label': 'label_off'}}
-                  </mat-icon>
+                <div [title]="($any(layer).showLabel)? 'Beschriftung ausschalten': 'Beschriftung einschalten'">
+                  <div class="label-toggle" *ngIf="$any(layer).labelField"
+                       [ngClass]="{'disabled': !layer.visible}"
+                       (click)="toggleLabel($any(layer))">
+                    <mat-icon class="material-icons-outlined">
+                      {{($any(layer).showLabel)? 'label': 'label_off'}}
+                    </mat-icon>
+                  </div>
                 </div>
               </div>
             </div>
