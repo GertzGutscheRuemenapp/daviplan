@@ -237,6 +237,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
                          <br>Minimum: ${this.compareYears && min > 0?'+':''}${min.toLocaleString()} Ew.
                          <br>Maximum: ${this.compareYears && max > 0?'+':''}${max.toLocaleString()} Ew.`;
       this.populationLayer = this.layerGroup?.addVectorLayer(this.activeLevel!.name,{
+        id: 'pop-development',
+        visible: true,
         order: 0,
         description: description,
         style: {

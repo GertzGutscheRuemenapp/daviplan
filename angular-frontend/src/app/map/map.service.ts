@@ -307,12 +307,16 @@ export class MapControl {
 
   private addCookieOptions(layerId: string | number, options: LayerOptions): LayerOptions {
     const clonedOpt = Object.assign({}, options);
-    const defaults = [1, true, true];
-    const types: ('number' | 'boolean')[] = ['number', 'boolean', 'boolean', 'boolean'];
-    ['opacity', 'visible', 'showLabel', 'legendElapsed'].forEach((attr, i) => {
-      const key = attr as keyof LayerOptions;
+    const attributes: { name: string, type: 'number' | 'boolean', default: any }[] = [
+      { name: 'opacity', type: 'number', default: 1 },
+      { name: 'visible', type: 'boolean', default: true },
+      { name: 'showLabel', type: 'boolean', default: true },
+      { name: 'legendElapsed', type: 'boolean', default: true },
+    ]
+    attributes.forEach(attr => {
+      const key = attr.name as keyof LayerOptions;
       if (clonedOpt[key] === undefined){
-        clonedOpt[key] = this.getCookieLayerAttr(layerId, attr, {default: defaults[i], type: types[i]});
+        clonedOpt[key] = this.getCookieLayerAttr(layerId, attr.name, { default: attr.default, type: attr.type });
       }
     })
     return clonedOpt;

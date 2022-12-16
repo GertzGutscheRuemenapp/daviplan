@@ -176,6 +176,8 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
                            <br>Minimum: ${diffDisplay && min > 0 ? '+' : ''}${min.toLocaleString()} ${unit}
                            <br>Maximum: ${diffDisplay && max > 0 ? '+' : ''}${max.toLocaleString()} ${unit}`
       this.statisticsLayer = this.layerGroup?.addVectorLayer(title, {
+        id: 'pop-statistics',
+        visible: true,
         order: 0,
         description: description,
         style: {
