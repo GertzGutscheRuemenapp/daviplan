@@ -59,8 +59,8 @@
                   <ng-container>
                     <ng-container *ngIf="layer.legend">
                       <div title="Farblegende des Layer ein-/ausklappen" (click)="toggleLayerLegend($any(layer))">
-                        <mat-icon color="primary" *ngIf="layer.legend?.elapsed">expand_less</mat-icon>
-                        <mat-icon color="primary" *ngIf="!layer.legend.elapsed">expand_more</mat-icon>
+                        <mat-icon color="primary" *ngIf="layer.legendElapsed">expand_less</mat-icon>
+                        <mat-icon color="primary" *ngIf="!layer.legendElapsed">expand_more</mat-icon>
                       </div>
                     </ng-container>
                     <ng-container *ngIf="!layer.legend">
@@ -94,15 +94,18 @@
                             [value]="layer.opacity"
                             title="Transparenz">
                 </mat-slider>
-                <div class="label-toggle" *ngIf="$any(layer).labelField"
-                     (click)="toggleLabel($any(layer))" [title]="($any(layer).showLabel)? 'Beschriftung ausschalten': 'Beschriftung einschalten'">
-                  <mat-icon class="material-icons-outlined">
-                    {{($any(layer).showLabel)? 'label': 'label_off'}}
-                  </mat-icon>
+                <div [title]="($any(layer).showLabel)? 'Beschriftung ausschalten': 'Beschriftung einschalten'">
+                  <div class="label-toggle" *ngIf="$any(layer).labelField"
+                       [ngClass]="{'disabled': !layer.visible}"
+                       (click)="toggleLabel($any(layer))">
+                    <mat-icon class="material-icons-outlined">
+                      {{($any(layer).showLabel)? 'label': 'label_off'}}
+                    </mat-icon>
+                  </div>
                 </div>
               </div>
             </div>
-            <div *ngIf="layer.legend && layer.legend.elapsed">
+            <div *ngIf="layer.legend && layer.legendElapsed">
               <div class="legend-entry" *ngFor="let entry of layer.legend.entries;">
                 <div class="entry-header">
                   <div class="entry-prefix"></div>

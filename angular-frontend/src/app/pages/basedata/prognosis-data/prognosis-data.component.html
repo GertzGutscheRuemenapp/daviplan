@@ -1,4 +1,4 @@
-<div class="loadOverlay" *ngIf="popService.isLoading$ | async">
+<div class="loadOverlay" *ngIf="(popService.isLoading$ | async) || (this.isLoading$ | async)">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Varianten)'"
@@ -24,7 +24,7 @@
                  infoText="Bitte laden Sie im Bereich „Gebietseinteilungen“ Gebiete für die Gebietseinteilung hoch bzw. rufen Sie sie ab.">
   Fehler: Die Gebietseinteilung für die Bevölkerungsdaten („{{popLevel?.name}}“) enthält keine Gebiete!
 </app-status-card>
-<app-status-card *ngIf="isProcessing">
+<app-status-card *ngIf="isProcessing$ | async">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
 </app-status-card>
 <div fxLayout="row wrap">
@@ -33,7 +33,7 @@
                     [title]="'Prognosejahre'"
                     subtitle="Folgende Jahre sollen in Vorlage und Karten enthalten sein"
                     [editTemplate]="yearsEdit"
-                    [disabled]="years.length === 0  || !popLevel || isProcessing"
+                    [disabled]="years.length === 0  || !popLevel || (isProcessing$ | async)!"
                     dialogWidth="500px"
                     infoText="<p>Legen Sie über die Schaltfläche „Editieren“ fest, für welche zukünftigen Jahre Ihnen
                     aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Über die gleiche Schaltfläche
@@ -57,7 +57,7 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Prognosevarianten'"
-                    [disabled]="years.length === 0 || !popLevel || isProcessing"
+                    [disabled]="years.length === 0 || !popLevel || (isProcessing$ | async)!"
                     subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
                     <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
@@ -125,9 +125,8 @@
     <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
                     width="430px"
                     [subtitle]="activePrognosis?.name || '-'"
-                    [disabled]="isProcessing"
                     [class.hidden]="years.length === 0 || !popLevel || !activePrognosis"
-                    [disabled]="prognosisYears.length === 0"
+                    [disabled]="prognosisYears.length === 0 || (isProcessing$ | async)!"
                     infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>
                     <p>Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Bereits importierte Prognosedaten für die ausgewählte Variante“ für einzelne Gebiete anschauen.</p>">
       <span *ngIf="prognosisYears.length === 0" style="margin-bottom: 10px;">
@@ -153,7 +152,7 @@
 </div>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Bereits importierte Prognosedaten für die ausgewählte Variante'"
-                  [disabled]="isProcessing"
+                  [disabled]="(isProcessing$ | async)!"
                   [topRightHelp]="true"
                   class="spaced"
                   width="1170px"

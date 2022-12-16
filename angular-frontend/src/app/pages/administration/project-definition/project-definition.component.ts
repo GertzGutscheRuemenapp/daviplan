@@ -83,7 +83,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ageGroupWarning') ageGroupWarningTemplate?: TemplateRef<any>;
   subscriptions: Subscription[] = [];
   isProcessing = false;
-  isLoading$ = new BehaviorSubject<boolean>(false);
+  isLoading$ = new BehaviorSubject<boolean>(true);
 
   constructor(private restService: RestCacheService,private mapService: MapService, private formBuilder: FormBuilder,
               private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
@@ -92,7 +92,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.setupPreviewMap();
     this.setupAreaCard();
-    this.isLoading$.next(true);
     this.fetchProjectSettings().subscribe(settings => {
       this.updatePreviewLayer();
       this.fetchYears().subscribe(settings => {

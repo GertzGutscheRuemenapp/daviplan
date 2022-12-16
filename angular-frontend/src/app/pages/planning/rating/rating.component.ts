@@ -14,10 +14,10 @@ import {
   Service,
   TransportMode
 } from "../../../rest-interfaces";
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
-import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { MapLayer, TileLayer, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import {
   BarChartData,
   HorizontalBarchartComponent
@@ -49,9 +49,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   selectedIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
   activeScenario?: Scenario;
-  showLabel = true;
   mapControl?: MapControl;
-  indicatorLayer?: VectorLayer;
+  indicatorLayer?: MapLayer;
   layerGroup?: MapLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
@@ -62,8 +61,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.layerGroup = new MapLayerGroup('Bewertung', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Bewertung', { order: -1 });
     try {
       this.indicatorParams = Object.assign(this.indicatorParams, this.cookies.get('planning-rating-params', 'json'));
     } catch {};
@@ -112,7 +110,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
     this.layerGroup?.clear();
     this.barChart.clear();
     this.mapControl?.setDescription('');
@@ -170,17 +167,17 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       }
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
-      this.indicatorLayer = new VectorTileLayer( this.selectedIndicator!.title, url,{
-        description: this.selectedIndicator!.title,
+      this.indicatorLayer = this.layerGroup?.addVectorTileLayer( this.selectedIndicator!.title, url, {
+        id: 'indicator',
+        visible: true,
+        description: `<p><b>${this.selectedIndicator!.title}</b></p><p>${this.selectedIndicator!.description}</p>`,
         order: 0,
-        opacity: 1,
         style: {
           fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
           symbol: 'line'
         },
         labelField: 'value',
-        showLabel: this.showLabel,
         valueStyles: style,
         valueMap: {
           field: 'cellcode',
@@ -188,7 +185,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         },
         unit: this.selectedIndicator?.unit
       });
-      this.layerGroup?.addLayer(this.indicatorLayer);
     })
   }
 
@@ -252,10 +248,11 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           }
         }
 
-        this.indicatorLayer = new VectorLayer(this.selectedIndicator!.title, {
+        this.indicatorLayer = this.layerGroup?.addVectorLayer(this.selectedIndicator!.title, {
+          id: 'indicator',
+          visible: true,
           order: 0,
-          description: this.selectedIndicator!.title,
-          opacity: 1,
+          description: `<p><b>${this.selectedIndicator!.title}</b></p><p>${this.selectedIndicator!.description}</p>`,
           style: {
             fillColor: '#2171b5',
             strokeWidth: 2,
@@ -264,7 +261,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           },
           radius: 7,
           labelField: 'label',
-          showLabel: this.showLabel,
           tooltipField: 'description',
           valueStyles: style,
           mouseOver: {
@@ -274,8 +270,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           labelOffset: { y: 15 },
           unit: this.selectedIndicator?.unit
         });
-        this.layerGroup?.addLayer(this.indicatorLayer);
-        this.indicatorLayer.addFeatures(displayedPlaces);
+        (this.indicatorLayer as VectorLayer).addFeatures(displayedPlaces);
         this.barChartProps.unit = this.selectedIndicator?.unit || '';
         this.renderDiagram(this.chartData);
       });
@@ -341,17 +336,17 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             }
           }
         }
-        this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
+        this.indicatorLayer = this.layerGroup?.addVectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
+          id: 'indicator',
+          visible: true,
           order: 0,
-          description: this.selectedIndicator!.description,
-          opacity: 1,
+          description: `<p><b>${this.selectedIndicator!.title}</b></p><p>${this.selectedIndicator!.description}</p>`,
           style: {
             strokeColor: 'white',
             fillColor: 'rgba(165, 15, 21, 0.9)',
             symbol: 'line'
           },
           labelField: 'label',
-          showLabel: this.showLabel,
           tooltipField: 'description',
           mouseOver: {
             enabled: true,
@@ -363,8 +358,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           valueStyles: style,
           unit: this.selectedIndicator?.unit
         });
-        this.layerGroup?.addLayer(this.indicatorLayer);
-        this.indicatorLayer.addFeatures(displayedAreas,{ properties: 'properties' });
+        (this.indicatorLayer as VectorLayer).addFeatures(displayedAreas,{ properties: 'properties' });
         this.barChartProps.unit = this.selectedIndicator?.unit || '';
         this.renderDiagram(this.chartData);
       })
