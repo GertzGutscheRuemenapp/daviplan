@@ -370,6 +370,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  zoomToPlaceExtent(): void {
+    this.placesLayer?.zoomTo();
+  }
+
   updateMapDescription(indicatorDesc?: string): void {
     let desc = `${this.activeScenario?.name}<br>
                   Erreichbarkeit "${this.activeService?.name}"<br>`;
