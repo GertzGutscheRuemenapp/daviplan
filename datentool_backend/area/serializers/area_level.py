@@ -1,75 +1,25 @@
 from typing import Dict
 from rest_framework.exceptions import NotAcceptable
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework.exceptions import ValidationError
-from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datetime import date as dt_date
 from django.urls import reverse
 from django.db.models import Max, F, Func
 from django.db.models.functions import Cast, Coalesce
 
-from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     Source, AreaLevel, Area, TextField,
+from datentool_backend.area.models import (MapSymbol,
+                     Source, AreaLevel, TextField,
                      FieldType, FieldTypes, FClass,
                      AreaAttribute, AreaField,
                      )
 from datentool_backend.models import PopStatEntry
 
+from .layers import SourceSerializer, MapSymbolSerializer
+
+
 area_level_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=AreaLevel.objects.all(),
     help_text='area_level_id',)
-
-
-class MapSymbolSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MapSymbol
-        fields =  ('symbol', 'fill_color', 'stroke_color')
-
-
-class LayerGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LayerGroup
-        fields = ('id', 'name', 'order', 'external')
-
-
-class WMSLayerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WMSLayer
-        fields = ('id', 'name', 'group', 'layer_name', 'order', 'url',
-                  'description', 'active')
-        optional_fields = ('description', 'active')
-
-
-class GetCapabilitiesRequestSerializer(serializers.Serializer):
-    url = serializers.URLField()
-    version = serializers.CharField(required=False, default='1.3.0')
-
-
-class LayerSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    title = serializers.CharField()
-    abstract = serializers.CharField()
-    bbox = serializers.ListField(child=serializers.FloatField(),
-                                 min_length=4, max_length=4)
-
-
-class GetCapabilitiesResponseSerializer(serializers.Serializer):
-    version = serializers.CharField()
-    url = serializers.URLField()
-    cors = serializers.BooleanField()
-    layers = LayerSerializer(many=True)
-
-
-class SourceSerializer(serializers.ModelSerializer):
-    date = serializers.DateField(format='%d.%m.%Y',
-                                 input_formats=['%d.%m.%Y', 'iso-8601'],
-                                 required=False)
-    class Meta:
-        model = Source
-        fields = ('source_type', 'date', 'url', 'layer')
-        extra_kwargs = {'url': {'required': False},
-                        'layer': {'required': False}}
 
 
 class AreaLevelSerializer(serializers.ModelSerializer):
@@ -292,78 +242,6 @@ class FieldTypeSerializer(serializers.ModelSerializer):
                 max_order += 1
                 fclass.order = max_order
         FClass.objects.bulk_create(fclasses_to_create)
-
-
-class AreaAttributeField(serializers.JSONField):
-
-    def get_attribute(self, instance):
-        return instance
-
-    def to_representation(self, value):
-        data = {}
-        for field_name in value.field_names.strip("'").split(','):
-            try:
-                field_value = getattr(value, field_name)
-            except AttributeError:
-                try:
-                    field_value = AreaAttribute.objects\
-                        .get(area=value, field__name=field_name)\
-                        .value
-                except AreaAttribute.DoesNotExist:
-                    field_value = ''
-            data[field_name] = field_value
-        return data
-
-
-class AreaSerializer(GeoFeatureModelSerializer):
-    geom = MultiPolygonGeometrySRIDField(srid=3857)
-    attributes = AreaAttributeField(source='areaattribute_set')
-    label = serializers.SerializerMethodField()
-    key = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Area
-        geo_field = 'geom'
-        fields = ('id', 'area_level', 'attributes', 'label', 'key')
-
-    def get_label(self, obj: Area) -> str:
-        return obj.label
-
-    def get_key(self, obj: Area) -> str:
-        return obj.key
-
-    def create(self, validated_data):
-        """
-        Create and return a new `Area` instance, given the validated data.
-        """
-        attributes = validated_data.pop('areaattribute_set')
-        area = super().create(validated_data)
-
-        for field_name, value in attributes.items():
-            field = AreaField.objects.get(area_level=area.area_level,
-                                          name=field_name)
-            AreaAttribute.objects.create(area=area,
-                                         field=field,
-                                         value=value)
-        return area
-
-    def update(self, instance, validated_data):
-        """
-        Update an Area instance, given the validated data.
-        """
-        attributes = validated_data.pop('areaattribute_set')
-        area = super().update(instance, validated_data)
-
-        existing_area_attributes = AreaAttribute.objects.filter(area=area)
-        existing_area_attributes.delete()
-
-        for field_name, value in attributes.items():
-            field = AreaField.objects.get(area_level=area.area_level,
-                                          name=field_name)
-            AreaAttribute.objects.create(area=area,
-                                         field=field,
-                                         value=value)
-        return instance
 
 
 class AreaFieldSerializer(serializers.ModelSerializer):
