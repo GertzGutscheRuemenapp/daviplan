@@ -17,9 +17,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiResponse, OpenApiParameter)
 
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
-
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 
 from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
                                                           MatrixCellStopRouter,
@@ -228,7 +226,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
                     )
 
 
-class MatrixCellPlaceViewSet(TravelTimeRouterViewMixin):
+class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
     model = MatrixCellPlace
     router = MatrixCellPlaceRouter
 
@@ -277,7 +275,6 @@ class MatrixCellPlaceViewSet(TravelTimeRouterViewMixin):
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance or network router"""
         drop_constraints = request.data.get('drop_constraints', False)
-        run_sync = request.data.get('sync', False)
         variant_ids = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
         max_distance = request.data.get('max_distance')
@@ -294,23 +291,24 @@ class MatrixCellPlaceViewSet(TravelTimeRouterViewMixin):
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING,
-                                     run_sync=run_sync) as ppm:
-            try:
-                ppm.run(self.calc, self.router, variant_ids, places,
-                        drop_constraints, logger, max_distance,
-                        access_variant_id, max_access_distance,
-                        air_distance_routing, max_direct_walktime)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
+        msg = 'Routenberechnung gestartet'
+        return self.run_sync_or_async(func=self.calc,
+                                      user=request.user,
+                                      scope=ProcessScope.ROUTING,
+                                      drop_constraints=drop_constraints,
+                                      message=msg,
+                                      router_class=self.router,
+                                      variant_ids=variant_ids,
+                                      places=places,
+                                      max_distance=max_distance,
+                                      max_access_distance=max_access_distance,
+                                      access_variant_id=access_variant_id,
+                                      max_direct_walktime=max_direct_walktime,
+                                      air_distance_routing=air_distance_routing,
+                                      )
 
-        return Response({'message': 'Routenberechnung gestartet'},
-                        status=status.HTTP_202_ACCEPTED)
 
-
-class TransitAccessRouterViewMixin(TravelTimeRouterViewMixin):
+class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
 
 
     @extend_schema(description='Create Access Traveltime Matrix to Stops',
@@ -368,20 +366,20 @@ class TransitAccessRouterViewMixin(TravelTimeRouterViewMixin):
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING,
-                                     run_sync=run_sync) as ppm:
-            try:
-                ppm.run(self.calc, self.router, variant_ids, places,
-                        drop_constraints, logger,
-                        max_distance, access_variant_id,
-                        max_access_distance, air_distance_routing)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({'message': 'Routenberechnung gestartet'},
-                        status=status.HTTP_202_ACCEPTED)
+        msg = 'Routenberechnung gestartet'
+        return self.run_sync_or_async(func=self.calc,
+                                      user=request.user,
+                                      scope=ProcessScope.ROUTING,
+                                      message=msg,
+                                      router_class=self.router,
+                                      variant_ids=variant_ids,
+                                      drop_constraints=drop_constraints,
+                                      places=places,
+                                      max_distance=max_distance,
+                                      max_access_distance=max_access_distance,
+                                      access_variant_id=access_variant_id,
+                                      air_distance_routing=air_distance_routing,
+                                      )
 
 
 class MatrixCellStopViewSet(TransitAccessRouterViewMixin):

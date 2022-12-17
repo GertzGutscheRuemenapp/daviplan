@@ -45,8 +45,7 @@ from datentool_backend.population.serializers import (
     prognosis_id_serializer, area_level_id_serializer, years_serializer)
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
-from datentool_backend.utils.processes import (ProcessScope,
-                                               ProtectedProcessManager)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 
 import logging
 
@@ -67,7 +66,7 @@ class PopulationFilter(filters.FilterSet):
         fields = ['is_prognosis']
 
 
-class PopulationViewSet(viewsets.ModelViewSet):
+class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
     queryset = Population.objects.all()
     serializer_class = PopulationSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
@@ -263,24 +262,19 @@ class PopulationViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         drop_constraints = request.data.get('drop_constraints', False)
-        run_sync = self.settings['Q_CLUSTER']['sync'] or request.data.get('sync', False)
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.POPULATION,
-                                     run_sync=run_sync) as ppm:
-            try:
-                ppm.run(self._pull_regionalstatistik, area_level,
-                        drop_constraints=drop_constraints)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({
-            'message': f'Abruf der Bevölkerungsdaten gestartet'
-            }, status=status.HTTP_202_ACCEPTED)
+        msg = 'Abruf der Bevölkerungsdaten gestartet'
+        return self.run_sync_or_async(func=self._pull_regionalstatistik,
+                                      user=request.user,
+                                      scope=ProcessScope.POPULATION,
+                                      area_level=area_level,
+                                      drop_constraints=drop_constraints,
+                                      message=msg)
 
     @staticmethod
-    def _pull_regionalstatistik(area_level: AreaLevel, drop_constraints=False):
+    def _pull_regionalstatistik(area_level: AreaLevel,
+                                logger: logging.Logger,
+                                drop_constraints=False):
         CHUNK_SIZE = 10
         areas = Area.annotated_qs(area_level).filter(area_level=area_level)
 

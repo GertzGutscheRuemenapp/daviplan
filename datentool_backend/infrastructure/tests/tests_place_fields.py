@@ -110,8 +110,8 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
 
     def test_sensitive_data(self):
         """Test if sensitive data is correctly shown"""
-        pr1 = ProfileFactory()
-        pr2 = ProfileFactory()
+        pr1 = ProfileFactory(admin_access=False)
+        pr2 = ProfileFactory(admin_access=False)
         place: Place = self.obj
 
         infr: Infrastructure = place.infrastructure
@@ -144,14 +144,25 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         place.attributes = attributes
         place.save()
 
+        # user1 should not see the secret attributes
         self.client.logout()
         self.client.force_login(pr1.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
         attrs = response.data['attributes']
         self.assertDictEqual(attrs, {'harmless': 123})
 
+        # user1 should see the secret attributes
         self.client.logout()
         self.client.force_login(pr2.user)
+        response = self.get(self.url_key + '-detail', **self.kwargs)
+        attrs = response.data['attributes']
+        self.assertDictEqual(attrs, attributes)
+
+        # with admin access, also user1 should see the secret attributes
+        self.client.logout()
+        pr1.admin_access = True
+        pr1.save()
+        self.client.force_login(pr1.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
         attrs = response.data['attributes']
         self.assertDictEqual(attrs, attributes)

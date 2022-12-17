@@ -19,8 +19,7 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.site.models import ProjectSetting
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
 
@@ -36,7 +35,7 @@ class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Network.objects.all()
     serializer_class = NetworkSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
@@ -49,20 +48,14 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
-        run_sync = request.data.get('sync', False)
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING,
-                                     run_sync=run_sync) as ppm:
-            try:
-                ppm.run(self._pull_base_network)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'message': f'Download of base network successful'},
-                        status=status.HTTP_201_CREATED)
+        msg = 'Download of base network successfult'
+        return self.run_sync_or_async(func=self._pull_base_network,
+                                      user=request.user,
+                                      scope=ProcessScope.ROUTING,
+                                      message=msg)
 
     @staticmethod
-    def _pull_base_network():
+    def _pull_base_network(logger: logging.Logger):
         fp = os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF)
         if os.path.exists(fp):
             os.remove(fp)
@@ -107,20 +100,14 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         run_sync = request.data.get('sync', False)
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING,
-                                     run_sync=run_sync) as ppm:
-            try:
-                ppm.run(self._build_project_network)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({'message': 'Bau der Router gestartet'},
-                        status=status.HTTP_200_OK)
+        msg = 'Bau der Router gestartet'
+        return self.run_sync_or_async(func=self._build_project_network,
+                                      user=request.user,
+                                      scope=ProcessScope.ROUTING,
+                                      message=msg)
 
     @staticmethod
-    def _build_project_network():
+    def _build_project_network(logger: logging.Logger):
         fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
         fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
         fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')

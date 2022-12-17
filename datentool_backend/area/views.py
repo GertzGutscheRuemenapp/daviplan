@@ -41,8 +41,8 @@ from datentool_backend.population.views import aggregate_population
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
+
 from datentool_backend.utils.pop_aggregation import (
     intersect_areas_with_raster, aggregate_population)
 from datentool_backend.utils.layermapping import CustomLayerMapping
@@ -242,7 +242,8 @@ MIN_AREA = 10000
 # if above threshold uncut original geometry is taken
 INTERSECT_THRESHOLD = 0.95
 
-class AreaLevelViewSet(AnnotatedAreasMixin,
+class AreaLevelViewSet(RunProcessMixin,
+                       AnnotatedAreasMixin,
                        ProtectCascadeMixin,
                        viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
@@ -342,23 +343,24 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         truncate = request.data.get('truncate', False)
         simplify = request.data.get('simplify', False)
-        run_sync = request.data.get('sync', False)
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.AREAS,
-                                     run_sync=run_sync) as ppm:
-            try:
-                ppm.run(self._pull_areas, area_level, project_area,
-                        truncate=truncate, simplify=simplify)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'message': f'Abruf der Gebiete erfolgreich gestartet'},
-                        status.HTTP_202_ACCEPTED)
+        msg = 'Abruf der Gebiete erfolgreich gestartet'
+        return self.run_sync_or_async(func=self._pull_areas,
+                                      user=request.user,
+                                      scope=ProcessScope.AREAS,
+                                      message=msg,
+                                      area_level=area_level,
+                                      project_area=project_area,
+                                      truncate=truncate,
+                                      simplify=simplify)
+
 
     @staticmethod
-    def _pull_areas(area_level: AreaLevel, project_area,
-                    truncate=False, simplify=False):
+    def _pull_areas(area_level: AreaLevel,
+                    project_area,
+                    logger: logging.Logger,
+                    truncate=False,
+                    simplify=False):
         msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
         logger.info(msg)
         url = area_level.source.url
@@ -482,7 +484,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         with open(fp.name, 'wb') as f:
             f.write(geo_file.file.read())
         fp.close()
-        run_sync = bool(strtobool(request.data.get('sync', 'False')))
 
         # validate file before uploading
         try:
@@ -501,20 +502,21 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             return Response({'message': msg},
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.AREAS,
-                                     run_sync=run_sync) as ppm:
-            try:
-                ppm.run(self._upload_shapefile, area_level, fp.name,
-                        project_area)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'message': 'Hochladen der Gebiete gestartet'},
-                        status=status.HTTP_202_ACCEPTED)
+        msg = 'Hochladen der Gebiete gestartet'
+        return self.run_sync_or_async(func=self._upload_shapefile,
+                                      user=request.user,
+                                      scope=ProcessScope.AREAS,
+                                      message=msg,
+                                      area_level=area_level,
+                                      filename=fp.name,
+                                      project_area=project_area)
 
     @staticmethod
-    def _upload_shapefile(area_level, filename, project_area):
+    def _upload_shapefile(area_level,
+                          filename,
+                          project_area,
+                          logger: logging.Logger,
+                          ):
         # ToDo: option to truncate or to update existing entries
         # when keys match
         # delete existing data

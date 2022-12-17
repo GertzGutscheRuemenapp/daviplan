@@ -20,9 +20,8 @@ class RunProcessMixin:
                           func: callable,
                           user: User,
                           scope: ProcessScope,
-                          queryset,
-                          drop_constraints: bool,
                           message='Upload gestartet',
+                          status=status.HTTP_202_ACCEPTED,
                           **params,
                           ):
         run_sync = not settings.USE_DJANGO_Q
@@ -34,23 +33,17 @@ class RunProcessMixin:
 
         if run_sync:
             try:
-                ppm.run(func,
-                        queryset,
-                        drop_constraints=drop_constraints,
-                        **params)
+                ppm.run(func, **params)
             except Exception as e:
                 msg = str(e)
                 ppm.logger.error(msg)
                 return Response({'Fehler': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
             return Response({'message': 'Upload beendet'},
-                            status=status.HTTP_202_ACCEPTED)
+                            status=status)
 
         else:
-            ppm.run(func,
-                    queryset,
-                    drop_constraints=drop_constraints,
-                    **params)
+            ppm.run(func, **params)
             return Response({'message': message},
                             status=status.HTTP_202_ACCEPTED)
 

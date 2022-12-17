@@ -29,8 +29,7 @@ from .serializers import (SiteSettingSerializer,
                           YearSerializer,
                           MatrixStatisticsSerializer,
                           )
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 from datentool_backend.population.views.raster import PopulationRasterViewSet
 
 
@@ -160,7 +159,7 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED)
 
 
-class ProjectSettingViewSet(SingletonViewSet):
+class ProjectSettingViewSet(RunProcessMixin, SingletonViewSet):
     queryset = ProjectSetting.objects.all()
     model_class = ProjectSetting
     serializer_class = ProjectSettingSerializer
@@ -168,21 +167,20 @@ class ProjectSettingViewSet(SingletonViewSet):
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        run_sync = request.data.get('sync', False)
 
         if response.status_code == 200 and request.data.get('project_area'):
-            with ProtectedProcessManager(user=request.user,
-                                         scope=ProcessScope.AREAS) as ppm:
-                try:
-                    ppm.run(self._postprocess_project_area, sync=run_sync)
-                except Exception as e:
-                    return Response({'message': str(e)},
-                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            msg = 'Verarbeitung des Planungsraums gestartet'
+            return self.run_sync_or_async(func=self._postprocess_project_area,
+                                          user=request.user,
+                                          scope=ProcessScope.AREAS,
+                                          message=msg,
+                                          status=status.HTTP_200_OK)
+
         return response
 
     @staticmethod
-    def _postprocess_project_area():
-        logger = logging.getLogger('areas')
+    def _postprocess_project_area(logger: logging.Logger):
         logger.info('Verarbeitung des Planungsraums gestartet')
         for popraster in PopulationRaster.objects.all():
             logger.info('Verschneide Planungsraum mit dem Zensusraster...')
