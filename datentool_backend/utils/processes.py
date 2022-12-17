@@ -21,7 +21,7 @@ class RunProcessMixin:
                           user: User,
                           scope: ProcessScope,
                           message='Upload gestartet',
-                          status=status.HTTP_202_ACCEPTED,
+                          ret_status=status.HTTP_202_ACCEPTED,
                           **params,
                           ):
         run_sync = not settings.USE_DJANGO_Q
@@ -40,7 +40,7 @@ class RunProcessMixin:
                 return Response({'Fehler': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
             return Response({'message': 'Upload beendet'},
-                            status=status)
+                            status=ret_status)
 
         else:
             ppm.run(func, **params)

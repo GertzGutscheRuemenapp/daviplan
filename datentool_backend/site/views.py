@@ -175,7 +175,7 @@ class ProjectSettingViewSet(RunProcessMixin, SingletonViewSet):
                                           user=request.user,
                                           scope=ProcessScope.AREAS,
                                           message=msg,
-                                          status=status.HTTP_200_OK)
+                                          ret_status=status.HTTP_200_OK)
 
         return response
 
