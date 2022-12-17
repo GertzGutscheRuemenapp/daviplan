@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import pandas as pd
+import logging
+logger = logging.getLogger(name='test')
 from unittest import skip
 from unittest.mock import Mock, patch
 from django.test import TestCase
@@ -241,7 +243,7 @@ class TestPopulation(TestCase):
 
     def test_raster_population(self):
         rcp = RasterCellPopulationFactory()
-        print(rcp)
+        logger.debug(rcp)
 
 
 class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,

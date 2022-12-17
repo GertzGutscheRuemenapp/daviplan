@@ -1,6 +1,8 @@
 from django.test import TestCase
 from test_plus import APITestCase
 from unittest import skip
+import logging
+logger = logging.getLogger(name='test')
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
@@ -25,7 +27,7 @@ class TestInfrastructure(TestCase):
 
     def test_service(self):
         service = ServiceFactory()
-        print(service.quota_type)
+        logger.debug(service.quota_type)
 
     def test_infrastructure(self):
         """"""

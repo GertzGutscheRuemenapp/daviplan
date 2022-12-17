@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(name='test')
+
 from typing import Tuple, Set, List
 import json
 
@@ -37,18 +40,18 @@ class TestCapacity(TestCase):
         infrastructure = InfrastructureFactory()
         capacity = CapacityFactory(place__infrastructure=infrastructure,
                                    service__infrastructure=infrastructure)
-        print(capacity)
-        print(capacity.place)
+        logger.debug(capacity)
+        logger.debug(capacity.place)
 
     def test_fclass(self):
         """"""
         fclass = FClassFactory()
-        print(fclass)
+        logger.debug(fclass)
 
     def test_place_field(self):
         """"""
         place_field = PlaceFieldFactory()
-        print(place_field)
+        logger.debug(place_field)
 
 
 class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,

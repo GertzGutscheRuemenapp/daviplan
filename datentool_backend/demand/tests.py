@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(name='test')
+
 from django.test import TestCase
 from test_plus import APITestCase
 from unittest import skip
@@ -169,7 +172,7 @@ class TestDemand(TestCase):
     def test_demand_rate_set(self):
         demand_rate_set = DemandRateSetFactory()
         demand_rate = DemandRateFactory(demand_rate_set=demand_rate_set)
-        print(demand_rate)
+        logger.debug(demand_rate)
 
 
 class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,

@@ -4,7 +4,6 @@ from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 import datetime
 import json
 import logging
-from distutils.util import strtobool
 
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import (Polygon, MultiPolygon, GEOSGeometry,
