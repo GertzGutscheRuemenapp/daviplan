@@ -97,7 +97,14 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
             logger.error(msg)
             return Response({'message': msg },
                             status=status.HTTP_400_BAD_REQUEST)
-        run_sync = request.data.get('sync', False)
+
+        fn_base_pbf = 'germany-latest.osm.pbf'
+        fp_base_pbf = os.path.join(settings.MEDIA_ROOT, fn_base_pbf)
+        if not os.path.exists(fp_base_pbf):
+            msg = 'Das Basisnetz wurde noch nicht heruntergeladen'
+            logger.error(msg)
+            return Response({'message': msg },
+                            status=status.HTTP_400_BAD_REQUEST)
 
         msg = 'Bau der Router gestartet'
         return self.run_sync_or_async(func=self._build_project_network,
@@ -107,9 +114,12 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
 
     @staticmethod
     def _build_project_network(logger: logging.Logger):
-        fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
-        fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
-        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+        fn_geojson_projectarea = 'projectarea.geojson'
+        fn_base_pbf = 'germany-latest.osm.pbf'
+        fn_target_pbf = 'projectarea.pbf'
+
+        fp_project_json = os.path.join(settings.MEDIA_ROOT, fn_geojson_projectarea)
+        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, fn_target_pbf)
 
         for fp in fp_target_pbf, fp_project_json:
             if os.path.exists(fp):
@@ -130,21 +140,17 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
             'geometry': json.loads(buffered.geojson),
         })
 
-        #geojson = serialize('geojson', ProjectSetting.objects.all(),
-                            #geometry_field='project_area', fields=('id',))
 
         with open(fp_project_json, "w") as json_file:
             json_file.write(geojson)
 
-        if os.name == 'nt':
-            # osmium does not understand windows style paths at the -p argument,
-            # other paths work, a bug i guess
-            fp_project_json = os.path.splitdrive(
-                fp_project_json)[1].replace(os.sep, '/')
+        # execute the command in the media-root-folder to avoid problems with
+        # filepaths
 
-        cmd = ['osmium', 'extract', '-p', fp_project_json,
-               fp_base_pbf, '-o', fp_target_pbf]
-        process = subprocess.run(cmd)
+        cmd = ['osmium', 'extract', '-p', fn_geojson_projectarea,
+               fn_base_pbf, '-o', fn_target_pbf]
+        process = subprocess.run(cmd, cwd=settings.MEDIA_ROOT)
+
         if process.returncode != 0:
             msg = ('Verschneidung fehlgeschlagen. Das Projektgebiet konnte '
                    'nicht aus dem Basisnetz extrahiert werden')
