@@ -14,7 +14,7 @@ from datentool_backend.area.serializers import MapSymbolSerializer
 from datentool_backend.user.factories import ProfileFactory
 from datentool_backend.infrastructure.factories import (InfrastructureFactory,
                                                         ServiceFactory,)
-from datentool_backend.area.factories import FieldTypeFactory
+from datentool_backend.area.factories import FieldTypeFactory, FieldType
 from datentool_backend.area.models import FieldTypes
 from datentool_backend.infrastructure.models import Infrastructure, Service
 
@@ -200,6 +200,110 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         response = self.get('users-detail', pk=profile.user.pk)
         expected = [{'infrastructure': infra3.id, 'allowSensitiveData': True}]
         self.compare_data(response.data['access'], expected)
+
+    def test_create_infrastructure_with_placefields(self):
+        """create a new infrastructure with placefields"""
+        self.profile.admin_access = True
+        self.profile.save()
+        self.client.force_login(self.profile.user)
+        url = self.url_key + '-list'
+        formatjson = dict(format='json')
+
+
+        data = self.post_data.copy()
+        ft_str = FieldType.objects.get(name='Zeichenkette')
+        ft_num = FieldTypeFactory.create(ftype=FieldTypes.NUMBER, name='Zahl')
+
+        # create 2 fields with the same name
+        placefields = [{'name': 'A', 'field_type': ft_str.pk, },
+                       {'name': 'A', 'field_type': ft_num.pk, },
+                       ]
+        data['place_fields'] = placefields
+        # same names are not allowed
+        res = self.post(url, data=data, extra=formatjson)
+        self.assert_http_406_not_acceptable(res)
+
+        # Underscores in names are not allowed
+        data['place_fields'][1]['name'] = 'A_'
+        res = self.post(url, data=data, extra=formatjson)
+        self.assert_http_406_not_acceptable(res)
+
+        # field names that are in the presets (ignoring capitals) are not allowed
+        data['place_fields'][1]['name'] = 'plz'
+        res = self.post(url, data=data, extra=formatjson)
+        self.assert_http_406_not_acceptable(res)
+
+        # Distict names without underscores are allowed
+        pf2 = data['place_fields'][1]
+        pf2['name'] = 'B'
+        pf2['unit'] = 'ha'
+        pf2['label'] = 'Hectar'
+        pf2['sensitive'] = True
+        res = self.post(url, data=data, extra=formatjson)
+        self.assert_http_201_created(res)
+
+        # check if the created place_fields are correctly created
+        infra_pk = res.data['id']
+        infra = Infrastructure.objects.get(pk=infra_pk)
+        preset_fields = infra.placefield_set.filter(is_preset=True)
+        self.assertEqual(len(preset_fields), 4)
+        custom_fields = infra.placefield_set.filter(is_preset=False)
+        fields_a = custom_fields.filter(name='A')
+        self.assertEqual(len(fields_a), 1)
+        fields_b = custom_fields.filter(name='B')
+        self.assertEqual(len(fields_b), 1)
+        field_b = fields_b[0]
+        self.assertEqual(field_b.unit, pf2['unit'])
+        self.assertEqual(field_b.label, pf2['label'])
+        self.assertEqual(field_b.sensitive, pf2['sensitive'])
+        self.assertEqual(field_b.field_type_id, pf2['field_type'])
+
+        # update the placefields of the infrastructure
+        patch_data = {'place_fields': placefields, }
+        # delete field A by not including it in the patch data
+        pf1 = placefields.pop(0)
+        # set id to field b and change unit
+        pf2['id'] = field_b.pk
+        pf2['name'] = 'ort'
+        pf2['unit'] = 'km'
+
+        # add a new field
+        placefields.append({'name': 'C', 'unit': 'm2', 'field_type': ft_num.pk})
+
+        # name already exists (in capital letters)
+        res = self.patch(self.url_key + '-detail',
+                         pk=infra.pk,
+                         data=patch_data,
+                         extra=formatjson)
+        self.assert_http_406_not_acceptable(res)
+
+        pf2['name'] = 'B'
+        res = self.patch(self.url_key + '-detail',
+                         pk=infra.pk,
+                         data=patch_data,
+                         extra=formatjson)
+        self.assert_http_200_ok(res)
+
+
+        # preset fields should be untouched
+        preset_fields = infra.placefield_set.filter(is_preset=True)
+        self.assertEqual(len(preset_fields), 4)
+
+        custom_fields = infra.placefield_set.filter(is_preset=False)
+        # field a should be deleted now
+        fields_a = custom_fields.filter(name='A')
+        self.assertEqual(len(fields_a), 0)
+        # field b should have a new unit
+        fields_b = custom_fields.filter(name='B')
+        self.assertEqual(len(fields_b), 1)
+        field_b = fields_b[0]
+        self.assertEqual(field_b.unit, pf2['unit'])
+
+        # field c sould be created
+        fields_c = custom_fields.filter(name='C')
+        self.assertEqual(len(fields_c), 1)
+        field_c = fields_c[0]
+        self.assertEqual(field_c.unit, 'm2')
 
 
 class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
