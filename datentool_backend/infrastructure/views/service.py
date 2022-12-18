@@ -14,13 +14,13 @@ from datentool_backend.utils.permissions import (HasAdminAccess,
                                                  CanEditBasedata,
                                                  )
 
-from datentool_backend.models import (Capacity, Service, Scenario)
+from datentool_backend.infrastructure.models import Service
+from datentool_backend.places.models import Capacity, Scenario
 
-from datentool_backend.infrastructure.permissions import HasPermissionForScenario
+from datentool_backend.places.permissions import HasPermissionForScenario
 
-from datentool_backend.infrastructure.serializers import (
-    ServiceSerializer,
-    ServiceCapacityByScenarioSerializer)
+from datentool_backend.infrastructure.serializers import ServiceSerializer
+from datentool_backend.places.serializers import ServiceCapacityByScenarioSerializer
 
 from datentool_backend.indicators.compute.base import (
     ServiceIndicator,

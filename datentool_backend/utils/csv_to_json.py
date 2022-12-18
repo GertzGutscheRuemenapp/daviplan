@@ -1,6 +1,7 @@
 import os
 import simplejson
 
+
 def walk_up_folder(path, depth=1):
     """
     Create the basedirectory for a path
@@ -10,6 +11,7 @@ def walk_up_folder(path, depth=1):
         path = os.path.dirname(path)
         _cur_depth += 1
     return path
+
 
 def get_json(csv_file, app, model, columns, join_cols=None):
     """
@@ -57,6 +59,7 @@ def get_json(csv_file, app, model, columns, join_cols=None):
                          fields=dict(zip(*remove_id_drop(columns, line))))
                     for line in content]
     return content_json
+
 
 def remove_id_drop(keys, values):
     """

@@ -7,17 +7,16 @@ logger = logging.getLogger(name='test')
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
-                                        TestAPIMixin, TestPermissionsMixin)
+                                        TestAPIMixin,
+                                        TestPermissionsMixin)
 from datentool_backend.area.serializers import MapSymbolSerializer
 
 from datentool_backend.user.factories import ProfileFactory
-from datentool_backend.infrastructure.factories import (
-    InfrastructureFactory, ServiceFactory, FieldTypeFactory)
+from datentool_backend.infrastructure.factories import (InfrastructureFactory,
+                                                        ServiceFactory,)
+from datentool_backend.area.factories import FieldTypeFactory
 from datentool_backend.area.models import FieldTypes
-from datentool_backend.infrastructure.models.infrastructures import (
-    Infrastructure,
-    Service,
-)
+from datentool_backend.infrastructure.models import Infrastructure, Service
 
 from faker import Faker
 faker = Faker('de-DE')

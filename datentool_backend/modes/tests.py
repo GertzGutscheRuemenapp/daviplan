@@ -2,7 +2,8 @@ from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
-                                        TestAPIMixin, TestPermissionsMixin)
+                                        TestAPIMixin,
+                                        TestPermissionsMixin)
 
 from faker import Faker
 
@@ -13,7 +14,7 @@ from .factories import (ModeVariantFactory,
                         CutOffTimeFactory,
                         NetworkFactory
                         )
-from .models import ModeVariant, Mode, Network
+from .models import Network
 
 
 class TestNetworkModels(TestCase):

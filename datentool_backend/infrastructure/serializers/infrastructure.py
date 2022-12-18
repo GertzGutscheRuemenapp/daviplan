@@ -2,12 +2,18 @@ from rest_framework import serializers
 from django.db.utils import IntegrityError
 from rest_framework.exceptions import NotAcceptable
 
-from datentool_backend.infrastructure.models.infrastructures import (
-    InfrastructureAccess, Infrastructure, PlaceField)
+from datentool_backend.infrastructure.models import (InfrastructureAccess,
+                                                     Infrastructure)
+from datentool_backend.places.models import PlaceField
 from datentool_backend.area.models import MapSymbol, FieldTypes, FieldType
 from datentool_backend.area.serializers import MapSymbolSerializer
-from datentool_backend.infrastructure.serializers import (
+from datentool_backend.places.serializers import (
     PlaceFieldNestedSerializer, ADDRESS_FIELDS)
+
+
+infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
+    queryset=Infrastructure.objects.all(),
+    help_text='infrastructure_id',)
 
 
 class InfrastructureAccessSerializer(serializers.ModelSerializer):

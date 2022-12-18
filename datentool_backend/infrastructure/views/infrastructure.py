@@ -2,8 +2,7 @@ from rest_framework import viewsets
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 
-from datentool_backend.models import (
-    InfrastructureAccess, Infrastructure)
+from datentool_backend.infrastructure.models import InfrastructureAccess, Infrastructure
 
 from datentool_backend.infrastructure.permissions import CanPatchSymbol
 from datentool_backend.infrastructure.serializers import InfrastructureSerializer

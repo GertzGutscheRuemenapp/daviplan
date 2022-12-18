@@ -1,4 +1,5 @@
 from typing import Dict
+import warnings
 import pandas as pd
 
 from openpyxl.reader.excel import load_workbook
@@ -6,11 +7,9 @@ from openpyxl.reader.excel import load_workbook
 from drf_spectacular.utils import (extend_schema,
                                    inline_serializer)
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from django.core.exceptions import BadRequest
-from rest_framework.response import Response
 
 from datentool_backend.utils.excel_template import (ColumnError,
                                                     write_template_df,
@@ -150,11 +149,14 @@ def read_excel_file(excel_file, prognosis_id) -> pd.DataFrame:
         )
         try:
             # get the values and unpivot the data
-            df_pop = pd.read_excel(excel_file.file,
-                                   sheet_name=str(y),
-                                   header=[1, 2, 3, 4],
-                                   dtype={key_attr: object,},
-                                   index_col=[0, 1])\
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                df_pop = pd.read_excel(excel_file.file,
+                                       sheet_name=str(y),
+                                       header=[1, 2, 3, 4],
+                                       dtype={key_attr: object,},
+                                       index_col=[0, 1])
+            df_pop = df_pop\
                 .stack(level=[0, 1, 2, 3])\
                 .reset_index()
             df_pop = df_pop.drop(['gender_id', 'age_group_id'], axis=1)

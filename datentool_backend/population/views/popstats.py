@@ -168,6 +168,7 @@ class PopStatisticViewSet(RunProcessMixin, viewsets.ModelViewSet):
                'Regionalstatistik erfolgreich')
         logger.info(msg)
 
+
 class PopStatEntryFilter(filters.FilterSet):
     year = filters.NumberFilter(field_name='popstatistic__year__year',
                                 lookup_expr='exact')

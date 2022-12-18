@@ -4,8 +4,8 @@ from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,
                                                  )
 
-from datentool_backend.models import PlaceField
-from datentool_backend.infrastructure.serializers import PlaceFieldSerializer
+from datentool_backend.places.models import PlaceField
+from datentool_backend.places.serializers import PlaceFieldSerializer
 
 
 class PlaceFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

@@ -1,12 +1,10 @@
-from faker import Faker
 import factory
 from .models import LogEntry
 from factory.django import DjangoModelFactory
 
-from ..user.factories import ProfileFactory
-from ..infrastructure.factories import ServiceFactory, InfrastructureFactory
-from ..area.factories import AreaLevelFactory
+from datentool_backend.user.factories import ProfileFactory
 
+from faker import Faker
 faker = Faker('de-DE')
 
 

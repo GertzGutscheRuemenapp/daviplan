@@ -8,7 +8,8 @@ from unittest import skip
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
-                                        TestAPIMixin, TestPermissionsMixin)
+                                        TestAPIMixin,
+                                        TestPermissionsMixin)
 
 from .factories import (AgeGroupFactory,
                         GenderFactory,
@@ -16,7 +17,7 @@ from .factories import (AgeGroupFactory,
                         DemandRateFactory,
                         YearFactory
                         )
-from .models import (DemandRate, DemandRateSet)
+from .models import DemandRateSet
 from .constants import RegStatAgeGroup, RegStatAgeGroups
 
 from faker import Faker

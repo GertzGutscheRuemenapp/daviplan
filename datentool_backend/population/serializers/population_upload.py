@@ -12,15 +12,15 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from datentool_backend.area.models import AreaLevel, Area, AreaField
-from datentool_backend.demand.models import Gender, AgeGroup, Year
-from datentool_backend.population.models import (Population, Prognosis,
-                                                 PopulationEntry)
-from datentool_backend.utils.pop_aggregation import (
-        disaggregate_population, aggregate_many)
 from datentool_backend.utils.processes import ProcessScope
+from datentool_backend.area.models import AreaLevel, Area, AreaField
+from datentool_backend.demand.models import Gender, AgeGroup
+from datentool_backend.population.models import (Population,
+                                                 Prognosis,
+                                                 PopulationEntry)
 
 import logging
+
 
 area_level_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=AreaLevel.objects.all(),

@@ -1,5 +1,6 @@
 import logging
 logger = logging.getLogger('routing')
+import warnings
 
 import os
 from typing import List, Dict
@@ -135,9 +136,12 @@ def read_traveltime_matrix(excel_or_visum_file, variant_id) -> pd.DataFrame:
     """read excelfile and return a dataframe"""
 
     try:
-        df = pd.read_excel(excel_or_visum_file.file,
-                           sheet_name='Reisezeit',
-                           skiprows=[1])
+        # get the values and unpivot the data
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
+            df = pd.read_excel(excel_or_visum_file.file,
+                               sheet_name='Reisezeit',
+                               skiprows=[1])
 
     except ValueError as e:
         # read PTV-Matrix

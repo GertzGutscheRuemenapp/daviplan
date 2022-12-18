@@ -15,7 +15,7 @@ from datentool_backend.indicators.compute import (
     ReachabilityNextPlace,
 )
 
-from datentool_backend.user.models.process import Scenario
+from datentool_backend.places.models import Scenario
 from datentool_backend.indicators.serializers import (IndicatorSerializer)
 
 from .parameters import (arealevel_year_service_scenario_serializer,

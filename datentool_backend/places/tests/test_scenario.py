@@ -1,22 +1,18 @@
 from django.test import TestCase
 from test_plus import APITestCase
-import unittest
 
 from datentool_backend.api_test import (BasicModelTest,
                                         TestAPIMixin,
                                         LoginTestCase,
                                         )
 
-from datentool_backend.user.factories import (ProfileFactory,
-                                              PlanningProcessFactory,
-                                              )
-from datentool_backend.area.factories import WMSLayerFactory
-from datentool_backend.area.models import LayerGroup, WMSLayer
+from datentool_backend.user.factories import ProfileFactory
+from datentool_backend.area.factories import WMSLayerFactory, WMSLayer
 
-from datentool_backend.user.models.process import (Scenario,
-                                                   ScenarioMode,
-                                                   ScenarioService)
-from datentool_backend.user.factories import ScenarioFactory
+from datentool_backend.places.models import (Scenario,
+                                             ScenarioMode,
+                                             ScenarioService)
+from datentool_backend.places.factories import ScenarioFactory
 from datentool_backend.modes.factories import ModeVariantFactory
 from datentool_backend.demand.factories import DemandRateSetFactory
 

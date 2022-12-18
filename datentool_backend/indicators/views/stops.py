@@ -1,6 +1,6 @@
 import logging
 logger = logging.getLogger('routing')
-
+import warnings
 from typing import Dict
 import pandas as pd
 
@@ -77,9 +77,11 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
 def read_excel_file(excel_file, variant) -> pd.DataFrame:
     """read excelfile and return a dataframe"""
 
-    df = pd.read_excel(excel_file.file,
-                       sheet_name='Haltestellen',
-                       skiprows=[1])
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        df = pd.read_excel(excel_file.file,
+                           sheet_name='Haltestellen',
+                           skiprows=[1])
 
     # assert the stopnumers are unique
     assert df['HstNr'].is_unique, 'Haltestellennummer ist nicht eindeutig'

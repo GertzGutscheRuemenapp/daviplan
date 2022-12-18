@@ -1,5 +1,6 @@
 import os
 from io import BytesIO
+import warnings
 
 import pandas as pd
 from openpyxl.reader.excel import load_workbook
@@ -10,14 +11,14 @@ from test_plus import APITestCase
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.infrastructure.factories import (InfrastructureFactory,
                                                         ServiceFactory,
-                                                        Place,
+                                                        )
+from datentool_backend.places.factories import (Place,
                                                         CapacityFactory,
                                                         PlaceFieldFactory,
-                                                        FieldTypeFactory,
                                                         PlaceFactory,
                                                         )
 from datentool_backend.area.models import FieldTypes
-from datentool_backend.area.factories import FClassFactory
+from datentool_backend.area.factories import FClassFactory, FieldTypeFactory
 
 
 class InfrastructureTemplateTest(LoginTestCase, APITestCase):
@@ -104,8 +105,11 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
                                  'Buchstaben': ['AA', 'BB', pd.NA], })
         pd.testing.assert_frame_equal(df, expected)
         # check if the unit was used for column "Gewichtung"
-        df = pd.read_excel(BytesIO(res.content),
-                           sheet_name='Standorte und Kapazitäten')
+        # get the values and unpivot the data
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
+            df = pd.read_excel(BytesIO(res.content),
+                               sheet_name='Standorte und Kapazitäten')
         self.assertEqual(df.loc[0, 'Gewichtung'],
                          'Nutzerdefinierte Spalte (Punkte)')
 
@@ -164,8 +168,11 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
         self.assert_http_202_accepted(res, msg=res.content)
 
-        df = pd.read_excel(file_path_places, sheet_name='Standorte und Kapazitäten',
-                           skiprows=[1]).set_index('place_id')
+        # get the values and unpivot the data
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
+            df = pd.read_excel(file_path_places, sheet_name='Standorte und Kapazitäten',
+                               skiprows=[1]).set_index('place_id')
 
         places = Place.objects.filter(infrastructure=self.infra)
         place_names = places.values_list('name', flat=True)

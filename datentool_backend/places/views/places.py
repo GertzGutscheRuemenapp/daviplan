@@ -2,10 +2,10 @@ from typing import Dict, Tuple
 from io import StringIO
 import logging
 logger = logging.getLogger('infrastructure')
+import warnings
 
 import pandas as pd
 
-from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import Point
 from django.db.models import Prefetch, Q
 from django.http.request import QueryDict
@@ -21,7 +21,6 @@ from djangorestframework_camel_case.util import camelize
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
-                                                    write_template_df,
                                                     ColumnError,
                                                     )
 from datentool_backend.utils.crypto import decrypt
@@ -33,17 +32,21 @@ from datentool_backend.utils.permissions import (HasAdminAccess,
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.utils.bkg_geocoder import BKGGeocoder
 
-from datentool_backend.models import (
-    InfrastructureAccess, Place, Infrastructure, Capacity, FClass,
-    PlaceAttribute)
+from datentool_backend.infrastructure.models import (
+    InfrastructureAccess, Infrastructure)
 
-from datentool_backend.infrastructure.permissions import (
-    CanEditScenarioPlacePermission)
+from datentool_backend.places.models import (
+    Place, Capacity, PlaceAttribute)
 
-from datentool_backend.infrastructure.serializers import (
+from datentool_backend.area.models import FClass
+
+from datentool_backend.infrastructure.serializers import infrastructure_id_serializer
+from datentool_backend.places.permissions import CanEditScenarioPlacePermission
+
+from datentool_backend.places.serializers import (
     PlaceSerializer,
     PlacesTemplateSerializer,
-    infrastructure_id_serializer)
+)
 
 
 @extend_schema_view(list=extend_schema(description='List Places',
@@ -205,10 +208,12 @@ def read_excel_file(excel_file, infrastructure_id: int):
     capacities = []
 
     # read the excel-file
-    df_places = pd.read_excel(excel_file.file,
-                       sheet_name='Standorte und Kapazitäten',
-                       skiprows=[1])\
-        .set_index('place_id')
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        df_places = pd.read_excel(excel_file.file,
+                           sheet_name='Standorte und Kapazitäten',
+                           skiprows=[1])\
+            .set_index('place_id')
 
     # delete places that have no place_id in the excel-file
     place_ids_in_excelfile = df_places.index[~pd.isna(df_places.index)]

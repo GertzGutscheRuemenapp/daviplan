@@ -6,10 +6,10 @@ import numpy as np
 from django.http.request import QueryDict
 from django.db.models import OuterRef, F
 from sql_util.utils import Exists
-from datentool_backend.infrastructure.models.places import Place, Capacity
+from datentool_backend.places.models import Place, Capacity
 
 from datentool_backend.modes.models import Mode, ModeVariant
-from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.infrastructure.models import Service
 from datentool_backend.indicators.serializers import (
     IndicatorAreaResultSerializer,
     IndicatorRasterResultSerializer,

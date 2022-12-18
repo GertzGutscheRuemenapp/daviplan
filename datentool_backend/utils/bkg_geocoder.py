@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from typing import List, Tuple, Union
 import re
 import requests

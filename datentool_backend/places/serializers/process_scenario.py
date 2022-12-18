@@ -1,11 +1,11 @@
-from rest_framework import serializers
-from typing import Dict
 from collections import OrderedDict
 
-from datentool_backend.user.models.process import (Scenario,
-                                                   ScenarioMode,
-                                                   ScenarioService,
-                                                   PlanningProcess)
+from rest_framework import serializers
+
+from datentool_backend.places.models import (Scenario,
+                                             ScenarioMode,
+                                             ScenarioService,
+                                             PlanningProcess)
 from datentool_backend.modes.models import Mode, ModeVariant
 
 

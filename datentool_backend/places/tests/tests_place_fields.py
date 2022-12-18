@@ -13,21 +13,26 @@ from datentool_backend.api_test import (BasicModelTest,
                                         )
 from datentool_backend.api_test import TestAPIMixin, TestPermissionsMixin
 
-from datentool_backend.user.factories import ProfileFactory, ScenarioFactory, Scenario
-from datentool_backend.user.models.profile import Profile
-from datentool_backend.infrastructure.models.infrastructures import (
-    Infrastructure, InfrastructureAccess, Service)
+from datentool_backend.user.factories import ProfileFactory
+from datentool_backend.places.factories import ScenarioFactory, Scenario
+from datentool_backend.user.models import Profile
+from datentool_backend.infrastructure.models import (
+    Infrastructure,
+    InfrastructureAccess,
+    Service)
 
-from datentool_backend.infrastructure.factories import (
-    PlaceFactory, CapacityFactory, PlaceFieldFactory, FieldTypeFactory,
-    InfrastructureFactory, ServiceFactory)
-from datentool_backend.infrastructure.models.places import (
+from datentool_backend.infrastructure.factories import (InfrastructureFactory,
+                                                        ServiceFactory)
+from datentool_backend.places.factories import (PlaceFactory,
+                                                CapacityFactory,
+                                                PlaceFieldFactory)
+from datentool_backend.places.models import (
     Place,
     FieldTypes,
     PlaceField,
     PlaceAttribute,
 )
-from datentool_backend.area.factories import FClassFactory
+from datentool_backend.area.factories import FClassFactory, FieldTypeFactory
 
 from faker import Faker
 faker = Faker('de-DE')

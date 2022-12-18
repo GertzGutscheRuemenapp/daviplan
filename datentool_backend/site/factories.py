@@ -1,10 +1,10 @@
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Polygon, MultiPolygon
-from faker import Faker
 
 from .models import ProjectSetting, SiteSetting, Year
 
+from faker import Faker
 faker = Faker('de-DE')
 
 

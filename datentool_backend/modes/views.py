@@ -3,23 +3,22 @@ import urllib.request
 import requests
 import os
 import json
-import locale
-import threading
 
 from django.conf import settings
-from django.core.serializers import serialize
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 from rest_framework.response import Response
+
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
 from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.views import ProtectCascadeMixin
-from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly, CanEditBasedata)
-from datentool_backend.site.models import ProjectSetting
+from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
+                                                 CanEditBasedata)
 from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
+from datentool_backend.site.models import ProjectSetting
+
 from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
 

@@ -11,13 +11,12 @@ from datentool_backend.modes.models import ModeVariant, Mode
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.indicators.compute.routing import TravelTimeRouterMixin
 from datentool_backend.area.models import FClass, FieldTypes
-from datentool_backend.infrastructure.models.places import (Place,
+from datentool_backend.places.models import (Place,
                                                             Capacity,
                                                             PlaceField,
                                                             )
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
-from datentool_backend.infrastructure.models.infrastructures import (
-    Infrastructure)
+from datentool_backend.infrastructure.models import Infrastructure
 
 
 class CapacitySerializer(serializers.ModelSerializer):

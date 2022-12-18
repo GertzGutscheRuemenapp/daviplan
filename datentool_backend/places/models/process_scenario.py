@@ -6,9 +6,8 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.population.models import Prognosis
 from datentool_backend.demand.models import DemandRateSet
 from datentool_backend.modes.models import ModeVariant, Network
-from datentool_backend.infrastructure.models.infrastructures import (
-    Service, Infrastructure)
-from .profile import Profile
+from datentool_backend.user.models import Profile
+from datentool_backend.infrastructure.models import (Service, Infrastructure)
 
 
 class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):

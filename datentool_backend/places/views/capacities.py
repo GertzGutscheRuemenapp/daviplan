@@ -1,4 +1,3 @@
-from django.db.models import Prefetch, Max, Q, Count, Sum
 from rest_framework import viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -15,14 +14,14 @@ from datentool_backend.utils.permissions import (HasAdminAccess,
                                                  CanEditBasedata,
                                                  )
 
-from datentool_backend.models import (
-    Place, Capacity, Service, Scenario)
+from datentool_backend.infrastructure.models import Service
+from datentool_backend.places.models import Place, Capacity, Scenario
 
-from datentool_backend.infrastructure.permissions import (
+from datentool_backend.places.permissions import (
     ScenarioCapacitiesPermission,
     HasPermissionForScenario)
 
-from datentool_backend.infrastructure.serializers import CapacitySerializer
+from datentool_backend.places.serializers import CapacitySerializer
 from datentool_backend.utils.serializers import MessageSerializer
 
 

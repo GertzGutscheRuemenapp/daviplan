@@ -15,18 +15,12 @@ from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from datentool_backend.area.models import FieldTypes
-from datentool_backend.infrastructure.models.places import (PlaceAttribute,
-                                                            Place,
-                                                            PlaceField,
-                                                            Capacity)
-from datentool_backend.infrastructure.models.infrastructures import (
-    Infrastructure)
+from datentool_backend.places.models.places import (PlaceAttribute,
+                                                    Place,
+                                                    PlaceField,
+                                                    Capacity)
+from datentool_backend.infrastructure.models import Infrastructure
 from datentool_backend.utils.processes import ProcessScope
-
-
-infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
-    queryset=Infrastructure.objects.all(),
-    help_text='infrastructure_id',)
 
 
 class St_X(GeoFunc):

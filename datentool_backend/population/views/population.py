@@ -8,12 +8,11 @@ from django.db.models import Max, Min
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
-from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from django.core.exceptions import PermissionDenied, BadRequest
+from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from datentool_backend.utils.crypto import decrypt
@@ -21,7 +20,9 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
 from datentool_backend.utils.pop_aggregation import (
-    intersect_areas_with_raster, aggregate_population, aggregate_many,
+    intersect_areas_with_raster,
+    aggregate_population,
+    aggregate_many,
     disaggregate_population)
 from datentool_backend.utils.regionalstatistik import Regionalstatistik
 from datentool_backend.population.models import (
@@ -40,9 +41,10 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  area_level)
 from datentool_backend.population.serializers import (
-    PrognosisSerializer, PopulationSerializer, PopulationDetailSerializer,
-    PopulationEntrySerializer, PopulationTemplateSerializer,
-    prognosis_id_serializer, area_level_id_serializer, years_serializer)
+    PrognosisSerializer,
+    PopulationSerializer,
+    PopulationDetailSerializer,
+    )
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.utils.processes import RunProcessMixin, ProcessScope

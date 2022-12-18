@@ -2,9 +2,8 @@ from django.contrib.auth.models import User
 
 from rest_framework import serializers
 
-from datentool_backend.user.models.profile import Profile
-from datentool_backend.infrastructure.models.infrastructures import (
-    InfrastructureAccess)
+from datentool_backend.user.models import Profile
+from datentool_backend.infrastructure.models import InfrastructureAccess
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):

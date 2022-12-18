@@ -14,8 +14,8 @@ from datentool_backend.utils.copy_postgres import DirectCopyManager
 
 from datentool_backend.area.models import (FieldType, FieldTypes,
                                            FieldAttribute)
-from datentool_backend.user.models.process import Scenario
-from .infrastructures import Infrastructure, Service, PlaceField
+from datentool_backend.infrastructure.models import Infrastructure, Service, PlaceField
+from .process_scenario import Scenario
 
 
 class Place(DatentoolModelMixin, NamedModel, models.Model):

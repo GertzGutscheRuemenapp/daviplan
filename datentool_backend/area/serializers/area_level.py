@@ -12,7 +12,7 @@ from datentool_backend.area.models import (MapSymbol,
                      FieldType, FieldTypes, FClass,
                      AreaAttribute, AreaField,
                      )
-from datentool_backend.models import PopStatEntry
+from datentool_backend.population.models import PopStatEntry
 
 from .layers import SourceSerializer, MapSymbolSerializer
 

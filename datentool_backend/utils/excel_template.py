@@ -93,16 +93,16 @@ class ExcelTemplateMixin(RunProcessMixin):
         params = dict()
         return params
 
-
     @abstractstaticmethod
     def process_excelfile(queryset,
                           logger,
                           drop_constraints=False,
                           **params):
         # read excelfile
+        df = pd.DataFrame()
         # write_df
-        # postprocess (optional)
         write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+        # postprocess (optional)
 
 
 def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
