@@ -92,7 +92,7 @@ class TestNetworkAPI(WriteOnlyWithCanEditBaseDataTest,
         res = self.post(url)
         self.assert_http_202_accepted(res)
 
-    def test_build_project_network(self):
+    def test_build_project_network_and_run(self):
         """pull a network"""
         self.profile.admin_access = True
         self.profile.save()
@@ -128,3 +128,7 @@ class TestNetworkAPI(WriteOnlyWithCanEditBaseDataTest,
         res = self.post(url)
         self.assert_http_202_accepted(res)
 
+        # run routers
+        url = 'networks-run-routers'
+        res = self.post(url)
+        self.assert_http_200_ok(res, 'Routers running')
