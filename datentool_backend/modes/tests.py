@@ -82,7 +82,7 @@ class TestNetworkAPI(WriteOnlyWithCanEditBaseDataTest,
 
     @patch('datentool_backend.modes.views.urllib.request.urlretrieve')
     def test_pull_base_network(self, mock_urlretreive: Mock):
-        """pull a network"""
+        """pull base network"""
         self.profile.admin_access = True
         self.profile.save()
 

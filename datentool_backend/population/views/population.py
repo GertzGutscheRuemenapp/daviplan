@@ -265,13 +265,16 @@ class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
 
         drop_constraints = request.data.get('drop_constraints', False)
 
-        msg = 'Abruf der Bevölkerungsdaten gestartet'
+        msg_start = 'Abruf der Bevölkerungsdaten gestartet'
+        msg_end = 'Abruf der Bevölkerungsdaten beendet'
         return self.run_sync_or_async(func=self._pull_regionalstatistik,
                                       user=request.user,
                                       scope=ProcessScope.POPULATION,
                                       area_level=area_level,
                                       drop_constraints=drop_constraints,
-                                      message=msg)
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
+                                      )
 
     @staticmethod
     def _pull_regionalstatistik(area_level: AreaLevel,

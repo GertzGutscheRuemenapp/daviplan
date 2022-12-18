@@ -47,11 +47,14 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     )
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
-        msg = 'Download of base network successfult'
+        msg_start = 'Herunterladen des OSM-Pbf-Netzes gestarted'
+        msg_end = 'Herunterladen des OSM-Pbf-Netzes beendet'
         return self.run_sync_or_async(func=self._pull_base_network,
                                       user=request.user,
                                       scope=ProcessScope.ROUTING,
-                                      message=msg)
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
+                                      )
 
     @staticmethod
     def _pull_base_network(logger: logging.Logger):
@@ -106,11 +109,14 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
             return Response({'message': msg },
                             status=status.HTTP_400_BAD_REQUEST)
 
-        msg = 'Bau der Router gestartet'
+        msg_start = 'Bau der Router gestartet'
+        msg_end = 'Bau der Router beendet'
         return self.run_sync_or_async(func=self._build_project_network,
                                       user=request.user,
                                       scope=ProcessScope.ROUTING,
-                                      message=msg)
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
+                                      )
 
     @staticmethod
     def _build_project_network(logger: logging.Logger):

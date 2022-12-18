@@ -295,12 +295,14 @@ class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
-        msg = 'Routenberechnung gestartet'
+        msg_start = 'Routenberechnung gestartet'
+        msg_end = 'Routenberechnung beendet'
         return self.run_sync_or_async(func=self.calc,
                                       user=request.user,
                                       scope=ProcessScope.ROUTING,
                                       drop_constraints=drop_constraints,
-                                      message=msg,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
                                       router_class=self.router,
                                       variant_ids=variant_ids,
                                       places=places,
@@ -370,11 +372,13 @@ class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
-        msg = 'Routenberechnung gestartet'
+        msg_start = 'Routenberechnung gestartet'
+        msg_end = 'Routenberechnung beendet'
         return self.run_sync_or_async(func=self.calc,
                                       user=request.user,
                                       scope=ProcessScope.ROUTING,
-                                      message=msg,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
                                       router_class=self.router,
                                       variant_ids=variant_ids,
                                       drop_constraints=drop_constraints,

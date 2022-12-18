@@ -252,11 +252,13 @@ class AreaLevelViewSet(RunProcessMixin,
         truncate = request.data.get('truncate', False)
         simplify = request.data.get('simplify', False)
 
-        msg = 'Abruf der Gebiete erfolgreich gestartet'
+        msg_start = 'Abruf der Gebiete gestartet'
+        msg_end = 'Abruf der Gebiete erfolgreich beendet'
         return self.run_sync_or_async(func=self._pull_areas,
                                       user=request.user,
                                       scope=ProcessScope.AREAS,
-                                      message=msg,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
                                       area_level=area_level,
                                       project_area=project_area,
                                       truncate=truncate,
@@ -410,11 +412,13 @@ class AreaLevelViewSet(RunProcessMixin,
             return Response({'message': msg},
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        msg = 'Hochladen der Gebiete gestartet'
+        msg_start = 'Hochladen der Gebiete gestartet'
+        msg_end = 'Hochladen der Gebiete erfolgreich beendet'
         return self.run_sync_or_async(func=self._upload_shapefile,
                                       user=request.user,
                                       scope=ProcessScope.AREAS,
-                                      message=msg,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
                                       area_level=area_level,
                                       filename=fp.name,
                                       project_area=project_area)

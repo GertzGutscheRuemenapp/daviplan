@@ -54,7 +54,7 @@ class UploadTest(LoginTestCase, APITestCase):
                                extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
         self.assertEqual(json.loads(res.content)['message'],
-                         'Upload beendet')
+                         'Hochladen der Gebiete erfolgreich beendet')
 
         # test if areas > threashold were put into the database
         self.assertEqual(Area.objects.count(), 3)
@@ -104,7 +104,7 @@ class UploadTest(LoginTestCase, APITestCase):
                                extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
         self.assertEqual(json.loads(res.content)['message'],
-                         'Upload beendet')
+                         'Hochladen der Gebiete erfolgreich beendet')
 
         # test if areas > threashold were put into the database
         self.assertEqual(Area.objects.count(), 3)

@@ -166,11 +166,13 @@ class ProjectSettingViewSet(RunProcessMixin, SingletonViewSet):
 
         if response.status_code == 200 and request.data.get('project_area'):
 
-            msg = 'Verarbeitung des Planungsraums gestartet'
+            msg_start = 'Verarbeitung des Planungsraums gestartet'
+            msg_end = 'Verarbeitung des Planungsraums beendet'
             return self.run_sync_or_async(func=self._postprocess_project_area,
                                           user=request.user,
                                           scope=ProcessScope.AREAS,
-                                          message=msg,
+                                          message_async=msg_start,
+                                          message_sync=msg_end,
                                           ret_status=status.HTTP_200_OK)
 
         return response

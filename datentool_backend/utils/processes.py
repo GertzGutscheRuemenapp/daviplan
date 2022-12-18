@@ -20,7 +20,8 @@ class RunProcessMixin:
                           func: callable,
                           user: User,
                           scope: ProcessScope,
-                          message='Upload gestartet',
+                          message_async='Upload gestartet',
+                          message_sync='Upload beendet',
                           ret_status=status.HTTP_202_ACCEPTED,
                           **params,
                           ):
@@ -39,12 +40,12 @@ class RunProcessMixin:
                 ppm.logger.error(msg)
                 return Response({'Fehler': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
-            return Response({'message': 'Upload beendet'},
+            return Response({'message': message_sync},
                             status=ret_status)
 
         else:
             ppm.run(func, **params)
-            return Response({'message': message},
+            return Response({'message': message_async},
                             status=status.HTTP_202_ACCEPTED)
 
 
