@@ -2,6 +2,10 @@
 
 a web tool to display and plan basic public services
 
+
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/GertzGutscheRuemenapp/bule_datentool/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/GertzGutscheRuemenapp/bule_datentool/tree/main)
+
+
 ## Setting up a development environment
 
 ### GDAL
@@ -43,14 +47,14 @@ There are two options to serve the Javascript-files:
 - use an IDE to run the frontend
 - serve them solely with django. in that case you have to bundle them manually:
 <em>\<path to installation\>/angular-frontend/ng build --stats-json</em>
-  > add argument <em>--configuration development</em> if you are in a development environment    
+  > add argument <em>--configuration development</em> if you are in a development environment
   > add argument <em>--watch</em> to reload on change
 
 ### Serve backend
 - run the cluster, required for pushing background tasks (if <em>Q_CLUSTER['sync'] = False</em> in settings)
   > <em>python manage.py qcluster settings=datentool.yoursettingsfile</em>
 - run the backend
-  > <em>python manage.py runserver 8000 settings=datentool.yoursettingsfile</em>.   
+  > <em>python manage.py runserver 8000 settings=datentool.yoursettingsfile</em>.
   > you may swap the port with any other port you like. The site will be available there (in case you serve the frontend with django)
 
 ### Rest API is protected
