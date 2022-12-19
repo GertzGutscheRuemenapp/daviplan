@@ -2,8 +2,11 @@
 
 a web tool to display and plan basic public services
 
+Testing Status
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/GertzGutscheRuemenapp/bule_datentool/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/GertzGutscheRuemenapp/bule_datentool/tree/main)
+
+Code Coverage
 
 [![codecov](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool/branch/main/graph/badge.svg?token=18FTTI6MF5)](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool)
 
