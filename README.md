@@ -43,6 +43,7 @@ There are two options to serve the Javascript-files:
 - use an IDE to run the frontend
 - serve them solely with django. in that case you have to bundle them manually:
 <em>\<path to installation\>/angular-frontend/ng build --stats-json</em>
+  > add argument <em>--configuration development</em> if you are in a development environment
   > add argument <em>--watch</em> to reload on change
 
 ### Serve backend
