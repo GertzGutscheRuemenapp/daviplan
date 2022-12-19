@@ -27,7 +27,6 @@ from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
                                                           )
 from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
                                                     write_template_df,
-                                                    ColumnError,
                                                     )
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
@@ -354,7 +353,6 @@ class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
     def precalculate_accesstime(self, request):
         """Calculate traveltime with a air distance or network router"""
         drop_constraints = request.data.get('drop_constraints', False)
-        run_sync = request.data.get('sync', False)
         transit_variant_id = request.data.get('transit_variant')
         air_distance_routing = request.data.get('air_distance_routing', False)
         max_distance = request.data.get('max_distance')

@@ -296,7 +296,6 @@ class CreateTestdataMixin:
 
     @classmethod
     def create_raster_population(cls):
-        year0 = Year.objects.get(is_default=True)
         cls.popraster = PopulationRasterFactory()
         raster: Raster = cls.popraster.raster
 

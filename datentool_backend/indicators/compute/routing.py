@@ -1,5 +1,4 @@
 import logging
-logger = logging.getLogger('routing')
 
 import pandas as pd
 import numpy as np

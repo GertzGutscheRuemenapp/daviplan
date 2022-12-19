@@ -1,11 +1,8 @@
-import logging
-logger = logging.getLogger('routing')
 import warnings
 from typing import Dict
 import pandas as pd
 
-from rest_framework import viewsets, status
-from rest_framework.response import Response
+from rest_framework import viewsets
 
 from django.contrib.gis.geos import Point
 
@@ -14,7 +11,6 @@ from drf_spectacular.utils import (extend_schema,
 
 from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
                                                     write_template_df,
-                                                    ColumnError,
                                                     )
 
 from datentool_backend.utils.views import ProtectCascadeMixin

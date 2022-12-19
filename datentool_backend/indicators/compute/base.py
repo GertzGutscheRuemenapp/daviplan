@@ -4,7 +4,7 @@ from enum import Enum
 import numpy as np
 
 from django.http.request import QueryDict
-from django.db.models import OuterRef, F
+from django.db.models import OuterRef
 from sql_util.utils import Exists
 from datentool_backend.places.models import Place, Capacity
 
