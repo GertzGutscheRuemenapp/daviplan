@@ -1,3 +1,4 @@
 /clipped.tif
 *.pbf
 /projectarea.geojson
+/clipped.tif.aux.xml
