@@ -51,7 +51,7 @@ jobs:
       - store_test_results:
           path: test-reports/
       - codecov/upload:
-          file: '{{ coverage_report_filepath }}'
+          file: '/root/project/.coverage'
 
 workflows:
   version: 2
