@@ -27,16 +27,16 @@
 <!--            *ngIf="layerGroups.length>0"-->
           </app-check-tree>
         </div>
-        <div class="order-controls">
+        <div class="order-controls" *ngVar="getLayerGroup(selectedLayer) as layerGroup">
           <button mat-icon-button
                   title="In der Sortierung eins nach oben"
-                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || (selectedLayer.group && selectedLayer.group.children!.indexOf(selectedLayer) < 1))"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || (layerGroup && layerGroup.children!.indexOf(selectedLayer) < 1))"
                   (click)="moveSelected('up')">
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
                   title="In der Sortierung eins nach unten"
-                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || (selectedLayer.group && selectedLayer.group.children.indexOf(selectedLayer) >= selectedLayer.group.children.length - 1))"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || (layerGroup && layerGroup.children.indexOf(selectedLayer) >= layerGroup.children.length - 1))"
                   (click)="moveSelected('down')">
             <mat-icon>expand_more</mat-icon>
           </button>
@@ -64,7 +64,7 @@
                     [editTemplate]="editLayerTemplate"
                     infoText="<p>Klicken Sie auf „Editieren“, um die URL des WMS-Dienstes (und weitere ggf. relevante Informationen) einzutragen oder diese zu verändern.</p>
                     <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
-      <table>
+      <table class="layer-preview-table">
         <tr>
           <td>URL</td>
           <td style="color: grey">{{selectedLayer?.url}}</td>
@@ -142,6 +142,7 @@
             <p>{{ layer.description || 'kein Beschreibungstext' }}</p>
           </ng-template>
           <mat-radio-button [value]="layer.id"
+                            style="width: 100%;"
                             (change)="onAvLayerSelected($event.value)"
                             [checked]="first"
                             color="primary"

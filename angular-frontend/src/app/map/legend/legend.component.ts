@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../map.service";
-import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
+import { MapControl, MapLayerGroup, MapService } from "../map.service";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { MapLayer, MapLayerGroup, VectorLayer } from '../layers';
+import { MapLayer, VectorLayer } from '../layers';
+import { FloatingDialogComponent } from "../../dialogs/floating-dialog/floating-dialog.component";
 
 @Component({
   selector: 'app-legend',
@@ -51,8 +51,8 @@ export class LegendComponent implements AfterViewInit {
     if (dialogRef && dialogRef.getState() === 0)
       dialogRef.close();
     else
-      this.legendImageDialogs[layer.id] = this.dialog.open(FloatingDialog, {
-        panelClass: 'help-container',
+      this.legendImageDialogs[layer.id] = this.dialog.open(FloatingDialogComponent, {
+        panelClass: 'floating-container',
         hasBackdrop: false,
         autoFocus: false,
         data: {
@@ -69,7 +69,7 @@ export class LegendComponent implements AfterViewInit {
 
   toggleLayerLegend(layer: VectorLayer): void {
     if (!layer.legend) return;
-    layer.legend.elapsed = !layer.legend.elapsed;
+    layer.setLegendElapsed(!layer.legendElapsed);
   }
 
   setBGOpacity(value: number | null) {

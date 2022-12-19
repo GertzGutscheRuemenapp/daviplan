@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { Subscription } from "rxjs";
 import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
@@ -9,7 +9,7 @@ import { Area, AreaLevel } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import { sortBy } from "../../../helpers/utils";
 import { CookieService } from "../../../helpers/cookies.service";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { SideToggleComponent } from "../../../elements/side-toggle/side-toggle.component";
 
 @Component({
@@ -52,8 +52,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Bevölkerungssalden', { order: -1 });
     this.mapControl?.setDescription('');
     if (this.populationService.isReady)
       this.initData();
@@ -176,17 +175,17 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       const description = `<b>${this.getLayerDescription()}</b>
                            <br>Minimum: ${diffDisplay && min > 0 ? '+' : ''}${min.toLocaleString()} ${unit}
                            <br>Maximum: ${diffDisplay && max > 0 ? '+' : ''}${max.toLocaleString()} ${unit}`
-      this.statisticsLayer = new VectorLayer(title, {
+      this.statisticsLayer = this.layerGroup?.addVectorLayer(title, {
+        id: 'pop-statistics',
+        visible: true,
         order: 0,
         description: description,
-        opacity: 1,
         style: {
           strokeColor: 'white',
           fillColor: color,
           symbol: 'circle'
         },
         labelField: 'value',
-        showLabel: true,
         tooltipField: 'description',
         mouseOver: {
           enabled: true,
@@ -216,17 +215,16 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         forceSign: diffDisplay,
         labelOffset: { y: 15 }
       });
-      this.layerGroup?.addLayer(this.statisticsLayer);
-      this.statisticsLayer.addFeatures(displayedAreas,{
+      this.statisticsLayer?.addFeatures(displayedAreas,{
         properties: 'properties',
         zIndex: 'value'
       });
       if (this.activeArea)
-        this.statisticsLayer.selectFeatures([this.activeArea.id], { silent: true });
-      this.statisticsLayer!.featuresSelected.subscribe(features => {
+        this.statisticsLayer?.selectFeatures([this.activeArea.id], { silent: true });
+      this.statisticsLayer?.featuresSelected.subscribe(features => {
         this.setArea(this.areas.find(area => area.id === features[0].get('id')));
       })
-      this.statisticsLayer!.featuresDeselected.subscribe(features => {
+      this.statisticsLayer?.featuresDeselected.subscribe(features => {
         if (this.activeArea?.id === features[0].get('id'))
           this.setArea(undefined);
       })

@@ -87,7 +87,7 @@ import { FilterTableComponent } from './elements/filter-table/filter-table.compo
 import { MatChipsModule } from "@angular/material/chips";
 import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
 import { SimpleDialogComponent } from './dialogs/simple-dialog/simple-dialog.component';
-import { HelpDialogComponent, FloatingDialog } from './dialogs/help-dialog/help-dialog.component';
+import { HelpDialogComponent } from './dialogs/help-dialog/help-dialog.component';
 import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.component';
 import { RemoveDialogComponent } from './dialogs/remove-dialog/remove-dialog.component';
 import { PlaceFilterComponent } from './pages/planning/place-filter/place-filter.component';
@@ -100,6 +100,7 @@ import { ServiceSelectComponent } from './pages/planning/service-select/service-
 import { ModeSelectComponent } from './pages/planning/mode-select/mode-select.component';
 import { HorizontalBarchartComponent } from './diagrams/horizontal-barchart/horizontal-barchart.component';
 import { DiagramComponent } from './diagrams/diagram/diagram.component';
+import { FloatingDialogComponent } from './dialogs/floating-dialog/floating-dialog.component';
 
 @NgModule({
   declarations: [
@@ -156,7 +157,7 @@ import { DiagramComponent } from './diagrams/diagram/diagram.component';
     CookieExpansionDirective,
     SimpleDialogComponent,
     HelpDialogComponent,
-    FloatingDialog,
+    FloatingDialogComponent,
     BalanceChartComponent,
     RemoveDialogComponent,
     PlaceFilterComponent,

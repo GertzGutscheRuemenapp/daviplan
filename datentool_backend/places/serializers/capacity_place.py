@@ -9,7 +9,8 @@ from rest_framework import serializers
 from datentool_backend.population.models import RasterCell
 from datentool_backend.modes.models import ModeVariant, Mode
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.indicators.compute.routing import TravelTimeRouterMixin
+from datentool_backend.indicators.compute.routing import (TravelTimeRouterMixin,
+                                                          RoutingError)
 from datentool_backend.area.models import FClass, FieldTypes
 from datentool_backend.places.models import (Place,
                                                             Capacity,
@@ -130,7 +131,7 @@ class PlaceSerializer(serializers.ModelSerializer):
                     df = TravelTimeRouterMixin.route(
                         variant, sources, destinations, logger,
                         id_columns=['place_id', 'cell_id'])
-                except ConnectionError:
+                except (ConnectionError, RoutingError):
                     return instance
                 dataframes.append(df)
             df = pd.concat(dataframes)

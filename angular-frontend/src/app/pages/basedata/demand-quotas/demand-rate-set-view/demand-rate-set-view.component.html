@@ -1,11 +1,11 @@
 <div style="display: flex;">
-  <label style="padding-top: 20px;">{{timeSlider.min}}</label>
+  <label style="padding-top: 20px;">{{minYear}}</label>
   <mat-slider #timeSlider color="primary"
-              thumbLabel [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0" step="1"
+              thumbLabel [min]="minYear" [max]="maxYear" step="1"
               [value]="year" tickInterval="1"
               (change)="changeYear($event.value)"
               style="width: 420px; margin-top: 15px;"></mat-slider>
-  <label style="padding-top: 20px;">{{timeSlider.max}}</label>
+  <label style="padding-top: 20px;">{{maxYear}}</label>
   <button *ngIf="edit" style="margin: 10px 5px 0 10px;"
           class="mat-button-dv"
           mat-button color="primary"

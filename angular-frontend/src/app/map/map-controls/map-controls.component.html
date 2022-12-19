@@ -21,13 +21,12 @@
         <mat-icon>photo_camera</mat-icon>
       </button>
       <button *ngIf="bookmarks"
+              #extentButton
               mat-mini-fab
               class="no-shadow"
               color="primary"
               title="Kartenausschnitte (Bookmarks)"
-              [ngbPopover]="extentPopover"
-              popoverClass="custom-option-panel"
-              popoverTitle="Kartenausschnitte"
+              (click)="openExtentDialog()"
               placement="bottom-right"
               triggers="click">
         <mat-icon>bookmark</mat-icon>
@@ -44,7 +43,6 @@
         <mat-icon>apps</mat-icon>
       </button>
     </eco-fab-speed-dial-trigger>
-
     <eco-fab-speed-dial-actions>
       <button mat-mini-fab
               color="primary"
@@ -71,12 +69,12 @@
   </eco-fab-speed-dial>
 </div>
 
-<ng-template #extentPopover>
+<ng-template #extentDialogTemplate>
   <p *ngFor="let extent of mapControl?.mapExtents | keyvalue">
     <button mat-button color="primary"
             title='Auf Ausschnitt "{{extent.key}}" zoomen'
             (click)="loadExtent(extent.key)"
-            style="width: 75%; display: inline-flex;">
+            style="width: calc(100% - 70px); display: inline-flex; overflow: hidden;">
       <mat-icon>bookmark_border</mat-icon>
       {{extent.key}}
     </button>

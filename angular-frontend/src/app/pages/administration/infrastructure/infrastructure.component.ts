@@ -21,7 +21,7 @@ export class InfrastructureComponent implements AfterViewInit  {
   infrastructureForm: FormGroup;
   @ViewChild('infrastructureEditCard') infrastructureEditCard?: InputCardComponent;
   @ViewChild('infrastructureEdit') infrastructureEditTemplate?: TemplateRef<any>;
-  isLoading$ = new BehaviorSubject<boolean>(false);
+  isLoading$ = new BehaviorSubject<boolean>(true);
 
   constructor(private http: HttpClient, private rest: RestAPI,
               private dialog: MatDialog, private formBuilder: FormBuilder) {
@@ -32,7 +32,6 @@ export class InfrastructureComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
-    this.isLoading$.next(true);
     this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe((infrastructures) => {
       this.infrastructures = this.sortInfrastructures(infrastructures);
       this.selectedInfrastructure = (infrastructures.length > 0)? infrastructures[0]: undefined;

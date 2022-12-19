@@ -22,7 +22,7 @@
                  infoText="Bitte laden Sie im Bereich „Gebietseinteilungen“ Gebiete für die Gebietseinteilung hoch bzw. rufen Sie sie ab.">
   Fehler: Die Gebietseinteilung für die Bevölkerungsdaten („{{popLevel?.name}}“)  enthält keine Gebiete!
 </app-status-card>
-<app-status-card *ngIf="isProcessing">
+<app-status-card *ngIf="(isProcessing$ | async)">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
 </app-status-card>
 <div fxLayout="row wrap">
@@ -32,7 +32,7 @@
                   <p>Der Fortschritt der Abfrage wird Ihnen in der Box „Datenhistorie“ angezeigt. Die eingelesenen Daten können Sie anschließend in der Box „Bereits eingelesene Daten“ als Tabelle, Karte oder Diagramm betrachten.</p>
                   <p>Der Online-Abruf steht nur zur Verfügung, wenn die Einteilung der Altersgruppen im Administrationsbereich nicht gegenüber der Standardeinstellung (Alterseinteilung der Regionalstatistik) verändert wurde.</p>"
                   [subtitle]="'Abruf der Regionalstatistik'"
-                  [disabled]="years.length === 0 || !popLevel || !popLevel.isDefaultPopLevel || popLevel?.areaCount === 0 || isProcessing">
+                  [disabled]="(isProcessing$ | async) || years.length === 0 || !popLevel || !popLevel.isDefaultPopLevel || popLevel?.areaCount === 0">
     <ng-container *ngIf="!(popService.isLoading$ | async)">
       <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
         <label>
@@ -66,7 +66,7 @@
                     <p>Besonders relevant ist diese Auswahl, wenn in einem Jahr sowohl Realdaten aus der Einwohnerstatistik wie auch Prognosedaten aus einer ggf. schon etwas älteren Prognose vorliegen. Daher zeigt Ihnen die letzte Spalte an, für welche der zurückliegenden Jahre auch Prognosedaten in daviplan hochgeladen wurden.</p>
                     <p>Um bereits hochgeladene reale Einwohnerdaten zurückliegender Jahre wieder zu löschen, klicken Sie auf das entsprechende rote Kreuzchen in der Spalte „Realdaten“. Prognosedaten löschen Sie über den Menüpunkt „Bevölkerung > Zukunft“ im Menü am linken Browserrand.</p>"
                     dialogWidth="500px"
-                    [disabled]="years.length === 0 || !popLevel || isProcessing">
+                    [disabled]="(isProcessing$ | async) || years.length === 0 || !popLevel">
       <table>
         <tr>
           <td i18n>Jahre</td>
@@ -80,7 +80,7 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Ergänzte/Korrigierte Einwohnerdaten hochladen'"
-                    [disabled]="years.length === 0 || realYears.length === 0 || !popLevel || popLevel?.areaCount === 0 || isProcessing"
+                    [disabled]="(isProcessing$ | async) || years.length === 0 || realYears.length === 0 || !popLevel || popLevel?.areaCount === 0"
 
                     infoText="<p>Sollten Sie Lücken in den Daten finden, einzelne Werte korrigieren wollen oder keine Daten online abrufen können oder wollen, können Sie Einwohnerdaten auch händisch eingeben.</p>
                     <p>Laden Sie sich hierzu über die Schaltfläche „Vorlage herunterladen“ eine Excel-Vorlage herunter. Diese enthält alle bereits per Online-Abruf oder frühere Eintragungen bereits in daviplan verfügbaren Einwohnerdaten.</p>
@@ -111,7 +111,7 @@
   <app-input-card [title]="'Bereits importierte Einwohnerdaten'"
                   [topRightHelp]="true"
                   width="1170px"
-                  [disabled]="years.length === 0 || !popLevel || popLevel?.areaCount === 0 || isProcessing"
+                  [disabled]="(isProcessing$ | async) || years.length === 0 || !popLevel || popLevel?.areaCount === 0"
                   infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Einwohnerdaten der zurückliegenden Jahre anzusehen.</p>
                   <ol type='1'>
                     <li>Sie können sich alle Daten in einer Tabellenansicht ansehen</li>

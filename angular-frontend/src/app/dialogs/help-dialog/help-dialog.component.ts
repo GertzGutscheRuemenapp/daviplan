@@ -1,49 +1,11 @@
-import { Component, ElementRef, Inject, Input, TemplateRef, ViewChild } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { faArrowsAlt, faQuestion } from '@fortawesome/free-solid-svg-icons';
-import { BehaviorSubject } from "rxjs";
-
-export interface DialogData {
-  title: string;
-  text: string;
-  headerIcon: string;
-  template: TemplateRef<any>;
-  context: any;
-  resizable: boolean;
-  dragArea: 'header' | 'all';
-  minWidth: string;
-}
+import { Component, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
+import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { faQuestion } from '@fortawesome/free-solid-svg-icons';
+import { FloatingDialogComponent } from "../floating-dialog/floating-dialog.component";
 
 @Component({
-  selector: 'app-help-dialog',
   templateUrl: './help-dialog.component.html',
-  styleUrls: ['./help-dialog.component.scss']
-})
-export class FloatingDialog {
-  faArrows = faArrowsAlt;
-  isLoading$ = new BehaviorSubject<boolean>(false);
-  constructor(public dialogRef: MatDialogRef<FloatingDialog>, @Inject(MAT_DIALOG_DATA) public data: DialogData) {
-    data.context = data.context || {};
-    data.dragArea = data.dragArea || 'all';
-  }
-
-  setLoading(loading: boolean) {
-    this.isLoading$.next(loading);
-  }
-}
-
-@Component({
   selector: 'app-help-button',
-  template: `
-    <button #helpButton title="Hilfe" mat-icon-button color="primary" class="small"
-            (click)="onClick($event)">
-        <mat-icon>help_outline</mat-icon>
-<!--      <fa-icon [icon]="faQuestion" style="font-size: 12px;"></fa-icon>-->
-    </button>
-    <div #content style="display: none;">
-      <ng-content></ng-content>
-    </div>
-  `
 })
 export class HelpDialogComponent {
   @Input() title: string = '';
@@ -56,7 +18,7 @@ export class HelpDialogComponent {
   @ViewChild('content') content!: ElementRef;
   @ViewChild('helpButton', { read: ElementRef }) helpButton!: ElementRef;
   faQuestion = faQuestion;
-  dialogRef?: MatDialogRef<FloatingDialog>;
+  dialogRef?: MatDialogRef<FloatingDialogComponent>;
 
   constructor(public dialog: MatDialog) {}
 
@@ -73,9 +35,9 @@ export class HelpDialogComponent {
               `${rect.left + 40}px`,
         top: `${rect.top + this.top}px`
       }
-      this.dialogRef = this.dialog.open(FloatingDialog, {
+      this.dialogRef = this.dialog.open(FloatingDialogComponent, {
         width: `${this.width}px`,
-        panelClass: 'help-container',
+        panelClass: 'floating-container',
         hasBackdrop: false,
         autoFocus: false,
         position: position,

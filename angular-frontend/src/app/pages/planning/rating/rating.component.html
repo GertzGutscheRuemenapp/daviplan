@@ -40,18 +40,27 @@
                 disableRipple
                 [(value)]="selectedIndicator"
                 (selectionChange)="onIndicatorChange()"
-                [ngbPopover]="selectedIndicator?.description"
+                [ngbPopover]="selectedIndicatorPopover"
                 placement="right"
                 container="body"
                 triggers="mouseenter:mouseleave">
-      <mat-option *ngFor="let indicator of indicators"
-                  [value]="indicator"
-                  [ngbPopover]="indicator.description"
-                  placement="right"
-                  container="body"
-                  triggers="mouseenter:mouseleave">
-        {{indicator.title}}
-      </mat-option>
+      <ng-container *ngFor="let indicator of indicators">
+        <mat-option [value]="indicator"
+                    [ngbPopover]="indicatorPopover"
+                    placement="right"
+                    container="body"
+                    triggers="mouseenter:mouseleave">
+          {{indicator.title}}
+        </mat-option>
+        <ng-template #indicatorPopover>
+          <p><b>{{indicator?.title}}</b></p>
+          <p>{{indicator?.description}}</p>
+        </ng-template>
+      </ng-container>
+      <ng-template #selectedIndicatorPopover>
+        <p><b>{{selectedIndicator?.title}}</b></p>
+        <p>{{selectedIndicator?.description}}</p>
+      </ng-template>
     </mat-select>
   </mat-form-field>
   <ng-container *ngIf="selectedIndicator?.additionalParameters">

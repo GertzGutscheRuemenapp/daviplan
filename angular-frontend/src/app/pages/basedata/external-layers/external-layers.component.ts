@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { CheckTreeComponent, TreeItemNode } from "../../../elements/check-tree/check-tree.component";
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
@@ -12,7 +12,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { arrayMove, showAPIError } from "../../../helpers/utils";
 import { ExtLayerGroup, ExtLayer } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
-import { MapLayer, MapLayerGroup, WMSLayer } from "../../../map/layers";
+import { MapLayer, WMSLayer } from "../../../map/layers";
 
 function isLayer(obj: any): obj is ExtLayer{
   return 'layerName' in obj;
@@ -38,7 +38,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   selectedLayer?: MapLayer;
   selectedGroup?: MapLayerGroup;
   availableLayers: MapLayer[] = [];
-  isLoading$ = new BehaviorSubject<boolean>(false);
+  isLoading$ = new BehaviorSubject<boolean>(true);
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private restService: RestCacheService, private formBuilder: FormBuilder) {
@@ -60,7 +60,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.isLoading$.next(true);
     this.mapService.fetchExternalLayers({ reset: true }).subscribe(groups => {
       this.layerGroups = groups;
       this.layerTree.setItems(this.layerGroups);
@@ -221,7 +220,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayerGroup>(this.rest.URLS.layerGroups, attributes
       ).subscribe(group => {
-        this.layerGroups.push(new MapLayerGroup(group.name, { order: group.order, id: group.id, external: true }));
+        this.layerGroups.push(this.mapControl!.addGroup(group.name, { order: group.order, id: group.id, external: true }));
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
         this.layerTree.select(group);
@@ -263,7 +262,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayer>(this.rest.URLS.layers, attributes).subscribe(layer => {
         const group = this.getGroup(layer.group);
-        group?.addLayer(new WMSLayer(layer.name, layer.url, {
+        group?.appendLayer(new WMSLayer(layer.name, layer.url, {
           id: layer.id,
           order: layer.order,
           description: layer.description,
@@ -433,7 +432,16 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   moveSelected(direction: string): void {
     const selected = this.selectedLayer? this.selectedLayer: this.selectedGroup? this.selectedGroup: undefined;
     if (!selected) return;
-    const array = (this.selectedLayer && this.selectedLayer.group)? this.selectedLayer.group.children!: this.layerGroups;
+    let array: any[] = [];
+    // a layer is selected => rearrange layers within group
+    if (this.selectedLayer) {
+      const group = this.getLayerGroup(this.selectedLayer);
+      if (group) array = group.children;
+    }
+    // a group is selected => rearrange groups
+    else {
+      array = this.layerGroups;
+    }
     // @ts-ignore
     const idx = array.indexOf(selected);
     if (direction === 'up'){
@@ -447,6 +455,19 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     else return;
 
     this.patchOrder(array);
+  }
+
+  getLayerGroup(layer: MapLayer | undefined): MapLayerGroup | undefined {
+    if (!layer) return;
+    let group;
+    this.layerGroups.forEach(g => {
+      const found = g.children.find(l => l === layer);
+      if (found) {
+        group = g;
+        return;
+      };
+    })
+    return group;
   }
 
   /**
