@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  codecov: codecov/codecov@3.2.4
 machine:
   environment:
     DJANGO_SETTINGS_MODULE: datentool.settings_circleci
@@ -45,15 +47,14 @@ jobs:
       - run:
           name: Run tests
           command: |
-            python manage.py test --settings=datentool.settings_circleci
+            coverage run -source='.' manage.py test --settings=datentool.settings_circleci
+      - store_test_results:
+          path: test-reports/
+      - codecov/upload:
+          file: {{ coverage_report_filepath }}
 
-orbs:
-  codecov: codecov/codecov@3.2.4
 workflows:
   version: 2
   build-and-deploy:
     jobs:
       - django testing
-  upload-to-codecov:
-    jobs:
-      - codecov/upload
