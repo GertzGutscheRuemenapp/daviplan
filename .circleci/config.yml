@@ -20,7 +20,7 @@ jobs:
       - run:
           name: Resolve Python dependencies
           command: |
-            pip install -r requirements.txt
+            python -m pip install -r requirements.txt
       - run:
           name: Install wget
           command: apt-get install wget
@@ -47,7 +47,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            coverage run -source='.' manage.py test --settings=datentool.settings_circleci
+            coverage run --source='.' manage.py test --settings=datentool.settings_circleci
       - store_test_results:
           path: test-reports/
       - codecov/upload:
