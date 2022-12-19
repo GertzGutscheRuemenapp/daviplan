@@ -17,9 +17,23 @@
               class="no-shadow"
               color="primary"
               title="Karte als Grafik exportieren"
-              (click)="savePNG()">
+              [matMenuTriggerFor]="profileMenu">
         <mat-icon>photo_camera</mat-icon>
       </button>
+      <mat-menu #profileMenu>
+        <a mat-menu-item (click)="exportPNG()">
+          <mat-icon>map</mat-icon>
+          Karte als PNG-Bilddatei speichern
+        </a>
+        <a mat-menu-item (click)="exportLegend()">
+          <mat-icon>layers</mat-icon>
+          Legende als PNG-Bilddatei speichern
+        </a>
+        <a mat-menu-item (click)="copyTitle()">
+          <mat-icon>content_paste</mat-icon>
+          Kartentitel in Zwischenablage kopieren
+        </a>
+      </mat-menu>
       <button *ngIf="bookmarks"
               #extentButton
               mat-mini-fab

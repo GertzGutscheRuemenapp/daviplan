@@ -252,7 +252,6 @@ export class MapControl {
   markerCursorImg = `${environment.backend}/static/img/map-marker-cursor.png`;
   searchCursorImg = `${environment.backend}/static/img/location-searching.png`;
 
-
   constructor(target: string, private mapService: MapService, private settings: SettingsService, private cookies: CookieService) {
     this.target = target;
     // call destroy on page reload
@@ -573,11 +572,26 @@ export class MapControl {
     this.map?.setCursor(cur);
   }
 
+  exportMapAsPNG(): void {
+    this.map?.savePNG();
+  }
+
+  exportLegend(): void {
+    this.layerGroups.forEach(g => {
+      console.log(g);
+    })    
+  }
+
+  exportTitleToClipboard(): void {
+    // current value of map description without HTML tags (resp. <br> to line break)
+    const description = this.mapDescription$.value.replace('<br>', '\n').replace(/<[^>]+>/g, '')
+    navigator.clipboard.writeText(description);
+  }
+
   destroy(): void {
     this.saveMapSettings();
     if(!this.map) return;
     this.map.unset();
     this.destroyed.emit(this.target);
   }
-
 }
