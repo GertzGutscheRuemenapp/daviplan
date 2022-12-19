@@ -58,5 +58,4 @@ workflows:
       - django testing
   upload-to-codecov:
     jobs:
-      - checkout
       - codecov/upload
