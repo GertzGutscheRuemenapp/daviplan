@@ -560,7 +560,6 @@ export class MapControl {
 
   setDescription(text: string): void {
     this.mapDescription$.next(text);
-
   }
 
   setCursor(cursor?: 'crosshair' | 'pointer' | 'marker' | 'search' | 'auto' | 'default' ): void {
@@ -577,9 +576,27 @@ export class MapControl {
   }
 
   exportLegend(): void {
-    this.layerGroups.forEach(g => {
-      console.log(g);
-    })    
+    let entries: {color: string, text: string, shiftX: number}[] = [];
+    this.layerGroups.filter(g => !g.external).forEach(group => {
+      console.log(group);
+      group.children.filter(l => l.legend !== undefined).forEach(layer => {
+        if (layer.legend!.entries) {
+          entries.concat(layer.legend!.entries.map(e => {
+            return { color: e.color, text: e.label, shiftX: 0 }
+          }));
+        }
+      })
+    })
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = entries.length * 20;
+    const ctx = canvas.getContext("2d")!;
+    entries.forEach((entry, i) => {
+      ctx.beginPath();
+      ctx.rect(10, 10 + (i * 20), 15, 15);
+      ctx.fillStyle = entry.color;
+      ctx.fill();
+    })
   }
 
   exportTitleToClipboard(): void {
