@@ -1,6 +1,4 @@
 version: 2.1
-orbs:
-  codecov: codecov/codecov@3.2.4
 machine:
   environment:
     DJANGO_SETTINGS_MODULE: datentool.settings_circleci
@@ -49,8 +47,8 @@ jobs:
           command: |
             python manage.py test --settings=datentool.settings_circleci
 
-
-
+orbs:
+  codecov: codecov/codecov@3.2.4
 workflows:
   version: 2
   build-and-deploy:
