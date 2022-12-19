@@ -265,7 +265,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           valueStyles: style,
           mouseOver: {
             enabled: true,
-            cursor: 'pointer'
+            style: {
+              strokeColor: 'yellow',
+              fillColor: 'rgba(255, 255, 0, 0.7)'
+            }
           },
           labelOffset: { y: 15 },
           unit: this.selectedIndicator?.unit

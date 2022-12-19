@@ -43,6 +43,7 @@
                     color="primary" style="margin-top: -10px; margin-bottom: 5px;">
     Auch Standorte ohne Leistung "{{service?.name}}" anzeigen
   </mat-slide-toggle>
+  <button (click)="downloadCSV()">Als CSV speichern</button>
   <app-filter-table maxTableHeight="40vh" #filterTable
                     [columns]="_columnDescriptors"
                     [rows]="rows">
