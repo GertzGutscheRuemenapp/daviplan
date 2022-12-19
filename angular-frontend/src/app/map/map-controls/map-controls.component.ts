@@ -50,8 +50,16 @@ export class MapControlsComponent implements AfterViewInit {
     this.mapControl?.map?.toggleFullscreen();
   }
 
-  savePNG(): void {
-    this.mapControl?.map?.savePNG();
+  exportPNG(): void {
+    this.mapControl?.exportMapAsPNG();
+  }
+
+  exportLegend(): void {
+    this.mapControl?.exportLegend();
+  }
+
+  copyTitle(): void {
+    this.mapControl?.exportTitleToClipboard();
   }
 
   print(): void {

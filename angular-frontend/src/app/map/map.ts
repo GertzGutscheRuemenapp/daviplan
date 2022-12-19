@@ -762,15 +762,15 @@ export class OlMap {
     return mapCanvas;
   }
 
-  savePNG(): void {
+  savePNG(filename= 'map.png'): void {
     this.map.once('rendercomplete', evt => {
       const mapCanvas = this.exportCanvas();
       if (navigator.hasOwnProperty('msSaveBlob')) {
         // link download attribute does not work on MS browsers
         // @ts-ignore
-        navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
+        navigator.msSaveBlob(mapCanvas.msToBlob(), filename);
       } else {
-        saveAs(mapCanvas.toDataURL(), 'map.png');
+        saveAs(mapCanvas.toDataURL(), filename);
       }
     });
     this.map.renderSync();
@@ -783,7 +783,7 @@ export class OlMap {
     let html  = '<html><head><title></title></head>';
     html += '<body style="width: 100%; padding: 0; margin: 0;"';
     html += ' onload="window.focus(); window.print(); window.close()">';
-    html += `<img src="${data}" /></body></html>`;
+    html += `<img src="${data}"/></body></html>`;
     const printWindow = window.open('', 'to_print', 'width=1000,height=600')!;
 
     printWindow.document.open();

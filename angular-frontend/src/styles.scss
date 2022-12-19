@@ -861,6 +861,14 @@ mat-sidenav, .context-bar, app-legend, .tree-select {
   }
 }
 
+.mat-menu-panel {
+  max-width: none !important;
+}
+
+ .mat-menu-item .mat-icon {
+   margin-right: 6px !important;
+ }
+
 mat-expansion-panel {
   box-shadow: none !important;
   padding: 0 !important;
@@ -1027,7 +1035,7 @@ app-map-controls {
 #legend {
   position: absolute;
   right: 0;
-  bottom: 0;
+  bottom: 15px;
   z-index: 5;
   height: 40vh;
   pointer-events: none;
