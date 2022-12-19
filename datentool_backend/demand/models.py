@@ -1,7 +1,7 @@
 from django.db import models, transaction
 
 from datentool_backend.base import NamedModel
-from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.infrastructure.models import Service
 from datentool_backend.population.models import Year, AgeGroup, Gender
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin

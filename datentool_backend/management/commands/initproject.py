@@ -1,6 +1,10 @@
 from django.core.management.base import BaseCommand
-from datentool_backend.area.models import (AreaLevel, MapSymbol, Source,
-                                           SourceTypes, AreaField, FieldType,
+from datentool_backend.area.models import (AreaLevel,
+                                           MapSymbol,
+                                           Source,
+                                           SourceTypes,
+                                           AreaField,
+                                           FieldType,
                                            FieldTypes)
 from datentool_backend.population.models import Gender, Raster, PopulationRaster
 from datentool_backend.demand.models import AgeGroup

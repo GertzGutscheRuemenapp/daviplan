@@ -2,6 +2,8 @@ import os
 from unittest import skipIf
 import urllib
 from typing import List
+import logging
+logger = logging.getLogger(name='test')
 
 from test_plus import APITestCase
 from django.urls import reverse
@@ -77,10 +79,10 @@ class TestMatrixCreation(CreateTestdataMixin,
         res= self.post('matrixcellplaces-precalculate-traveltime', data=data,
                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
-        print(res.content)
-        print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
-        print(MatrixCellPlace.objects.filter(variant=car.pk).count())
-        print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
+        logger.debug(res.content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=walk.pk).count())
+        logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
+        logger.debug(MatrixCellPlace.objects.filter(variant=bike.pk).count())
 
     def calc_cell_place_matrix(self,
                                variants: List[int],
@@ -114,8 +116,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         network = self.network
         walk = ModeVariantFactory(mode=Mode.WALK, network=network)
         content = self.calc_cell_place_matrix(variants=[walk.pk])
-        print(content)
-        print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
+        logger.debug(content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=walk.pk).count())
 
     @skipIf(not OSRMRouter(Mode.BIKE).service_is_up, 'osrm docker not running')
     def test_create_routed_bike_matrix(self):
@@ -123,8 +125,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         network = self.network
         bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
         content = self.calc_cell_place_matrix(variants=[bike.pk])
-        print(content)
-        print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
+        logger.debug(content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=bike.pk).count())
         url = 'matrixstatistics-list'
         response = self.get(url)
         self.assert_http_200_ok(response)
@@ -140,8 +142,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         network = self.network
         car = ModeVariantFactory(mode=Mode.CAR, network=network)
         content = self.calc_cell_place_matrix(variants=[car.pk])
-        print(content)
-        print(MatrixCellPlace.objects.filter(variant=car.pk).count())
+        logger.debug(content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
 
     @skipIf(not OSRMRouter(Mode.WALK).service_is_up or
             not OSRMRouter(Mode.BIKE).service_is_up or
@@ -163,7 +165,7 @@ class TestMatrixCreation(CreateTestdataMixin,
 
         # calculate initial number of relations
         content = self.calc_cell_place_matrix(variants=variants, access_variant=walk.pk)
-        print(content)
+        logger.debug(content)
         walk_rows_before = MatrixCellPlace.objects.filter(variant=walk.pk).count()
         self.assertEqual(walk_rows_before, 40)
         transit1_rows_before = MatrixCellPlace.objects.filter(variant=transit1.pk).count()
@@ -268,14 +270,14 @@ class TestMatrixCreation(CreateTestdataMixin,
         content = self.calc_cell_stop_matrix(transit_variant=self.transit,
                                              access_variant=walk,
                                              max_distance=1000)
-        print(content)
-        print(MatrixCellStop.objects.filter(access_variant=walk.pk).count())
+        logger.debug(content)
+        logger.debug(MatrixCellStop.objects.filter(access_variant=walk.pk).count())
 
         content = self.calc_cell_stop_matrix(transit_variant=self.transit,
                                              access_variant=walk,
                                              max_distance=2000)
-        print(content)
-        print(MatrixCellStop.objects.filter(access_variant=walk.pk).count())
+        logger.debug(content)
+        logger.debug(MatrixCellStop.objects.filter(access_variant=walk.pk).count())
 
     def calc_cell_stop_matrix(self,
                               transit_variant: ModeVariant,
@@ -308,8 +310,8 @@ class TestMatrixCreation(CreateTestdataMixin,
 
         content = self.calc_place_stop_matrix(transit_variant=self.transit,
                                               access_variant=walk)
-        print(content)
-        print(MatrixPlaceStop.objects.filter(access_variant=walk.pk).count())
+        logger.debug(content)
+        logger.debug(MatrixPlaceStop.objects.filter(access_variant=walk.pk).count())
 
     def calc_place_stop_matrix(self, transit_variant: ModeVariant,
                                access_variant: ModeVariant,
@@ -360,15 +362,15 @@ class TestMatrixCreation(CreateTestdataMixin,
         res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
                         extra={'format': 'json'})
         self.assert_http_202_accepted(res)
-        print(res.content)
-        print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
+        logger.debug(res.content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
         #  try longer access distance to stops
         data['max_access_distance'] = 2000
         res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
                         extra={'format': 'json'})
         self.assert_http_202_accepted(res)
-        print(res.content)
-        print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
+        logger.debug(res.content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
 
         url = 'matrixstatistics-list'
         response = self.get(url)

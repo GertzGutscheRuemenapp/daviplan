@@ -190,5 +190,3 @@ class Regionalstatistik(GenesisAPI):
             }
         )
         return death_df
-
-

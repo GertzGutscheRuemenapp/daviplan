@@ -7,7 +7,7 @@ class BackendConfig(AppConfig):
     name = 'datentool_backend'
 
     def ready(self):
-        from datentool_backend.models import ProcessState
+        from datentool_backend.site.models import ProcessState
         # reset all process states on start
         try:
             ProcessState.objects.all().update(is_running=False)

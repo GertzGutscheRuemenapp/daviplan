@@ -26,7 +26,7 @@ from rest_framework.response import Response
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
-from vectortiles.postgis.views import MVTView, BaseVectorTileView
+from vectortiles.postgis.views import MVTView
 
 from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixCellStop)

@@ -2,10 +2,10 @@ from unittest import TestCase
 import urllib
 
 from datentool_backend.utils.geometry_fields import NoWKTError, compare_geometries
-from django.contrib.gis.geos import (GEOSGeometry,
-                                     Point, MultiPoint,
-                                     LineString, MultiLineString,
-                                     Polygon, MultiPolygon)
+from django.contrib.gis.geos import (Point,
+                                     MultiPoint,
+                                     LineString,
+                                     Polygon,)
 
 
 class TestGeometryCompare(TestCase):

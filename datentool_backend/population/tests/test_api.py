@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import pandas as pd
+import logging
+logger = logging.getLogger(name='test')
 from unittest import skip
 from unittest.mock import Mock, patch
 from django.test import TestCase
@@ -36,7 +38,7 @@ from datentool_backend.population.factories import (
     PopulationEntryFactory,
     PopStatisticFactory
 )
-from datentool_backend.area.models import Area
+from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFactory,
                                               AreaFieldFactory,
@@ -160,6 +162,26 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
              'deaths': [2678, 16, 9]}).set_index(actual.index)
         pd.testing.assert_frame_equal(actual, target, atol=0.5, check_dtype=False)
 
+        url = 'arealevels-detail'
+        area_level = AreaLevel.objects.get(is_statistic_level=True)
+
+        res = self.get(url, pk=area_level.pk)
+        self.assert_http_200_ok(res)
+
+        # check the max_values of the popstatentries
+        popstatentries['nature_diff'] = (popstatentries['births'] -
+                                         popstatentries['deaths']).apply(np.abs)
+
+        popstatentries['migration_diff'] = (popstatentries['immigration'] -
+                                         popstatentries['emigration']).apply(np.abs)
+
+        target = popstatentries.max()\
+            [['immigration', 'emigration',
+              'births', 'deaths',
+              'nature_diff', 'migration_diff']]
+        actual = pd.Series(res.data['max_values'])
+        pd.testing.assert_series_equal(actual.loc[target.index], target)
+
         # ToDo: permission test
         # ToDo: test user and password
 
@@ -241,7 +263,7 @@ class TestPopulation(TestCase):
 
     def test_raster_population(self):
         rcp = RasterCellPopulationFactory()
-        print(rcp)
+        logger.debug(rcp)
 
 
 class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,

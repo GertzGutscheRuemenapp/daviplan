@@ -1,4 +1,6 @@
-from datentool_backend.utils.views import SingletonViewSet
+import os
+import logging
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
@@ -11,26 +13,25 @@ from rest_framework.decorators import action
 from djangorestframework_camel_case.parser import (CamelCaseMultiPartParser,
                                                    CamelCaseJSONParser)
 from django.conf import settings
-import os
-import logging
 
+from datentool_backend.utils.views import SingletonViewSet, ProtectCascadeMixin
 from datentool_backend.utils.routers import OSRMRouter
-from datentool_backend.modes.models import Mode
 from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
-                                                 HasAdminAccessOrReadOnlyAny)
-from datentool_backend.utils.permissions import CanEditBasedata
-from datentool_backend.utils.views import ProtectCascadeMixin
-from datentool_backend.models import (SiteSetting, ProjectSetting, Year,
-                                      Year, AreaLevel, PopulationRaster, Area)
+                                                 HasAdminAccessOrReadOnlyAny,
+                                                 CanEditBasedata)
+from datentool_backend.modes.models import Mode
+from datentool_backend.site.models import SiteSetting, ProjectSetting, Year
+from datentool_backend.area.models import AreaLevel, Area
+from datentool_backend.population.models import PopulationRaster
+
 from .serializers import (SiteSettingSerializer,
                           ProjectSettingSerializer,
                           BaseDataSettingSerializer,
                           YearSerializer,
                           MatrixStatisticsSerializer,
                           )
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 from datentool_backend.population.views.raster import PopulationRasterViewSet
 
 
@@ -100,12 +101,6 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         years_to_delete = Year.objects.exclude(year__range=(from_year, to_year))
         years_to_delete.delete()
-        #with connection.cursor() as cursor:
-            #cursor.execute(
-                #'DELETE FROM datentool_backend_year WHERE NOT '
-                #'("datentool_backend_year"."year" BETWEEN %s AND %s)',
-                #(2011, 2030)
-            #)
 
         for y in range(from_year, to_year+1):
             year = Year.objects.get_or_create(year=y)
@@ -160,7 +155,7 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED)
 
 
-class ProjectSettingViewSet(SingletonViewSet):
+class ProjectSettingViewSet(RunProcessMixin, SingletonViewSet):
     queryset = ProjectSetting.objects.all()
     model_class = ProjectSetting
     serializer_class = ProjectSettingSerializer
@@ -168,21 +163,22 @@ class ProjectSettingViewSet(SingletonViewSet):
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        run_sync = request.data.get('sync', False)
 
         if response.status_code == 200 and request.data.get('project_area'):
-            with ProtectedProcessManager(user=request.user,
-                                         scope=ProcessScope.AREAS) as ppm:
-                try:
-                    ppm.run(self._postprocess_project_area, sync=run_sync)
-                except Exception as e:
-                    return Response({'message': str(e)},
-                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            msg_start = 'Verarbeitung des Planungsraums gestartet'
+            msg_end = 'Verarbeitung des Planungsraums beendet'
+            return self.run_sync_or_async(func=self._postprocess_project_area,
+                                          user=request.user,
+                                          scope=ProcessScope.AREAS,
+                                          message_async=msg_start,
+                                          message_sync=msg_end,
+                                          ret_status=status.HTTP_200_OK)
+
         return response
 
     @staticmethod
-    def _postprocess_project_area():
-        logger = logging.getLogger('areas')
+    def _postprocess_project_area(logger: logging.Logger):
         logger.info('Verarbeitung des Planungsraums gestartet')
         for popraster in PopulationRaster.objects.all():
             logger.info('Verschneide Planungsraum mit dem Zensusraster...')

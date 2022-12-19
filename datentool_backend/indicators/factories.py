@@ -7,7 +7,7 @@ from .models import (Router, Stop, MatrixCellPlace, MatrixCellStop,
                     MatrixPlaceStop, MatrixStopStop)
 
 from datentool_backend.modes.factories import ModeVariantFactory
-from datentool_backend.infrastructure.factories import PlaceFactory
+from datentool_backend.places.factories import PlaceFactory
 from datentool_backend.population.factories import RasterCellFactory
 
 from faker import Faker

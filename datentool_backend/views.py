@@ -6,3 +6,5 @@ from .demand.views import *
 from .infrastructure.views import *
 from .site.views import *
 from .indicators.views import *
+from .places.views import *
+from .logging.views import *
