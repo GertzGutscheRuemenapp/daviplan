@@ -575,6 +575,21 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         except KeyError:
             pass
 
+    def test_clear_areas(self):
+        """test clear areas of area_level"""
+        area_level = AreaLevel.objects.get(pk=self.area_level)
+        n_areas = area_level.area_set.count()
+        url = 'arealevels-clear'
+        res = self.post(url, pk=self.area_level)
+        self.assert_http_403_forbidden(res)
+
+        self.profile.admin_access = True
+        self.profile.save()
+        res = self.post(url, pk=self.area_level)
+        self.assert_http_200_ok(res, f'{n_areas} Areas deleted')
+        self.assertEqual(area_level.area_set.count(), 0)
+
+
 
 class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
