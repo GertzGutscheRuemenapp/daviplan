@@ -20,6 +20,7 @@ RUN npm i -g @angular/cli@13
 WORKDIR /datentool/angular-frontend
 RUN npm install --force
 RUN ng build --stats_json --build-optimizer
+RUN rm -R node_modules/tmp
 
 WORKDIR /datentool
 RUN python -m pip install --upgrade pip && pip install -r requirements.txt
