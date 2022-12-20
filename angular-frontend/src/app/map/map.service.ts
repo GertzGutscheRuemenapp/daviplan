@@ -577,19 +577,19 @@ export class MapControl {
   }
 
   exportLegend(): void {
-    let entries: ({fillColor?: string, strokeColor?: string, symbol?: string, text: string, shiftX: number} | undefined)[] = [];
+    let entries: ({fillColor?: string, strokeColor?: string, symbol?: string, text: string, shiftX: number, textStyle?: string} | undefined)[] = [];
     this.layerGroups.filter(g => !g.external).forEach(group => {
       group.children.filter(l => (l instanceof VectorLayer) && l.visible).forEach(l => {
         const layer = l as VectorLayer;
         if (layer.legend?.entries) {
-          entries.push({ text: layer.name, shiftX: 0 });
+          entries.push({ text: layer.name, shiftX: 0, textStyle: 'bold' });
           entries = entries.concat(layer.legend!.entries.map(e => {
-            return { fillColor: e.color, strokeColor: e.strokeColor, symbol: layer.style?.symbol, text: e.label, shiftX: 20 }
+            return { fillColor: e.color, strokeColor: e.strokeColor, symbol: (layer.style?.symbol === 'line')? 'square': 'circle', text: e.label, shiftX: 20 }
           }));
         }
         else {
           entries.push({ fillColor: layer.style?.fillColor, strokeColor: layer.style?.strokeColor,
-                         symbol: layer.style?.symbol, text: layer.name, shiftX: 20 });
+                         symbol: layer.style?.symbol, text: layer.name, shiftX: 20, textStyle: 'bold' });
         }
         // empty row
         entries.push(undefined);
@@ -599,7 +599,6 @@ export class MapControl {
     canvas.width = 600;
     canvas.height = (entries.length + 1) * 20;
     const ctx = canvas.getContext("2d")!;
-    ctx.font = "12px sans-serif";
     entries.forEach((entry, i) => {
       if (!entry) return;
       if (entry.fillColor || entry.strokeColor) {
@@ -622,6 +621,10 @@ export class MapControl {
           ctx.stroke();
         }
       }
+      let font = `${entry.textStyle? entry.textStyle + ' ': ''}12px sans-serif`;
+      if (entry.textStyle)
+        font += ` `;
+      ctx.font = font;
       ctx.fillStyle = 'black';
       ctx.fillText(entry.text, 35 + entry.shiftX, 22 + (i * 20));
     })
@@ -635,8 +638,8 @@ export class MapControl {
   }
 
   exportTitleToClipboard(): void {
-    // current value of map description without HTML tags (resp. <br> to line break)
-    const description = this.mapDescription$.value.replace('<br>', '\n').replace(/<[^>]+>/g, '')
+    // current value of map description with <br> replaced with line break HTML, removed other HTML tags and replaced multiple spaces with single spaces
+    const description = this.mapDescription$.value.replace('<br>', '\n').replace(/<[^>]+>/g, '').replace(/  +/g, ' ');
     navigator.clipboard.writeText(description);
   }
 
