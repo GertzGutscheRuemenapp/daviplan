@@ -108,12 +108,13 @@ class ExcelTemplateMixin(RunProcessMixin):
 def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
     model = queryset.model
     manager = model.copymanager
+    qs_exists = queryset.exists()
     with transaction.atomic():
         if drop_constraints:
             manager.drop_constraints()
             manager.drop_indexes()
-        if (len(queryset)):
-            logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
+        if qs_exists:
+            logger.info(f'Lösche {queryset.count()} vorhandene Einträge')
             queryset.delete()
         try:
             if len(df):
@@ -129,6 +130,18 @@ def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             msg = repr(traceback.format_tb(exc_traceback))
+            msg_df = f'''
+            try to save DataFrame
+            {df}
+            columns: {df.columns}
+            dtypes: {df.dtypes}
+            shape: {df.shape}
+            first_row: {df.iloc[0]}
+            last_row: {df.iloc[-1]}
+            to model {model._meta.object_name}
+            with columns {model._meta.fields}
+            '''
+            msg = msg + msg_df
             logger.error(msg)
             raise Exception(msg)
 
