@@ -4,6 +4,7 @@ import pandas as pd
 
 from rest_framework import viewsets
 
+from django.db.models import Q
 from django.contrib.gis.geos import Point
 
 from drf_spectacular.utils import (extend_schema,
@@ -17,7 +18,10 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from datentool_backend.indicators.models import Stop
+from datentool_backend.indicators.models import (Stop,
+                                                 MatrixCellStop,
+                                                 MatrixStopStop,
+                                                 MatrixPlaceStop)
 
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
@@ -65,9 +69,28 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
         # read excelfile
         logger.info('Lese Excel-Datei')
         df = read_excel_file(excel_file, variant_id)
+        df.name.fillna('-', inplace=True)
 
         # write_df
         write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+
+    def perform_destroy(self, instance):
+        """
+        Delete the depending objects in MatrixCellStop and MatrixStopStop
+        in the database first to improve performance
+        """
+        stop_id = instance.pk
+        qs = MatrixCellStop.objects.filter(stop=stop_id)
+        qs.delete()
+
+        qs = MatrixPlaceStop.objects.filter(stop=stop_id)
+        qs.delete()
+
+        qs = MatrixStopStop.objects.filter(Q(from_stop=stop_id) |
+                                           Q(to_stop=stop_id))
+        qs.delete()
+
+        instance.delete()
 
 
 def read_excel_file(excel_file, variant) -> pd.DataFrame:

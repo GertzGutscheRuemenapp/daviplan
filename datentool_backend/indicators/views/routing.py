@@ -28,6 +28,7 @@ from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
 from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
                                                     write_template_df,
                                                     )
+from datentool_backend.utils.raw_delete import delete_chunks
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  run_sync, )
@@ -125,6 +126,14 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         # read excelfile
         logger.info('Lese Excel-Datei')
         df = read_traveltime_matrix(excel_or_visum_file, variant_id)
+
+        # delete existing matrix entries if exist
+        qs = MatrixStopStop.objects\
+            .select_related('from_stop')\
+            .select_related('to_stop')\
+            .filter(Q(from_stop__variant=variant_id) |
+                    Q(to_stop__variant=variant_id))
+        delete_chunks(qs, logger)
 
         # write_df
         write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
