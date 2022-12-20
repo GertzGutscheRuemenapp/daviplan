@@ -84,7 +84,7 @@
       <table>
         <tr>
           <td i18n>Anzahl Haltestellen: </td>
-          <td>{{statistics?.nStops?.toLocaleString() || '-'}}</td>
+          <td>{{(this.statistics?.nStops && this.selectedVariant)? (this.statistics!.nStops![this.selectedVariant.id]?.toLocaleString() || '-'): '-'}}</td>
         </tr>
       </table>
       <div style="display: flex; margin-top: 10px;">

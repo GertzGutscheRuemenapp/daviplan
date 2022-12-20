@@ -404,7 +404,7 @@ export interface LogEntry {
 export interface ModeStatistics {
   nPlaces: number,
   nCells: number,
-  nStops: number,
+  nStops: Record<number, number>,
   nRelsPlaceCellModevariant: Record<number, number>,
   nRelsPlaceStopModevariant: Record<number, number>,
   nRelsStopCellModevariant: Record<number, number>,

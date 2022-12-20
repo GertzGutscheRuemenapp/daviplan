@@ -382,10 +382,10 @@ class TestMatrixCreation(CreateTestdataMixin,
                              {walk.pk: 36,
                               self.transit.pk: 40,})
 
-        self.assertEqual(data['n_stops'], 383)
+        self.assertEqual(data['n_stops'], {self.transit.pk: 383})
         self.assertDictEqual(data['n_rels_place_stop_modevariant'],
-                             {self.transit.pk: 27,})
+                             {self.transit.pk: 27, })
         self.assertDictEqual(data['n_rels_stop_cell_modevariant'],
-                             {self.transit.pk: 34,})
+                             {self.transit.pk: 34, })
         self.assertDictEqual(data['n_rels_stop_stop_modevariant'],
-                             {self.transit.pk: 88412,})
+                             {self.transit.pk: 88412, })
