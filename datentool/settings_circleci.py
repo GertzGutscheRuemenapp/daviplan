@@ -41,3 +41,4 @@ OSRM_ROUTING = {
 LOGGING['loggers'] = {}
 # sync=True preserves database connections, disabled for circleci
 Q_CLUSTER['sync'] = False
+USE_DJANGO_Q = False

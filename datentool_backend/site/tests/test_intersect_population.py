@@ -1,9 +1,8 @@
 from test_plus import APITestCase
-from django.contrib.gis.geos import MultiPolygon
 from django.db.models import Sum
 
-from datentool_backend.api_test import (LoginTestCase
-                                        )
+from datentool_backend.api_test import LoginTestCase
+
 from datentool_backend.population.models import (RasterCell, RasterCellPopulation)
 from datentool_backend.population.factories import (PopulationRaster,
                                                     RasterFactory,

@@ -4,9 +4,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component';
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { InputCardComponent } from '../../../dash/input-card.component'
-import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { Infrastructure, InfrastructureAccess, User } from "../../../rest-interfaces";
 import { showAPIError } from "../../../helpers/utils";
@@ -35,7 +35,7 @@ export class UsersComponent implements AfterViewInit  {
   changePassword: boolean = false;
   showAccountPassword: boolean = false;
   showNewUserPassword: boolean = false;
-  isLoading$ = new BehaviorSubject<boolean>(false);
+  isLoading$ = new BehaviorSubject<boolean>(true);
 
   constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
               private rest: RestAPI) {
@@ -47,7 +47,6 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
-    this.isLoading$.next(true);
     this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       this.http.get<User[]>(this.rest.URLS.users).subscribe((users)=>{
@@ -151,7 +150,8 @@ export class UsersComponent implements AfterViewInit  {
         const ua = this.userAccess(this.selectedUser, infrastructure);
         const access = {
           infrastructure: infrastructure,
-          hasAccess: ua !== undefined
+          hasAccess: ua !== undefined,
+          allowSensitiveData: ua?.allowSensitiveData || false
         }
         accessControl[infrastructure.id] = this.formBuilder.group(access);
       })
@@ -164,7 +164,8 @@ export class UsersComponent implements AfterViewInit  {
         const control = this.accessForm.value[infrastructureId];
         if (control.hasAccess) {
           access.push({
-            infrastructure: infrastructureId
+            infrastructure: infrastructureId,
+            allowSensitiveData: control.allowSensitiveData
           })
         }
       })

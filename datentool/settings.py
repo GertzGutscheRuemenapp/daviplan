@@ -160,9 +160,9 @@ REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'BACKEND': 'channels_redis.pubsub.RedisPubSubChannelLayer',
         'CONFIG': {
-            "hosts": [(REDIS_HOST, REDIS_PORT)],
+            "hosts": [f'redis://{REDIS_HOST}:{REDIS_PORT}'],
         },
     },
 }
@@ -362,6 +362,8 @@ Q_CLUSTER = {
         'port': REDIS_PORT,
         'db': 0, }
 }
+
+USE_DJANGO_Q = True
 
 def load_stats_json():
     fn = os.path.join(FRONTEND_APP_DIR,

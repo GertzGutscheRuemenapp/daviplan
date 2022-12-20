@@ -38,6 +38,6 @@ SECRET_KEY = os.environ.get(
 ENCRYPT_KEY = os.environ.get('ENCRYPT_KEY',
                              '85Ao9Yoarq05G2p_QsD_zDg5FTdOc3OaA2SndOBP55s=')
 
-# set to True to run  django_q tasks synchronous in dev mode without
+# set to False to run django_q tasks synchronous in dev mode without
 # needing running seperate q-cluster
-Q_CLUSTER['sync'] = False
+USE_DJANGO_Q = True

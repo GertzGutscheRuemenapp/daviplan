@@ -11,9 +11,9 @@ from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixi
 from datentool_backend.indicators.views.routing import MatrixCellPlaceRouter
 from datentool_backend.modes.factories import ModeVariantFactory, Mode, ModeVariant
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.infrastructure.models.places import Capacity
+from datentool_backend.places.models import Capacity
 from datentool_backend.population.models import RasterCell
-from datentool_backend.user.models.process import ScenarioMode
+from datentool_backend.places.models import ScenarioMode
 from datentool_backend.indicators.compute.reachabilities import (
     reachability_bins_by_mode,
     reachability_colors,

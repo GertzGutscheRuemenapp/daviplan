@@ -1,12 +1,40 @@
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
-import { Service } from "../../rest-interfaces";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 
-// type Operator = '>' | '<' | '=' | '>=' | '<=';
+export function serializeFilter(filter: ColumnFilter): string {
+  const obj = {
+    value: filter.value,
+    active: filter.active,
+    operator: filter.operator,
+    classes: filter.hasOwnProperty('classes')? filter['classes' as keyof ColumnFilter]: [],
+    filterClass: filter.constructor.name
+  }
+  return JSON.stringify(obj);
+}
 
-enum Operator {
+export function deSerializeFilter(serialized: string): ColumnFilter | undefined {
+  let obj;
+  try {
+    obj = JSON.parse(serialized);
+  }
+  catch {
+    return;
+  }
+  switch (obj.filterClass) {
+    case 'NumFilter':
+      return new NumFilter({ value: obj.value, active: obj.active, operator: obj.operator });
+    case 'ClassFilter':
+      return new ClassFilter({ value: obj.value, active: obj.active, operator: obj.operator, classes: obj.classes });
+    case 'BoolFilter':
+      return new BoolFilter({ value: obj.value, active: obj.active, operator: obj.operator });
+    default:
+      return new StrFilter({ value: obj.value, active: obj.active, operator: obj.operator })
+  }
+}
+
+export enum FilterOperator {
   gt = '>',
   lt = '<',
   eq = '=',
@@ -15,6 +43,8 @@ enum Operator {
   in = 'in',
   contains = 'contains'
 }
+
+export type ColumnFilterType = 'CLA' | 'NUM' | 'STR' | 'BOOL';
 
 const opText: Record<any, string> = {
   '>': 'größer' ,
@@ -27,44 +57,42 @@ const opText: Record<any, string> = {
 }
 
 export interface FilterColumn {
-  name: string,
-  attribute?: string,
-  service?: Service,
-  type: 'CLA' | 'NUM' | 'STR' | 'BOOL',
-  classes?: string[],
-  filter?: Filter,
-  unit?: string
+  name: string;
+  type: ColumnFilterType;
+  classes?: string[];
+  filter?: ColumnFilter;
+  unit?: string;
+  changed: boolean;
 }
 
-abstract class Filter {
-  operator: Operator;
+export abstract class ColumnFilter {
+  operator: FilterOperator = FilterOperator.eq;
   active: boolean;
-  name = 'Filter';
+  name = 'ColumnFilter';
   value?: any;
-  allowedOperators: Operator[] = Object.values(Operator);
-  constructor(operator: Operator = Operator.eq, active = false) {
-    this.operator = operator;
-    this.active = active;
+  allowedOperators: FilterOperator[] = Object.values(FilterOperator);
+
+  constructor(options?: { operator?: FilterOperator, active?: boolean, value?: any }) {
+    if (options?.operator)
+      this.operator = options.operator;
+    if (options?.value !== undefined)
+      this.value = options.value;
+    this.active = !!options?.active;
   }
-  filterColumn(values: any[]): boolean[]{
-    if (!this.active) return Array(values.length).fill(true);
-    return values.map(v => this.filter(v));
-  };
   filter(value: any): boolean {
-    if (!this.active) return false;
     switch (this.operator) {
-      case Operator.gt:
+      case FilterOperator.gt:
         return (value > this.value);
-      case Operator.lt:
+      case FilterOperator.lt:
         return (value < this.value);
-      case Operator.eq:
+      case FilterOperator.eq:
         return (value == this.value);
-      case Operator.gte:
+      case FilterOperator.gte:
         return (value >= this.value);
-      case Operator.lte:
+      case FilterOperator.lte:
         return (value <= this.value);
-      case Operator.in:
-        if (!this.value) return true;
+      case FilterOperator.in:
+        if (this.value === undefined) return true;
         return this.value.split(',').indexOf(value) >= 0;
       default:
         return false;
@@ -74,10 +102,10 @@ abstract class Filter {
   getDescription(): string {
     let val;
     switch (this.operator) {
-      case Operator.in:
+      case FilterOperator.in:
         val = `(${this.value.split(',').length} Einträge)`;
         break;
-      case Operator.contains:
+      case FilterOperator.contains:
         val = `"${this.value}"`;
         break;
       default:
@@ -85,52 +113,56 @@ abstract class Filter {
     }
     return `${opText[this.operator]} ${val}`;
   }
+
+  clone(): ColumnFilter {
+    return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+  }
 }
 
-class StrFilter extends Filter {
+export class StrFilter extends ColumnFilter {
   name = 'Zeichenfilter';
-  value = '';
-  allowedOperators = [Operator.in, Operator.contains];
-
-  constructor(operator: Operator = Operator.in, active: boolean = false) {
-    super(operator, active);
-  }
-
+  allowedOperators = [FilterOperator.in, FilterOperator.contains];
   filter(value: string): boolean {
-    if (this.operator === Operator.contains)
+    if (this.operator === FilterOperator.contains)
       return value.indexOf(this.value) >= 0;
     return super.filter(value);
   }
 }
 
-class NumFilter extends Filter {
+export class NumFilter extends ColumnFilter {
   name = 'Zahlenfilter';
-  value = 0;
-  allowedOperators = [Operator.gt, Operator.lt, Operator.eq, Operator.gte, Operator.lte];
+  allowedOperators = [FilterOperator.gt, FilterOperator.lt, FilterOperator.eq, FilterOperator.gte, FilterOperator.lte];
 
   filter(value: number): boolean {
     return super.filter(value);
   }
 }
 
-class BoolFilter extends Filter {
+export class BoolFilter extends ColumnFilter {
   name = 'Booleanfilter';
   value = false;
+  allowedOperators = [FilterOperator.eq];
 
   filter(value: number | boolean): boolean {
     return this.value === !!value;
   }
+
+  getDescription(): string {
+    return this.value? 'Ja': 'Nein';
+  }
 }
 
-class ClassFilter extends Filter {
+export class ClassFilter extends ColumnFilter {
   name = 'Klassenfilter';
-  classes: string[];
-  allowedOperators = [Operator.in];
+  operator = FilterOperator.in;
+  classes: string[] = [];
+  allowedOperators = [FilterOperator.in];
   value = '';
 
-  constructor(classes: string[] = [], operator: Operator = Operator.eq, active: boolean = false) {
-    super(Operator.in, active);
-    this.classes = classes;
+  constructor(options?: { active?: boolean, value?: any, operator?: FilterOperator, classes?: string []}) {
+    super({ active: options?.active, value: options?.value, operator: options?.operator })
+    if (options?.classes)
+      this.classes = options.classes;
   }
 
   filter(value: string): boolean {
@@ -143,8 +175,7 @@ class ClassFilter extends Filter {
   templateUrl: './filter-table.component.html',
   styleUrls: ['../data-table/data-table.component.scss', './filter-table.component.scss']
 })
-export class FilterTableComponent implements OnInit {
-  @Output() filtersChanged = new EventEmitter<FilterColumn[]>();
+export class FilterTableComponent {
   @Input() maxTableHeight = '100%';
   _columns: FilterColumn[] = [];
   processedRows: any[][] = [];
@@ -156,9 +187,7 @@ export class FilterTableComponent implements OnInit {
   @ViewChild('classFilter') classFilter?: TemplateRef<any>;
   @ViewChild('boolFilter') boolFilter?: TemplateRef<any>;
   opText = opText;
-  Operator = Operator;
-
-  constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {}
+  Operator = FilterOperator;
 
   @Input() set columns (columns: FilterColumn[]){
     this._columns = columns;
@@ -170,9 +199,9 @@ export class FilterTableComponent implements OnInit {
         if (column.type === 'NUM')
           column.filter = new NumFilter();
         else if (column.type === 'STR')
-          column.filter = new StrFilter();
+          column.filter = new StrFilter({ operator: FilterOperator.in });
         else if (column.type === 'CLA')
-          column.filter = new ClassFilter(column.classes || []);
+          column.filter = new ClassFilter({ operator: FilterOperator.in, classes: column.classes });
         else if (column.type === 'BOOL')
           column.filter = new BoolFilter();
       })
@@ -187,6 +216,8 @@ export class FilterTableComponent implements OnInit {
     this._rows = rows;
     this.filterAndSort();
   };
+
+  constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {}
 
   toggleSort(col: number) {
     const prevOrder = this.sorting[col];
@@ -204,7 +235,7 @@ export class FilterTableComponent implements OnInit {
       this.openFilterDialog(col);
     else {
       column.filter.active = !column.filter.active;
-      this.emitChange();
+      column.changed = true;
       this.filterAndSort();
     }
   }
@@ -220,9 +251,12 @@ export class FilterTableComponent implements OnInit {
       unit: column.unit || '' ,
       filter: column.filter
     }
+    const formValue = (column.type === 'BOOL')? ((column.filter.value)? '1': '0'):
+                      (column.type === 'NUM')? column.filter.value || 0:
+                      column.filter.value || ''
     const formConfig: any = {
       operator: new FormControl(column.filter.operator),
-      value: new FormControl(column.filter.value || ((column.type === 'NUM')? 0: ''))
+      value: new FormControl(formValue)
     }
     if (column.type === 'CLA' || column.type === 'STR') {
       // take classes as options or all unique strings that contain sth different than whitespaces
@@ -251,23 +285,26 @@ export class FilterTableComponent implements OnInit {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.filterForm.markAllAsTouched();
       if (this.filterForm.invalid) return;
-      column.filter!.operator = this.filterForm.value.operator;
-      let value = this.filterForm.value.value;
-      if (column.type === 'BOOL') value = value === '1';
-      if (this.filterForm.value.operator === Operator.in) {
-        const checked = context['options'].filter((o: any, i: number) => this.filterForm.value.options[i]);
-        value = checked.join(',');
+      if (this.filterForm.value.operator === '-1') {
+        column.filter!.active = false;
       }
-      column.filter!.value = value;
-      column.filter!.active = true;
-      this.emitChange();
-      this.filterAndSort()
+      else {
+        let value = this.filterForm.value.value;
+        if (column.type === 'BOOL') value = value === '1';
+        if (this.filterForm.value.operator === FilterOperator.in) {
+          const checked = context['options'].filter((o: any, i: number) => this.filterForm.value.options[i]);
+          value = checked.join(',');
+        }
+        // no input > do nothing (keeping dialog open) ToDo: error message?
+        if (!value && value !== 0 && value !== false) return;
+        column.filter!.operator = this.filterForm.value.operator;
+        column.filter!.value = value;
+        column.filter!.active = true;
+      }
+      column.changed = true;
+      this.filterAndSort();
       dialogRef.close(true);
     });
-  }
-
-  private emitChange(): void {
-    this.filtersChanged.emit(this._columns.filter(col => col.filter?.active));
   }
 
   private filterAndSort(): void {
@@ -276,8 +313,10 @@ export class FilterTableComponent implements OnInit {
   }
 
   removeAllFilters(): void {
-    this._columns.forEach(column => column.filter!.active = false);
-    this.emitChange();
+    this._columns.forEach(column => {
+      if (column.filter!.active) column.changed = true;
+      column.filter!.active = false;
+    });
     this.filterAndSort();
   }
 
@@ -297,7 +336,7 @@ export class FilterTableComponent implements OnInit {
 
   private filter(rows: any[][]): any[][] {
     let filtered: any[][] = [];
-    const filters: [number, Filter][] = this._columns.map((column, i) => [i, column.filter!]);
+    const filters: [number, ColumnFilter][] = this._columns.map((column, i) => [i, column.filter!]);
     const activeFilters = filters.filter(ifs => ifs && ifs[1].active);
     if (activeFilters.length === 0) return [...rows];
     rows.forEach(row => {
@@ -313,7 +352,19 @@ export class FilterTableComponent implements OnInit {
     return filtered;
   }
 
-  ngOnInit(): void {
+  downloadCSV(filename: string): void {
+    // UTF-8 BOM
+    let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
+    csvContent += this._columns.map(c => c.name).join(';') + "\r\n";
+    this.processedRows.forEach(row => {
+      const rTxt = row.map(d => (typeof d === 'number')? d.toLocaleString(): d).join(';');
+      csvContent += rTxt + "\r\n";
+    });
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
   }
 
 }

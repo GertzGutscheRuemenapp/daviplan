@@ -4,7 +4,7 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ResultSerializer)
 from django.db.models import Min, F
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.infrastructure.models import Service
 from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 
 

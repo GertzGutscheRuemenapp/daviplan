@@ -1,5 +1,5 @@
 import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
@@ -14,7 +14,7 @@ import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { CookieService } from "../../../helpers/cookies.service";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { SideToggleComponent } from "../../../elements/side-toggle/side-toggle.component";
 
 @Component({
@@ -69,8 +69,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.layerGroup = new MapLayerGroup('', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('', { order: -1 });
     this.mapControl.setDescription('');
     if (this.populationService.isReady)
       this.initData();
@@ -217,7 +216,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const prognosis = (this.realYears.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
     const ageGroups = this.ageGroupSelection.selected;
-    const showLabel = (this.populationLayer?.showLabel !== undefined)? this.populationLayer.showLabel: true;
     this.layerGroup?.clear()
     this.updateMapDescription();
     this.layerGroup!.name = (this.compareYears)? 'Bevölkerungsentwicklung': 'Zahl der Einwohner:innen';
@@ -238,17 +236,17 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       let description = `<b>${this.getLayerDescription()}</b>
                          <br>Minimum: ${this.compareYears && min > 0?'+':''}${min.toLocaleString()} Ew.
                          <br>Maximum: ${this.compareYears && max > 0?'+':''}${max.toLocaleString()} Ew.`;
-      this.populationLayer = new VectorLayer(this.activeLevel!.name,{
+      this.populationLayer = this.layerGroup?.addVectorLayer(this.activeLevel!.name,{
+        id: 'pop-development',
+        visible: true,
         order: 0,
         description: description,
-        opacity: 1,
         style: {
           strokeColor: 'white',
           fillColor: 'rgba(165, 15, 21, 0.9)',
           symbol: 'circle'
         },
         labelField: 'value',
-        showLabel: showLabel,
         tooltipField: 'description',
         unit: 'Ew.',
         forceSign: this.compareYears,
@@ -278,7 +276,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         },
         labelOffset: { y: 15 }
       });
-      this.layerGroup?.addLayer(this.populationLayer);
       const hasProg = this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1;
       // "clone" areas and set values to them
       const displayedAreas: Area[] = this.areas.map(area => {
@@ -301,17 +298,17 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           }
         }
       })
-      this.populationLayer.addFeatures(displayedAreas,{
+      this.populationLayer?.addFeatures(displayedAreas,{
         properties: 'properties',
         zIndex: 'value'
       });
       if (this.activeArea)
-        this.populationLayer.selectFeatures([this.activeArea.id], { silent: true });
+        this.populationLayer?.selectFeatures([this.activeArea.id], { silent: true });
 
-      this.populationLayer!.featuresSelected.subscribe(features => {
+      this.populationLayer?.featuresSelected.subscribe(features => {
         this.setArea(this.areas.find(area => area.id === features[0].get('id')));
       })
-      this.populationLayer!.featuresDeselected.subscribe(features => {
+      this.populationLayer?.featuresDeselected.subscribe(features => {
         if (this.activeArea?.id === features[0].get('id'))
           this.setArea(undefined);
       })

@@ -1,13 +1,11 @@
 from test_plus import APITestCase
-from rest_framework import status
 
 from datentool_backend.api_test import (TestPermissionsMixin,
                                         BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin)
-from datentool_backend.user.factories import ProfileFactory
-from datentool_backend.site.factories import YearFactory
-from datentool_backend.site.models import Year
+
+from datentool_backend.site.factories import YearFactory, Year
 
 from faker import Faker
 faker = Faker('de-DE')

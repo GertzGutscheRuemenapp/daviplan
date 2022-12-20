@@ -11,7 +11,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.fields import FileField, IntegerField, BooleanField
 
-from datentool_backend.indicators.models import (Stop, MatrixStopStop)
+from datentool_backend.indicators.models import MatrixStopStop
 from datentool_backend.utils.processes import ProcessScope
 
 

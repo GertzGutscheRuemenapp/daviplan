@@ -1,10 +1,12 @@
+import tempfile
 import pandas as pd
 import os
 from datentool.settings_local import DATABASES
 
 def main():
-    folder = r'E:\tmp'
+    folder = tempfile.mkdtemp()
     fn = os.path.join(folder, 'datentool_tables.xlsx')
+    print(fn)
     DB = DATABASES['default']
     conn_str = f'postgresql+psycopg2://{DB["USER"]}:{DB["PASSWORD"]}@{DB["HOST"]}:{DB["PORT"]}/{DB["NAME"]}'
     table_name = 'django_content_type'

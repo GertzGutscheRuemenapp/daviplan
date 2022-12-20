@@ -1,8 +1,8 @@
 from django.db.models import Min
 from rest_framework import serializers
 
-from datentool_backend.infrastructure.models.infrastructures import Service
-from datentool_backend.infrastructure.models.places import Capacity
+from datentool_backend.infrastructure.models import Service
+from datentool_backend.places.models import Capacity
 
 class ServiceSerializer(serializers.ModelSerializer):
     max_capacity = serializers.IntegerField(read_only=True)

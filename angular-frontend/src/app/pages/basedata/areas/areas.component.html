@@ -16,13 +16,13 @@
                  infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Planungsraum definiert werden, bevor die Gebietseinteilungen bearbeitet werden können.">
   Fehler: Es ist kein Planungsraum definiert!
 </app-status-card>
-<app-status-card *ngIf="isProcessing">
+<app-status-card *ngIf="isProcessing$ | async">
   Es läuft gerade eine Berechnung im Bereich „Gebiete“
 </app-status-card>
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card [title]="'Gebietseinteilungen'"
-                    [disabled]="isProcessing || !projectArea"
+                    [disabled]="(isProcessing$ | async) || !projectArea"
                     subtitle="Administrative Ebenen aktivieren und/oder benutzerdefinierte Gebietseinteilung hinzufügen"
                     infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
                               <p>Nur aktive Gebietseinteilungen können außerhalb dieser Seite ausgewählt werden und in der Karte dargestellt werden. Die Aktivität kann über die Auswahlbox neben dem Namen der jeweiligen Gebietseinteilung umgeschaltet werden.</p>
@@ -109,7 +109,7 @@
         <button mat-button color="primary"
                 style="margin-left: 40px;"
                 class="mat-button-dv"
-                [disabled]="activeLevel?.isPreset || isProcessing"
+                [disabled]="activeLevel?.isPreset || (isProcessing$ | async) "
                 (click)="onDeleteAreaLevel()" i18n>
           <mat-icon>close</mat-icon>entfernen
         </button>
@@ -117,7 +117,7 @@
     </app-input-card>
     <app-input-card #editArealevelCard
                     [ngClass]="{'hidden': !activeLevel}"
-                    [disabled]="isProcessing || !projectArea"
+                    [disabled]="(isProcessing$ | async) || !projectArea"
                     [title]="'Eigenschaften der ausgewählten Gebietseinteilung'"
                     [editTemplate]="propertiesEdit"
                     [subtitle]="'In allen Karten der Anwendung so darstellen'"
@@ -164,7 +164,7 @@
       <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
                       [ngClass]="{'hidden': !activeLevel}"
                       width="450px"
-                      [disabled]="isProcessing || !projectArea"
+                      [disabled]="(isProcessing$ | async)  || !projectArea"
                       [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
                       '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Daten-Historie entnehmen.</p>':
                       '<p>Wenn die angezeigte Anzahl der Gebiete 0 ist, wurden noch keine Geodaten für diese benutzerdefinierte Gebietseinteilung hochgeladen. Klicken Sie auf „Shapefile (gezippt) oder Geopackage hochladen“, um der ausgewählte Gebietseinteilung räumliche Daten hinzuzufügen. Bereits hochgeladene Daten können Sie sich als Datentabelle oder in der Kartenvorschau anzeigen lassen.</p>' +
@@ -281,8 +281,11 @@
 <ng-template #propertiesEdit>
   <form [formGroup]="editLevelForm">
     <div style="min-height: 130px">
-      <mat-form-field appearance="fill" style="width: 100%">
-        <mat-label i18n>Name</mat-label>
+      <mat-form-field appearance="fill" style="width: 100%"
+                      [title]="activeLevel?.isPreset? 'Name unveränderlich für die vorgegebene administrative Ebenen': 'Name'">
+        <mat-label i18n>
+          Name <ng-container *ngIf="activeLevel?.isPreset">(unveränderlich)</ng-container>
+        </mat-label>
         <input matInput formControlName="name" required>
       </mat-form-field>
       <div *ngIf="!activeLevel?.isPreset" style="display: grid;">
@@ -308,7 +311,7 @@
         <div class="symbol square"
              [(colorPicker)]="colorSelection"
              [style.backgroundColor]="colorSelection"
-             style="cursor: pointer; align-self: center; margin-left: 15px;">
+             style="cursor: pointer; align-self: center; margin-left: 15px; border: 1px solid grey;">
         </div>
         <button mat-button color="primary"
                 [(colorPicker)]="colorSelection">

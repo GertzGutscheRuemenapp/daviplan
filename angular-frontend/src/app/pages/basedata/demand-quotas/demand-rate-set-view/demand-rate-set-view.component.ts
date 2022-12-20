@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { environment } from "../../../../../environments/environment";
 import { AgeGroup, DemandRate, DemandRateSet, Gender, Service } from "../../../../rest-interfaces";
 import { MultilineChartComponent, MultilineData } from "../../../../diagrams/multiline-chart/multiline-chart.component";
@@ -38,6 +38,8 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   unit: string = '';
   demandTypeLabel: string = '';
   maxValue: number = 100;
+  minYear: number = 0;
+  maxYear: number = 0;
   copyFromYear: number = 0;
   copyToYear: number = 0;
   interpolateFromYear: number = 0;
@@ -57,6 +59,8 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   @Input() set years(years: number[]) {
     this._years = years;
     if (years.length > 0) {
+      this.minYear = years[0];
+      this.maxYear = years[years.length-1];
       if (!this.year) this.year = years[0];
       this.copyToYear = this.interpolateToYear = years[years.length - 1];
       this.init();

@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(name='test')
+
 from django.test import TestCase
 from test_plus import APITestCase
 from unittest import skip
@@ -5,7 +8,8 @@ from unittest import skip
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
-                                        TestAPIMixin, TestPermissionsMixin)
+                                        TestAPIMixin,
+                                        TestPermissionsMixin)
 
 from .factories import (AgeGroupFactory,
                         GenderFactory,
@@ -13,7 +17,7 @@ from .factories import (AgeGroupFactory,
                         DemandRateFactory,
                         YearFactory
                         )
-from .models import (DemandRate, DemandRateSet)
+from .models import DemandRateSet
 from .constants import RegStatAgeGroup, RegStatAgeGroups
 
 from faker import Faker
@@ -169,7 +173,7 @@ class TestDemand(TestCase):
     def test_demand_rate_set(self):
         demand_rate_set = DemandRateSetFactory()
         demand_rate = DemandRateFactory(demand_rate_set=demand_rate_set)
-        print(demand_rate)
+        logger.debug(demand_rate)
 
 
 class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,

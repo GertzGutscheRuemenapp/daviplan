@@ -1,5 +1,7 @@
-<button mat-icon-button color="primary" class="filter-button small"
-        [ngClass]="{ inverted: infrastructure && planningService.placeFilterColumns[infrastructure.id] && planningService.placeFilterColumns[infrastructure.id].length > 0 }"
+<button mat-icon-button
+        color="warning"
+        class="filter-button small"
+        [ngClass]="{ inverted: planningService.getPlaceFilters(infrastructure).length > 0 }"
         [disabled]="!infrastructure"
         [ngbPopover]="filterPopover"
         placement="right"
@@ -41,18 +43,18 @@
                     color="primary" style="margin-top: -10px; margin-bottom: 5px;">
     Auch Standorte ohne Leistung "{{service?.name}}" anzeigen
   </mat-slide-toggle>
+  <button (click)="downloadCSV()">Als CSV speichern</button>
   <app-filter-table maxTableHeight="40vh" #filterTable
-                    (filtersChanged)="onFilterChange($event)"
-                    [columns]="columns"
+                    [columns]="_columnDescriptors"
                     [rows]="rows">
   </app-filter-table>
 </ng-template>
 
 <ng-template #filterPopover>
-  <ng-container *ngIf="infrastructure && planningService.placeFilterColumns[infrastructure.id] && planningService.placeFilterColumns[infrastructure.id].length > 0 else noFilter">
+  <ng-container *ngIf="planningService.getPlaceFilters(infrastructure).length > 0 else noFilter">
     <p><b>aktive Filter:</b></p>
-    <p *ngFor="let column of planningService.placeFilterColumns[infrastructure.id]">
-      {{column.name}} | {{column.filter!.getDescription()}}
+    <p *ngFor="let column of planningService.getPlaceFilters(infrastructure)">
+      {{column.name}} | {{column.filter.getDescription()}}
     </p>
   </ng-container>
   <ng-template #noFilter>

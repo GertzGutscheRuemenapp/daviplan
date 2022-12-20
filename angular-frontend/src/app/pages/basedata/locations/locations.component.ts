@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import {
   Infrastructure,
   Place,
@@ -14,14 +14,14 @@ import { BehaviorSubject, Subscription } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { showAPIError, sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { PlanningService } from "../../planning/planning.service";
 import { SettingsService } from "../../../settings.service";
+import { FloatingDialogComponent } from "../../../dialogs/floating-dialog/floating-dialog.component";
 
 interface PlaceEditField extends PlaceField {
   edited?: boolean;
@@ -34,7 +34,7 @@ interface PlaceEditField extends PlaceField {
   templateUrl: './locations.component.html',
   styleUrls: ['./locations.component.scss']
 })
-export class LocationsComponent implements AfterViewInit, OnDestroy {
+export class LocationsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   @ViewChild('editAttributesCard') editAttributesCard!: InputCardComponent;
@@ -51,13 +51,13 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   placesLayer?: VectorLayer;
   addPlaceMode = false;
   isLoading$ = new BehaviorSubject<boolean>(false);
+  isProcessing$ = new BehaviorSubject<boolean>(false);
   places?: Place[];
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   file?: File;
-  isProcessing = false;
   subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
@@ -66,11 +66,10 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.restService.reset();
   }
 
-  ngAfterViewInit(): void {
-    this.mapControl = this.mapService.get('base-locations-map');
-    this.layerGroup = new MapLayerGroup('Standorte', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+  ngOnInit() {
     this.isLoading$.next(true);
+    this.mapControl = this.mapService.get('base-locations-map');
+    this.layerGroup = this.mapControl.addGroup('Standorte', { order: -1 });
     this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
       this.fieldTypes = fieldTypes;
       this.restService.getInfrastructures().subscribe(infrastructures => {
@@ -79,8 +78,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       })
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
-      this.isProcessing = bs.processes?.routing || false;
+      this.isProcessing$.next(bs.processes?.routing || false);
     }));
+  }
+
+  ngAfterViewInit(): void {
     this.setupAttributeCard();
   }
 
@@ -127,16 +129,14 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    const showLabel = (this.placesLayer?.showLabel !== undefined)? this.placesLayer.showLabel: true;
     if (this.placesLayer) {
       this.layerGroup?.removeLayer(this.placesLayer);
       this.placesLayer = undefined;
     }
     if (!this.places) return;
-    this.placesLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+    this.placesLayer = this.layerGroup?.addVectorLayer(this.selectedInfrastructure!.name, {
         order: 0,
         description: this.selectedInfrastructure!.name,
-        opacity: 1,
         style: {
           fillColor: '#2171b5',
           strokeColor: 'black',
@@ -149,11 +149,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           enabled: true,
           multi: true
         },
-        showLabel: showLabel,
         labelOffset: { y: 15 },
       });
-    this.layerGroup?.addLayer(this.placesLayer);
-    this.placesLayer.addFeatures(this.places.map(place => { return {
+    this.placesLayer?.addFeatures(this.places.map(place => { return {
       id: place.id, geometry: place.geom, properties: { name: place.name } }}));
     this.placesLayer?.featuresSelected?.subscribe(features => {
       features.forEach(f => this.selectPlace(f.get('id'), true));
@@ -182,8 +180,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   showPlaceDialog(): void {
     if (this.placeDialogRef && this.placeDialogRef.getState() === 0)
       return;
-    this.placeDialogRef = this.dialog.open(FloatingDialog, {
-      panelClass: 'help-container',
+    this.placeDialogRef = this.dialog.open(FloatingDialogComponent, {
+      panelClass: 'floating-container',
       hasBackdrop: false,
       autoFocus: false,
       data: {
@@ -304,7 +302,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   addField(): void {
     this.editFields?.push({
-      name: '', label: '', unit: '',// sensitive: false,
+      name: '', label: '', unit: '', sensitive: false,
       fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
       new: true, removed: false
     })
@@ -350,11 +348,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       formData.append('infrastructure', this.selectedInfrastructure!.id.toString());
       formData.append('excel_file', this.file);
       const url = `${this.rest.URLS.places}upload_template/`;
-      this.isProcessing = true;
+      this.isProcessing$.next(true);
       this.http.post(url, formData).subscribe(res => {
       }, error => {
         showAPIError(error, this.dialog);
-        this.isProcessing = false;
+        this.isProcessing$.next(false);
       });
     });
   }
@@ -390,7 +388,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.onInfrastructureChange({ reset: true });
     }
   }

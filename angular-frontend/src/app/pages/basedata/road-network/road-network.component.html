@@ -26,13 +26,13 @@
   <b>Historie</b>
   <p>Über die Historie können Sie sehen, welche der vorstehenden Arbeitsschritte bereits zu einem früheren Zeitpunkt durchgeführt wurden. Anhand dieser Informationen können Sie entscheiden, ob Datenänderungen an anderer Stelle (z.B. neu hinzugekommene Standorte) ggf. eine Neuberechnung der Reisezeitmatrizen erforderlich machen.</p>
 </app-header-card>
-<app-status-card *ngIf="isProcessing">
+<app-status-card *ngIf="isProcessing$ | async">
   Es läuft gerade eine Berechnung im Bereich „Erreichbarkeiten“
 </app-status-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="450px">
     <app-input-card [title]="'Schritt 1: OpenStreetMap-Straßennetz herunterladen'"
-                    [disabled]="isProcessing"
+                    [disabled]="!!(isProcessing$ | async)"
                     infoText="<p>Über die Schaltfläche „Basisnetz herunterladen“ wird das aktuelle Straßennetz auf den Server heruntergeladen. Das OSM-Netz wird für die Ausführung von Schritt 2 benötigt.</p>">
       <div>
         Status: {{baseDataSettings?.routing?.baseNet? 'Basisnetz vorhanden': 'Basisnetz nicht vorhanden'}}
@@ -46,7 +46,7 @@
       </button>
     </app-input-card>
     <app-input-card [title]="'Schritt 2: Mit Planungsraum verschneiden'"
-                    [disabled]="isProcessing"
+                    [disabled]="!!(isProcessing$ | async)"
                     infoText="<p>Das OSM-Straßennetz wird in diesem Schritt mit dem Planungsraum inklusive einem Puffer von 30 km verschnitten und anschließend für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ mit der Erzeugung separater Router optimiert.</p>
                               <p>Mit einem Klick auf die Schaltfläche „Straßennetz verschneiden“ wird der Vorgang gestartet.</p>
                               <p>Das verschnittene Netz wird für die Berechnung der Reisezeiten in Schritt 3 benötigt.">
@@ -62,7 +62,7 @@
       </button>
     </app-input-card>
     <app-input-card [title]="'Schritt 3: Reisezeitmatrizen Fuß, Rad und Auto erzeugen\n'"
-                    [disabled]="isProcessing"
+                    [disabled]="!!(isProcessing$ | async)"
                     infoText="<p>In diesem Schritt werden die Reisezeitmatrizen für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ berechnet. </p>
                               <p>Die berechneten Matrizen werden für die Erreichbarkeitsanalyse in der Infrastrukturplanung benötigt.</p>">
       <table>

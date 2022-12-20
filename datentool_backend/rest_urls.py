@@ -1,10 +1,10 @@
 from rest_framework import routers
-from datentool_backend.user.views import UserViewSet
-from datentool_backend.site.views import (SiteSettingViewSet,
-                                          ProjectSettingViewSet,
-                                          BaseDataSettingViewSet,
-                                          MatrixStatisticsViewSet,
-                                          YearViewSet)
+
+from .site.views import (SiteSettingViewSet,
+                         ProjectSettingViewSet,
+                         BaseDataSettingViewSet,
+                         MatrixStatisticsViewSet,
+                         YearViewSet)
 
 from .area.views import (LayerGroupViewSet,
                          WMSLayerViewSet,
@@ -18,7 +18,9 @@ from .demand.views import (GenderViewSet,
                            AgeGroupViewSet,
                            DemandRateSetViewSet)
 
-from .modes.views import NetworkViewSet, ModeVariantViewSet
+from .modes.views import (NetworkViewSet,
+                          ModeVariantViewSet)
+
 from .indicators.views import (RouterViewSet,
                                FixedIndicatorViewSet,
                                StopViewSet,
@@ -28,13 +30,19 @@ from .indicators.views import (RouterViewSet,
                                MatrixPlaceStopViewSet,
                                )
 
-from .infrastructure.views import (PlaceViewSet,
-                                   CapacityViewSet,
-                                   PlaceFieldViewSet,
-                                   InfrastructureViewSet,
-                                   ServiceViewSet
+from .infrastructure.views import (InfrastructureViewSet,
+                                   ServiceViewSet,
                                    )
+
+from .places.views import (PlaceViewSet,
+                           CapacityViewSet,
+                           PlaceFieldViewSet,
+                           PlanningProcessViewSet,
+                           ScenarioViewSet,
+                           )
+
 from .logging.views import LogViewSet
+
 from .population.views import (RasterViewSet,
                                RasterCellViewSet,
                                PopulationRasterViewSet,
@@ -43,7 +51,8 @@ from .population.views import (RasterViewSet,
                                PopulationEntryViewSet,
                                PopStatisticViewSet,
                                PopStatEntryViewSet)
-from .user.views import PlanningProcessViewSet, ScenarioViewSet
+
+from .user.views import UserViewSet
 
 
 class SingletonRouter(routers.SimpleRouter):

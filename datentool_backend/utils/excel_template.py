@@ -4,20 +4,17 @@ from distutils.util import strtobool
 from typing import Dict
 import sys
 import traceback
-import logging
 import pandas as pd
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
 
 from django.http import HttpResponse
 from django.db import transaction
 
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
-from rest_framework import status, serializers
-from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
+from datentool_backend.utils.processes import RunProcessMixin
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
 from datentool_backend.utils.permissions import HasAdminAccess, CanEditBasedata
 
@@ -26,7 +23,7 @@ class ColumnError(Exception):
     pass
 
 
-class ExcelTemplateMixin:
+class ExcelTemplateMixin(RunProcessMixin):
     """Mixin to download and upload excel-templates"""
     serializer_action_classes = {}
 
@@ -77,45 +74,24 @@ class ExcelTemplateMixin:
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
         serializer = self.get_serializer()
-        logger = getattr(serializer, 'logger', logging.getLogger(__name__))
+
         if queryset is None:
             queryset = serializer.get_queryset(request) \
                 if hasattr(serializer, 'get_queryset') else self.get_queryset()
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
-        run_sync = bool(strtobool(request.data.get('sync', 'False')))
+        params = self.get_read_excel_params(request)
 
-        with ProtectedProcessManager(
-            user=request.user,
-            scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
-            params = self.get_read_excel_params(request)
-
-            # workaround: if post requesting is required, do all the writing
-            # of data before synchronously
-            # did not manage to pass both into async
-            try:
-                ppm.run(self.process_excelfile,
-                        queryset,
-                        logger,
-                        drop_constraints=drop_constraints,
-                        sync=run_sync,
-                        **params)
-            except (ColumnError, AssertionError, ValueError, ConnectionError) as e:
-                msg = str(e)
-                logger.error(msg)
-                return Response({'Fehler': msg},
-                                status=status.HTTP_406_NOT_ACCEPTABLE)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({'message': 'Upload gestartet'},
-                        status=status.HTTP_202_ACCEPTED)
+        return self.run_sync_or_async(func=self.process_excelfile,
+                                      user=request.user,
+                                      scope=serializer.scope,
+                                      queryset=queryset,
+                                      drop_constraints=drop_constraints,
+                                      **params)
 
     def get_read_excel_params(self, request) -> Dict:
         params = dict()
         return params
-
 
     @abstractstaticmethod
     def process_excelfile(queryset,
@@ -123,9 +99,10 @@ class ExcelTemplateMixin:
                           drop_constraints=False,
                           **params):
         # read excelfile
+        df = pd.DataFrame()
         # write_df
-        # postprocess (optional)
         write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+        # postprocess (optional)
 
 
 def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):

@@ -8,12 +8,11 @@ from django.db.models import Max, Min
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
-from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from django.core.exceptions import PermissionDenied, BadRequest
+from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from datentool_backend.utils.crypto import decrypt
@@ -21,7 +20,9 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
 from datentool_backend.utils.pop_aggregation import (
-    intersect_areas_with_raster, aggregate_population, aggregate_many,
+    intersect_areas_with_raster,
+    aggregate_population,
+    aggregate_many,
     disaggregate_population)
 from datentool_backend.utils.regionalstatistik import Regionalstatistik
 from datentool_backend.population.models import (
@@ -40,13 +41,13 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  area_level)
 from datentool_backend.population.serializers import (
-    PrognosisSerializer, PopulationSerializer, PopulationDetailSerializer,
-    PopulationEntrySerializer, PopulationTemplateSerializer,
-    prognosis_id_serializer, area_level_id_serializer, years_serializer)
+    PrognosisSerializer,
+    PopulationSerializer,
+    PopulationDetailSerializer,
+    )
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
-from datentool_backend.utils.processes import (ProcessScope,
-                                               ProtectedProcessManager)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 
 import logging
 
@@ -67,7 +68,7 @@ class PopulationFilter(filters.FilterSet):
         fields = ['is_prognosis']
 
 
-class PopulationViewSet(viewsets.ModelViewSet):
+class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
     queryset = Population.objects.all()
     serializer_class = PopulationSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
@@ -263,23 +264,22 @@ class PopulationViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         drop_constraints = request.data.get('drop_constraints', False)
-        run_sync = request.data.get('sync', False)
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.POPULATION) as ppm:
-            try:
-                ppm.run(self._pull_regionalstatistik, area_level,
-                        drop_constraints=drop_constraints, sync=run_sync)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({
-            'message': f'Abruf der Bevölkerungsdaten gestartet'
-            }, status=status.HTTP_202_ACCEPTED)
+        msg_start = 'Abruf der Bevölkerungsdaten gestartet'
+        msg_end = 'Abruf der Bevölkerungsdaten beendet'
+        return self.run_sync_or_async(func=self._pull_regionalstatistik,
+                                      user=request.user,
+                                      scope=ProcessScope.POPULATION,
+                                      area_level=area_level,
+                                      drop_constraints=drop_constraints,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
+                                      )
 
     @staticmethod
-    def _pull_regionalstatistik(area_level: AreaLevel, drop_constraints=False):
+    def _pull_regionalstatistik(area_level: AreaLevel,
+                                logger: logging.Logger,
+                                drop_constraints=False):
         CHUNK_SIZE = 10
         areas = Area.annotated_qs(area_level).filter(area_level=area_level)
 

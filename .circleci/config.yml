@@ -1,11 +1,13 @@
 version: 2.1
+orbs:
+  codecov: codecov/codecov@3.2.4
 machine:
   environment:
     DJANGO_SETTINGS_MODULE: datentool.settings_circleci
 jobs:
   django testing:
     docker:
-      - image: gertzgutscheruemenapp/daviplan:testing-p3.8
+      - image: gertzgutscheruemenapp/daviplan:testing
       - image: gertzgutscheruemenapp/osrm-flask
       - image: circleci/postgres:13-postgis-ram
         environment:
@@ -18,7 +20,7 @@ jobs:
       - run:
           name: Resolve Python dependencies
           command: |
-            pip install -r requirements.txt
+            python -m pip install -r requirements.txt
       - run:
           name: Install wget
           command: apt-get install wget
@@ -45,7 +47,14 @@ jobs:
       - run:
           name: Run tests
           command: |
-            python manage.py test --settings=datentool.settings_circleci
+            coverage run --source='.' manage.py test --settings=datentool.settings_circleci
+      - store_test_results:
+          path: test-reports/
+      - run:
+          name: Create Coverage Report
+          command: coverage json
+      - codecov/upload:
+          file: '/root/project/coverage.json'
 
 workflows:
   version: 2

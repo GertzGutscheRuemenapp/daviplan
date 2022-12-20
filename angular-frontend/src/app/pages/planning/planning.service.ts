@@ -5,7 +5,7 @@ import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import {
-  Capacity,
+  Capacity, FieldType,
   Indicator,
   Infrastructure,
   Place,
@@ -16,21 +16,23 @@ import {
 } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
-import { FilterColumn } from "../../elements/filter-table/filter-table.component";
+import { ColumnFilter, deSerializeFilter, serializeFilter } from "../../elements/filter-table/filter-table.component";
 import { map } from "rxjs/operators";
 import { wktToGeom } from "../../helpers/utils";
 import { Geometry } from "ol/geom";
-import { reset } from "ol/transform";
+
+export type PlaceFilter = { name: string, property?: string, service?: number, field?: string, filter: ColumnFilter };
 
 @Injectable({
   providedIn: 'root'
 })
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
-  placeFilterColumns: Record<number, FilterColumn[]> = {};
-  ignoreCapacitySupplyFilter: boolean = false;
+  private placeFilters: Record<number, PlaceFilter[]> = {};
+  // private placeFilters: Record<number, { attribute: string, service: Service, filter: ColumnFilter }[]> = {};
   // cache already requested capacities: {scenario_id: {service_id: {year: capacity}}}
   private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
+  private fieldTypes: FieldType[] = [];
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
@@ -44,11 +46,19 @@ export class PlanningService extends RestCacheService {
   showScenarioMenu = false;
   scenarioChanged = new EventEmitter<Scenario>();
 
-  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService) {
+  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
+              private cookies: CookieService) {
     super(http, rest);
     // store the current states in variables, easier to access than subscribing to observables
     // could also be done later with [...].pipe(take(1)).subscribe(...), easier by remembering in separate variable
-    this.activeInfrastructure$.subscribe(infrastructure => this.activeInfrastructure = infrastructure);
+    this.getFieldTypes().pipe(map(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+    }))
+    this.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+      if (infrastructure)
+        this.placeFilters[infrastructure.id] = this.restoreFilters(infrastructure);
+    });
     this.activeService$.subscribe(service => this.activeService = service);
     this.year$.subscribe(year => this.activeYear = year);
     this.activeProcess$.subscribe(process => this.activeProcess = process);
@@ -270,22 +280,69 @@ export class PlanningService extends RestCacheService {
     return cap?.capacity || 0;
   }
 
+  /**
+   * restore filters for given infrastructure from cookies
+   */
+  restoreFilters(infrastructure: Infrastructure): PlaceFilter[] {
+    const serialized = this.cookies.get(`planning-filter-${infrastructure.id}`, 'json') || [];
+    const filters: PlaceFilter[] = [];
+    serialized.forEach((obj: any) => {
+      if (!obj || !obj.filter) return;
+      const columnFilter = deSerializeFilter(obj.filter);
+      if (!columnFilter) return;
+      filters.push({
+        name: obj.name,
+        service: obj.service,
+        property: obj.property,
+        field: obj.field,
+        filter: columnFilter
+      })
+    })
+    return filters;
+  }
+
+  setPlaceFilters(infrastructure: Infrastructure, placeFilters: PlaceFilter[]): void{
+    this.placeFilters[infrastructure.id] = placeFilters;
+    let filtersSerialized = placeFilters.map(pf => {
+      let clone: any = Object.assign({}, pf);
+      // serialize the filter object
+      clone.filter = serializeFilter(pf.filter);
+      return clone;
+    })
+    this.cookies.set(`planning-filter-${infrastructure.id}`, filtersSerialized, {type: 'json'});
+  }
+
+  getPlaceFilters(infrastructure: Infrastructure | undefined): PlaceFilter[] {
+    if (!infrastructure) return [];
+    return (this.placeFilters[infrastructure.id] || []).filter(pf => pf.filter.active);
+  }
+
   private _filterPlace(place: Place): boolean {
     if (!this.activeInfrastructure) return false;
-    const filterColumns = this.placeFilterColumns[this.activeInfrastructure.id] || [];
-    if (filterColumns.length === 0) return true;
-    let match = false;
+    const filterColumns = this.getPlaceFilters(this.activeInfrastructure);
+    // all filters have to match (AND-linked in loop)
+    let match = true;
+    // cloned place with current capacity
     filterColumns.forEach((filterColumn, i) => {
-      const filter = filterColumn.filter!;
+      // service capacity filter
       if (filterColumn.service) {
-        const cap = this.getPlaceCapacity(place, { service: filterColumn.service });
-        if (!filter.filter(cap)) return;
+        const service = this.activeInfrastructure!.services.find(s => s.id === filterColumn.service);
+        const cap = this.getPlaceCapacity(place, { service: service });
+        match = match && filterColumn.filter.filter(cap);
       }
-      else if (filterColumn.attribute) {
-        const value = (filterColumn.attribute === '_placeName_')? place.name: place.attributes[filterColumn.attribute];
-        if (!filter.filter(value)) return;
+      // field filter
+      else if (filterColumn.field) {
+        const value = place.attributes[filterColumn.field];
+        match = match && filterColumn.filter.filter(value);
       }
-      if (i === filterColumns.length - 1) match = true;
+      // property filter
+      else if (filterColumn.property){
+        // if no property was given take the given name as a last resort
+        if (place.hasOwnProperty(filterColumn.property)) {
+          const value = place[filterColumn.property as keyof Place];
+          match = match && filterColumn.filter.filter(value);
+        }
+      }
     })
     return match;
   }

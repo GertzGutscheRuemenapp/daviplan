@@ -9,7 +9,7 @@ from datentool_backend.indicators.compute.population import PopulationIndicatorM
 from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 from datentool_backend.population.models import AreaCell
 
-from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.infrastructure.models import Service
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.area.models import Area
 
