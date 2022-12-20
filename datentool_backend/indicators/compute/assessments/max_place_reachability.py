@@ -4,7 +4,8 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ResultSerializer)
 
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.infrastructure.models.places import Place, Service
+from datentool_backend.infrastructure.models import Service
+from datentool_backend.places.models import Place
 from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 
 

@@ -21,8 +21,7 @@ from datentool_backend.population.models import (
 from rest_framework.response import Response
 from datentool_backend.utils.crypto import decrypt
 
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  )
@@ -38,7 +37,7 @@ import logging
 logger = logging.getLogger('population')
 
 
-class PopStatisticViewSet(viewsets.ModelViewSet):
+class PopStatisticViewSet(RunProcessMixin, viewsets.ModelViewSet):
     queryset = PopStatistic.objects.all()
     serializer_class = PopStatisticSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
@@ -74,23 +73,22 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         drop_constraints = request.data.get('drop_constraints', False)
-        run_sync = request.data.get('sync', False)
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.POPULATION) as ppm:
-            try:
-                ppm.run(self._pull_regionalstatistik, area_level,
-                        drop_constraints=drop_constraints, sync=run_sync)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({
-            'message': f'Abruf der Bevölkerungsstatistiken gestartet'
-            }, status=status.HTTP_202_ACCEPTED)
+        msg_start = 'Abruf der Bevölkerungsstatistiken gestartet'
+        msg_end = 'Abruf der Bevölkerungsstatistiken beendet'
+        return self.run_sync_or_async(func=self._pull_regionalstatistik,
+                                      user=request.user,
+                                      scope=ProcessScope.POPULATION,
+                                      area_level=area_level,
+                                      drop_constraints=drop_constraints,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
+                                      )
 
     @staticmethod
-    def _pull_regionalstatistik(area_level: AreaLevel, drop_constraints=False):
+    def _pull_regionalstatistik(area_level: AreaLevel,
+                                logger:logging.Logger,
+                                drop_constraints=False):
         logger.info('Frage Bevölkerungsstatistiken von der '
                     'Regionalstatistik ab')
         min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
@@ -172,6 +170,7 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
         msg = ('Abfrage der Bevölkerungsstatistiken von der '
                'Regionalstatistik erfolgreich')
         logger.info(msg)
+
 
 class PopStatEntryFilter(filters.FilterSet):
     year = filters.NumberFilter(field_name='popstatistic__year__year',

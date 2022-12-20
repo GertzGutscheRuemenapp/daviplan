@@ -5,8 +5,6 @@ from rest_framework.response import Response
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 
-from .excel_template import ExcelTemplateMixin
-
 
 class SingletonViewSet(viewsets.ModelViewSet):
     model_class = None

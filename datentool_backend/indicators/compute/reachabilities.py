@@ -3,9 +3,9 @@ from django.db.models import F, Min
 from datentool_backend.indicators.compute.base import (ComputeIndicator,
                                                        ResultSerializer)
 from datentool_backend.modes.models import Mode, ModeVariant
-from datentool_backend.user.models.process import ScenarioMode, Scenario
+from datentool_backend.places.models import ScenarioMode
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.infrastructure.models.places import Place, Capacity
+from datentool_backend.places.models import Place, Capacity
 
 
 class ModeVariantMixin:

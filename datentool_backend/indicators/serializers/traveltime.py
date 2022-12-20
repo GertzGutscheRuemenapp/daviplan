@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-from tempfile import mktemp
 import logging
 
 from openpyxl.worksheet.worksheet import Worksheet
@@ -12,9 +11,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.fields import FileField, IntegerField, BooleanField
 
-from matrixconverters.read_ptv import ReadPTVMatrix
-
-from datentool_backend.indicators.models import (Stop, MatrixStopStop)
+from datentool_backend.indicators.models import MatrixStopStop
 from datentool_backend.utils.processes import ProcessScope
 
 
@@ -77,43 +74,3 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
         content = open(fn, 'rb').read()
         return content
 
-    def read_excel_file(self, request) -> pd.DataFrame:
-        """read excelfile and return a dataframe"""
-        excel_or_visum_file = request.FILES['excel_or_visum_file']
-        variant = int(request.data.get('variant'))
-
-        try:
-            df = pd.read_excel(excel_or_visum_file.file,
-                               sheet_name='Reisezeit',
-                               skiprows=[1])
-
-        except ValueError as e:
-            # read PTV-Matrix
-            fn = mktemp(suffix='.mtx')
-            with open(fn, 'wb') as tfile:
-                tfile.write(excel_or_visum_file.file.read())
-            da = ReadPTVMatrix(fn)
-            os.remove(fn)
-
-            df = da['matrix'].to_dataframe()
-            df = df.loc[df['matrix']<999999]
-            df.index.rename(['from_stop', 'to_stop'], inplace=True)
-            df.rename(columns={'matrix': 'minutes',}, inplace=True)
-            df.reset_index(inplace=True)
-
-        # assert the stopnumbers are in stops
-        cols = ['id', 'name', 'hstnr']
-        df_stops = pd.DataFrame(Stop.objects.filter(variant=variant).values(*cols),
-                                columns=cols)\
-            .set_index('hstnr')
-        assert df['from_stop'].isin(df_stops.index).all(), 'Von-Haltestelle nicht in Haltestellennummern'
-        assert df['to_stop'].isin(df_stops.index).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
-
-        df = df\
-            .merge(df_stops['id'].rename('from_stop_id'),
-                      left_on='from_stop', right_index=True)\
-            .merge(df_stops['id'].rename('to_stop_id'),
-                      left_on='to_stop', right_index=True)
-
-        df = df[['from_stop_id', 'to_stop_id', 'minutes']]
-        return df

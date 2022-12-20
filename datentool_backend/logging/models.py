@@ -1,6 +1,6 @@
 from django.db import models
 from datentool_backend.base import NamedModel
-from datentool_backend.user.models.profile import Profile
+from datentool_backend.user.models import Profile
 
 
 class LogEntry(NamedModel, models.Model):

@@ -6,16 +6,19 @@ from typing import List
 from django.db import transaction
 from django.db.models import Max, Sum, F
 
-from datentool_backend.models import (Area, PopulationRaster, AreaCell,
-                                      AreaLevel, Population,
+from datentool_backend.area.models import Area, AreaLevel
+from datentool_backend.population.models import (
+                                      PopulationRaster,
+                                      AreaCell,
+                                      Population,
                                       PopulationAreaLevel,
                                       AreaPopulationAgeGender,
                                       RasterCellPopulationAgeGender,
                                       RasterCellPopulation)
 
 import logging
-
 logger = logging.getLogger('population')
+
 
 def disaggregate_population(population: Population,
                             use_intersected_data: bool=False,
@@ -111,6 +114,7 @@ def disaggregate_population(population: Population,
         )
     return msg
 
+
 def intersect_areas_with_raster(
     areas: List[Area],
     pop_raster: PopulationRaster=None,
@@ -196,6 +200,7 @@ def intersect_areas_with_raster(
         AreaCell.copymanager.from_csv(file,
             drop_constraints=drop_constraints, drop_indexes=drop_constraints)
 
+
 def aggregate_many(area_levels, populations, drop_constraints=False):
 
     manager = AreaPopulationAgeGender.copymanager
@@ -224,6 +229,7 @@ def aggregate_many(area_levels, populations, drop_constraints=False):
         if drop_constraints:
             manager.restore_constraints()
             manager.restore_indexes()
+
 
 def aggregate_population(area_level: AreaLevel, population: Population,
                          drop_constraints=False):

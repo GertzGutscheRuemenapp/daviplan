@@ -2,11 +2,10 @@ from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
 from datentool_backend.area.models import AreaLevel, Area
-from datentool_backend.user.models.process import Scenario
+from datentool_backend.infrastructure.models import Service
+from datentool_backend.places.models import Scenario
 from datentool_backend.population.models import Prognosis
-from datentool_backend.infrastructure.models.infrastructures import Service
 from datentool_backend.demand.models import AgeGroup, Gender
-from datentool_backend.modes.models import Mode
 
 
 arealevel_year_service_scenario_serializer = inline_serializer(

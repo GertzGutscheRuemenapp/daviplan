@@ -17,9 +17,9 @@ from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  Prognosis,
                                                  Year,
                                                  )
-from datentool_backend.user.models.process import Scenario, ScenarioService
+from datentool_backend.places.models import Scenario, ScenarioService
 from datentool_backend.demand.models import DemandRateSet, DemandRate
-from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.infrastructure.models import Service
 
 
 class PopulationIndicatorMixin:

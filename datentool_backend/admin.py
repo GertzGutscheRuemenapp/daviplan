@@ -7,3 +7,4 @@ import datentool_backend.infrastructure.admin
 import datentool_backend.population.admin
 import datentool_backend.site.admin
 import datentool_backend.demand.admin
+import datentool_backend.places.admin

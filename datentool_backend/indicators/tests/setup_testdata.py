@@ -14,12 +14,14 @@ from datentool_backend.infrastructure.factories import (
     InfrastructureFactory,
     Infrastructure,
     ServiceFactory,
-    PlaceFactory,
     ServiceFactory,
     Service,
+    )
+from datentool_backend.places.factories import (
+    PlaceFactory,
     CapacityFactory)
-from datentool_backend.user.factories import PlanningProcess, ScenarioFactory
-from datentool_backend.user.models.process import ScenarioService
+from datentool_backend.places.factories import PlanningProcess, ScenarioFactory
+from datentool_backend.places.models import ScenarioService
 
 from datentool_backend.population.models import Year, Population
 from datentool_backend.demand.models import (Gender,
@@ -294,7 +296,6 @@ class CreateTestdataMixin:
 
     @classmethod
     def create_raster_population(cls):
-        year0 = Year.objects.get(is_default=True)
         cls.popraster = PopulationRasterFactory()
         raster: Raster = cls.popraster.raster
 

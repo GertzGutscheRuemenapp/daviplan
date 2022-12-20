@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(name='test')
+
 from unittest import skipIf
 from collections import OrderedDict
 from django.test import TestCase
@@ -82,7 +85,8 @@ class TestWfs(LoginTestCase, APITestCase):
                       kwargs={'pk': self.area_level_no_wfs.id})
         response = self.post(url, {'sync': True},
                              extra={'format': 'json'})
-        self.assert_http_406_not_acceptable(response)
+        self.assert_http_406_not_acceptable(response,
+                                            msg='Quelle der Gebietseinteilung ist kein Feature-Service')
 
         url = reverse('arealevels-pull-areas',
                       kwargs={'pk': self.area_level.id})
@@ -126,14 +130,14 @@ class TestAreas(TestCase):
         key_field = area_level.areafield_set.get(name='ags')
         key_field.is_key = True
         key_field.save()
-        print(cls.area)
-        print(cls.wfs_layer)
+        logger.debug(cls.area)
+        logger.debug(cls.wfs_layer)
 
     def test_area(self):
         area = self.area
-        print(area)
-        print(area.area_level)
-        print(repr(area.area_level))
+        logger.debug(area)
+        logger.debug(area.area_level)
+        logger.debug(repr(area.area_level))
 
     def test_area_attributes(self):
         area1: Area = self.area
@@ -157,7 +161,7 @@ class TestAreas(TestCase):
 
         aa.get(field__name='classfield').value = 'Class1'
         aa.get(field__name='classfield').value = 'Class2'
-        print(aa)
+        logger.debug(aa)
 
         #  test the labels
         area_level: AreaLevel = area1.area_level
@@ -570,6 +574,21 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
             del self.query_params['area_level']
         except KeyError:
             pass
+
+    def test_clear_areas(self):
+        """test clear areas of area_level"""
+        area_level = AreaLevel.objects.get(pk=self.area_level)
+        n_areas = area_level.area_set.count()
+        url = 'arealevels-clear'
+        res = self.post(url, pk=self.area_level)
+        self.assert_http_403_forbidden(res)
+
+        self.profile.admin_access = True
+        self.profile.save()
+        res = self.post(url, pk=self.area_level)
+        self.assert_http_200_ok(res, f'{n_areas} Areas deleted')
+        self.assertEqual(area_level.area_set.count(), 0)
+
 
 
 class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
