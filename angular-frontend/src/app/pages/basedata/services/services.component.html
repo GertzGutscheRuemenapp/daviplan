@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
                  cookieId="exp-services-header"
-                 width="1200px">
+                 width="1130px">
   <p>Im Administrationsbereich wurde festgelegt, welche Infrastrukturbereiche der Daseinsvorsorge (z.B. Kindertagesbetreuung, Schule, Feuerwehr, ärztliche Versorgung, Einzelhandel, …) mit daviplan betrachtet werden sollen.</p>
   <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer:innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
   <p>Für den Infrastrukturbereich „Kindertagesbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ drei mögliche Leistungen sein. Bei der ärztlichen Versorgung z.B. „Hausärzte“ und „Fachärzte“, wobei ggf. bei den Fachärzten noch zwischen den wichtigsten Fachrichtungen unterschieden werden können, indem diese jeweils als eigene Leistung definiert werden. Für die Feuerwehr könnten z.B. unterschiedliche Einsatztypen durch entsprechende definierte Leistungen abgebildet werden.</p>
@@ -13,7 +13,7 @@
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Leistungen'"
+    <app-input-card [title]="'Le istungen'"
                     infoText="<p>Um eine Leistung hinzuzufügen, klicken Sie auf die Schaltfläche „Hinzufügen“. Anschließend können Sie deren Eigenschaften (Beschreibung, Kapazitätseinheit, Nachfrageeinheit) in den drei anderen Eingabeboxen eintragen.</p>
                     <p>Um die Eigenschaften bereits hinzugefügter Leistungen zu sehen und ggf. zu verändern, wählen Sie diese in der Liste der Leistungen aus. Die drei anderen Eingabeboxen zeigen Ihnen die bisher definierten Eigenschaften. Über den jeweilige Schaltfläche „Editieren“ können Sie diese verändern.</p>">
       <mat-selection-list [multiple]="false"
@@ -106,7 +106,7 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="470px" [ngClass]="{'hidden': !activeService}">
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
     <app-input-card #demandCard
                     [title]="'Nachfrage nach der Leistung'"
                     [editTemplate]="demandEdit"
@@ -117,15 +117,15 @@
       <div *ngIf="activeService">
         <table style="margin-top: 10px;">
           <tr>
-            <td>Nachfragende Einzahl</td>
+            <td style="white-space: normal;">Nachfragende Einzahl</td>
             <td>{{activeService.demandSingularUnit}}</td>
           </tr>
           <tr>
-            <td>Nachfragende Mehrzahl</td>
+            <td style="white-space: normal;">Nachfragende Mehrzahl</td>
             <td>{{activeService.demandPluralUnit}}</td>
           </tr>
           <tr>
-            <td>Richtung der Wegebeziehung </td>
+            <td style="white-space: normal;">Richtung der Wegebeziehung </td>
             <td>{{(activeService.directionWayRelationship === 1)? 'die Nachfragenden gehen zu den Einrichtungen': (activeService.directionWayRelationship === 2)? 'die Leistung kommt zu den Nachfragenden': '-'}}</td>
           </tr>
         </table>
@@ -133,7 +133,7 @@
     </app-input-card>
     <app-dash-card *ngIf="(indicators.length > 0)"
                    subtitle='Beispieltexte auf Basis der aktuellen Einstellungen für die ausgewählte Leistung "{{activeService?.name}}"'>
-      <ul>
+      <ul style="padding-left: 20px;">
         <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
           {{indicator.description}}
         </li>
