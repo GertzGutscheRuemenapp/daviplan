@@ -76,14 +76,6 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
                                  }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-    def get_queryset(self):
-        variant = self.request.data.get(
-            'variant', self.request.query_params.get('variant'))
-        if variant is not None:
-            return MatrixStopStop.objects.filter(from_stop__variant_id=variant,
-                                                 to_stop__variant_id=variant)
-        return MatrixStopStop.objects.all()
-
     @extend_schema(
             parameters=[
                 OpenApiParameter(name='variant', description='mode_variant_id',
