@@ -58,11 +58,13 @@ class ModeVariantViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelVie
 
 
 def delete_depending_matrices(variant: ModeVariant,
-                              logger=logging.Logger):
+                              logger: logging.Logger,
+                              only_with_stops: bool = False):
     """
     Delete the depending objects in the matrices
     in the database first to improve performance
     """
+
     qs = MatrixCellStop.objects\
         .select_related('stop')\
         .filter(stop__variant=variant)
@@ -74,10 +76,11 @@ def delete_depending_matrices(variant: ModeVariant,
                 | Q(access_variant=variant))
     delete_chunks(qs, logger)
 
-    qs = MatrixCellPlace.objects\
-        .filter(Q(variant=variant)
-                | Q(access_variant=variant))
-    delete_chunks(qs, logger)
+    if not only_with_stops:
+        qs = MatrixCellPlace.objects\
+            .filter(Q(variant=variant)
+                    | Q(access_variant=variant))
+        delete_chunks(qs, logger)
 
     qs = MatrixStopStop.objects\
         .select_related('from_stop')\

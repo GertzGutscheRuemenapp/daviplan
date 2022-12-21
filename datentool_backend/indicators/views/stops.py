@@ -1,5 +1,10 @@
 import warnings
 from typing import Dict
+import os
+from tempfile import mktemp
+import logging
+logger = logging.getLogger('routing')
+
 import pandas as pd
 
 from rest_framework import viewsets
@@ -26,6 +31,8 @@ from datentool_backend.indicators.models import (Stop,
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       )
+
+from datentool_backend.modes.views import delete_depending_matrices
 
 
 class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -55,24 +62,33 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
 
     def get_read_excel_params(self, request) -> Dict:
         params = dict()
-        params['excel_file'] = request.FILES['excel_file']
+        logger.info('Speichere Eingangsdatei temporär auf Server')
+        io_file = request.FILES['excel_file']
+        ext = os.path.splitext(io_file.name)[-1]
+        fp = mktemp(suffix=ext)
+        with open(fp, 'wb') as f:
+            f.write(io_file.file.read())
+        params['excel_filepath'] = fp
         params['variant_id'] = request.data.get('variant')
         return params
 
     @staticmethod
-    def process_excelfile(queryset,
-                          logger,
-                          excel_file,
+    def process_excelfile(logger,
+                          excel_filepath,
                           variant_id,
                           drop_constraints=False,
                           ):
         # read excelfile
         logger.info('Lese Excel-Datei')
-        df = read_excel_file(excel_file, variant_id)
+        df = read_excel_file(excel_filepath, variant_id)
         df.name.fillna('-', inplace=True)
+        os.remove(excel_filepath)
+
+        # delete depending matrices before writing the dataframe
+        delete_depending_matrices(variant_id, logger, only_with_stops=True)
 
         # write_df
-        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+        write_template_df(df, Stop, logger, drop_constraints=drop_constraints)
 
     def perform_destroy(self, instance):
         """
@@ -93,12 +109,12 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
         instance.delete()
 
 
-def read_excel_file(excel_file, variant) -> pd.DataFrame:
+def read_excel_file(excel_filepath, variant) -> pd.DataFrame:
     """read excelfile and return a dataframe"""
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
-        df = pd.read_excel(excel_file.file,
+        df = pd.read_excel(excel_filepath,
                            sheet_name='Haltestellen',
                            skiprows=[1])
 

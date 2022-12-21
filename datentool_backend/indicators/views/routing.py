@@ -8,6 +8,7 @@ from tempfile import mktemp
 from matrixconverters.read_ptv import ReadPTVMatrix
 
 import pandas as pd
+import numpy as np
 
 from django.db.models import Q
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
@@ -29,13 +30,13 @@ from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
 from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
                                                     write_template_df,
                                                     )
-from datentool_backend.utils.raw_delete import delete_chunks
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  )
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.utils.routers import OSRMRouter
+from datentool_backend.utils.raw_delete import delete_chunks
 
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
@@ -113,20 +114,26 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
 
     def get_read_excel_params(self, request) -> Dict:
         params = dict()
-        params['excel_or_visum_file'] = request.FILES['excel_or_visum_file']
+        io_file = request.FILES['excel_or_visum_file']
+        ext = os.path.splitext(io_file.name)[-1]
+        logger.info('Lese Eingangsdatei')
+        fp = mktemp(suffix=ext)
+        with open(fp, 'wb') as f:
+            f.write(io_file.file.read())
+        params['excel_or_visum_filepath'] = fp
+
         params['variant_id'] = int(request.data.get('variant'))
         return params
 
     @staticmethod
-    def process_excelfile(queryset,
-                          logger,
-                          excel_or_visum_file,
+    def process_excelfile(logger,
+                          excel_or_visum_filepath,
                           variant_id,
                           drop_constraints=False,
                           ):
         # read excelfile
         logger.info('Lese Excel-Datei')
-        df = read_traveltime_matrix(excel_or_visum_file, variant_id)
+        df = read_traveltime_matrix(excel_or_visum_filepath, variant_id)
 
         # delete existing matrix entries if exist
         qs = MatrixStopStop.objects\
@@ -136,29 +143,34 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
                     Q(to_stop__variant=variant_id))
         delete_chunks(qs, logger)
 
-        # write_df
-        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+        model = MatrixStopStop
+        model_name = model._meta.object_name
+        n_rows = len(df)
+        logger.info(f'Schreibe insgesamt {n_rows:,} {model_name}-Einträge')
+        stepsize = 100000
+        for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
+            chunk = df.iloc[i:i + stepsize]
+            n_inserted = len(chunk)
+            write_template_df(chunk, model, logger, drop_constraints=drop_constraints)
+            logger.info(f'{i + n_inserted:,}/{n_rows:,} {model_name}-Einträgen geschrieben')
 
 
-
-def read_traveltime_matrix(excel_or_visum_file, variant_id) -> pd.DataFrame:
+def read_traveltime_matrix(excel_or_visum_filepath, variant_id) -> pd.DataFrame:
     """read excelfile and return a dataframe"""
 
     try:
         # get the values and unpivot the data
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=UserWarning)
-            df = pd.read_excel(excel_or_visum_file.file,
+            df = pd.read_excel(excel_or_visum_filepath,
                                sheet_name='Reisezeit',
                                skiprows=[1])
 
     except ValueError as e:
-        # read PTV-Matrix
-        fn = mktemp(suffix='.mtx')
-        with open(fn, 'wb') as tfile:
-            tfile.write(excel_or_visum_file.file.read())
-        da = ReadPTVMatrix(fn)
-        os.remove(fn)
+        logger.info('Lese PTV-Matrix')
+        da = ReadPTVMatrix(excel_or_visum_filepath)
+
+        logger.info(f'PTV-Matrix mit den Dimensionen {da.dims}')
 
         df = da['matrix'].to_dataframe()
         df = df.loc[df['matrix']<999999]
@@ -166,7 +178,12 @@ def read_traveltime_matrix(excel_or_visum_file, variant_id) -> pd.DataFrame:
         df.rename(columns={'matrix': 'minutes',}, inplace=True)
         df.reset_index(inplace=True)
 
+    finally:
+        logger.info('Tempfile löschen')
+        os.remove(excel_or_visum_filepath)
+
     # assert the stopnumbers are in stops
+    logger.info('Überprüfe Haltestellennummern')
     cols = ['id', 'name', 'hstnr']
     df_stops = pd.DataFrame(Stop.objects.filter(variant=variant_id).values(*cols),
                             columns=cols)\
@@ -174,6 +191,7 @@ def read_traveltime_matrix(excel_or_visum_file, variant_id) -> pd.DataFrame:
     assert df['from_stop'].isin(df_stops.index).all(), 'Von-Haltestelle nicht in Haltestellennummern'
     assert df['to_stop'].isin(df_stops.index).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
 
+    logger.info('Haltestellennummern der Matrix passen zu den hochgeladenen Haltestellen')
     df = df\
         .merge(df_stops['id'].rename('from_stop_id'),
                   left_on='from_stop', right_index=True)\
