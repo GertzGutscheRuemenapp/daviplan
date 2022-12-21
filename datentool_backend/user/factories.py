@@ -13,7 +13,7 @@ class UserFactory(DjangoModelFactory):
     class Meta:
         model = User
 
-    username = factory.Sequence(lambda n: faker.unique.name())
+    username = factory.Sequence(lambda n: faker.unique.first_name())
     profile = factory.RelatedFactory('datentool_backend.user.factories.ProfileFactory',
                                      factory_related_name='user')
     is_superuser = False

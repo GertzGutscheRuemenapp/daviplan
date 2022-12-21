@@ -5,13 +5,15 @@ from test_plus import APITestCase
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from rest_framework import status
 from PIL import Image
+import factory
 
 from datentool_backend.api_test import (BasicModelSingletonTest,
                                         SingletonWriteOnlyWithAdminAccessTest,
                                         TestAPIMixin)
 from datentool_backend.user.factories import ProfileFactory
 from datentool_backend.site.factories import (ProjectSettingFactory,
-                                              SiteSettingFactory)
+                                              SiteSettingFactory,
+                                              fakeword50)
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -77,14 +79,15 @@ class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase):
         file.name = 'test.png'
         file.seek(0)
 
-        data = dict(name=faker.unique.word(), title=faker.word(),
+        data = dict(name=fakeword50(),
+                    title=faker.word(),
                     contact_mail=faker.email(),
                     logo=file,
                     primary_color=faker.color(hue='blue'),
                     secondary_color=faker.color(hue='red'),
                     welcome_text=faker.text())
         cls.put_data = data
-        cls.patch_data = data
+        cls.patch_data = data.copy()
 
     def test_put_patch(self):
         """Test get, put, patch methods for the detail-view"""

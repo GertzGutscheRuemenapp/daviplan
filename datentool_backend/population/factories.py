@@ -79,7 +79,7 @@ class PrognosisFactory(DjangoModelFactory):
     class Meta:
         model = Prognosis
 
-    name = faker.unique.word()
+    name = factory.Sequence(lambda n: faker.unique.word())
     is_default = faker.pybool()
 
 

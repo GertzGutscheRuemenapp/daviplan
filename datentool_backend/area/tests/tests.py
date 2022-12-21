@@ -613,3 +613,4 @@ class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data.copy()
         cls.patch_data['is_key'] = False
+        cls.patch_data['name'] = faker.unique.word()
