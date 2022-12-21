@@ -11,11 +11,6 @@ import os
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'datentool.settings')
 
-import locale
-
-# set locale to german style
-locale.setlocale(locale.LC_ALL, 'de_DE')
-
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from datentool.urls import websocket_urlpatterns

@@ -11,11 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-import locale
-
-# set locale to german style
-locale.setlocale(locale.LC_ALL, 'de_DE')
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'datentool.settings')
 
 application = get_wsgi_application()
