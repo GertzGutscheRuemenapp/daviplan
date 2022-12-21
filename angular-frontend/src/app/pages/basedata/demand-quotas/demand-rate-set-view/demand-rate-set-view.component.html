@@ -56,7 +56,7 @@
         <td style="text-align: left;">{{row.ageGroup.label}}</td>
         <td *ngFor="let entry of row.entries">
           <ng-container *ngIf="!edit">
-            {{(entry.value !== undefined)? entry.value: 0 }}
+            {{(entry.value !== undefined)? entry.value.toLocaleString(): 0 }}
 <!--            'null'}}-->
           </ng-container>
           <ng-container *ngIf="edit">

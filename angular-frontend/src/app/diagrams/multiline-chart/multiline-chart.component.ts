@@ -37,6 +37,7 @@ export class MultilineChartComponent extends DiagramComponent implements AfterVi
   @Input() min?: number;
   @Input() max?: number;
   @Input() colors?: string[];
+  @Input() strokeWidths?: number[];
   @Input() yPadding: number = 0;
   @Input() yOrigin: number = 0;
   @Input() xLegendOffset: number = 70;
@@ -198,7 +199,7 @@ export class MultilineChartComponent extends DiagramComponent implements AfterVi
         .attr("class", "line")
         .attr("fill", "none")
         .attr("stroke", (this.colors)? this.colors[i]: colorScale(i))
-        .attr("stroke-width", 3)
+        .attr("stroke-width", (this.strokeWidths)? this.strokeWidths[i]: 3)
         .attr("d", line);
 
       if (this.animate) {
