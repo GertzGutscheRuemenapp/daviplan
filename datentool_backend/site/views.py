@@ -188,7 +188,7 @@ class ProjectSettingViewSet(RunProcessMixin, SingletonViewSet):
         for area_level in AreaLevel.objects.filter():
             areas = Area.objects.filter(area_level=area_level)
             if len(areas) > 0:
-                logger.info(f'Lösche {len(areas)} Gebiete der Ebene '
+                logger.info(f'Lösche {len(areas):n} Gebiete der Ebene '
                             f'{area_level.name}...')
                 areas.delete()
         logger.info('Entferne eventuell vorhandene Router...')

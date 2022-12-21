@@ -805,3 +805,4 @@ class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data.copy()
         cls.patch_data['sensitive'] = False
+        cls.patch_data['name'] = faker.unique.word()

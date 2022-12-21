@@ -107,8 +107,8 @@ class TravelTimeRouterMixin:
                                 logger=logger,
                                 places=place_part)
                             dataframes.append(df)
-                            logger.info(f'{min((i+chunk_size), len(places))}/'
-                                        f'{len(places)} Orte berechnet')
+                            logger.info(f'{min((i+chunk_size), len(places)):n}/'
+                                        f'{len(places):n} Orte berechnet')
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'
@@ -606,8 +606,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                         places=place_part)
                     df.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
                     dataframes.append(df)
-                    logger.info(f'{min((i+chunk_size), len(places))}/'
-                                f'{len(places)} Orte berechnet')
+                    logger.info(f'{min((i+chunk_size), len(places)):n}/'
+                                f'{len(places):n} Orte berechnet')
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'

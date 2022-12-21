@@ -146,13 +146,13 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         model = MatrixStopStop
         model_name = model._meta.object_name
         n_rows = len(df)
-        logger.info(f'Schreibe insgesamt {n_rows:,} {model_name}-Einträge')
+        logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
         stepsize = 100000
         for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
             chunk = df.iloc[i:i + stepsize]
             n_inserted = len(chunk)
             write_template_df(chunk, model, logger, drop_constraints=drop_constraints)
-            logger.info(f'{i + n_inserted:,}/{n_rows:,} {model_name}-Einträgen geschrieben')
+            logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
 
 
 def read_traveltime_matrix(excel_or_visum_filepath, variant_id) -> pd.DataFrame:

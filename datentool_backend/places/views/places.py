@@ -229,7 +229,7 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
         .exclude(id__in=place_ids_in_excelfile)
     n_elems_deleted, elems_deleted = places_to_delete.delete()
     n_places_deleted = elems_deleted.get('datentool_backend.Place')
-    logger.info(f'{n_places_deleted or 0} bestehende Standorte gelöscht')
+    logger.info(f'{n_places_deleted or 0:n} bestehende Standorte gelöscht')
 
     # get BKG-Geocoding-Key
     site_settings = SiteSetting.load()
@@ -363,9 +363,9 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
                 file,
                 drop_constraints=False, drop_indexes=False,
             )
-    logger.info(f'{len(df_places)} Einträge bearbeitet')
+    logger.info(f'{len(df_places):n} Einträge bearbeitet')
     if n_new > 0:
-        logger.info(f'davon {n_new} als neue Orte hinzugefügt')
+        logger.info(f'davon {n_new}:n als neue Orte hinzugefügt')
         logger.info('ACHTUNG: Für die neuen Orte muss die '
                          'Erreichbarkeit neu berechnet werden!')
 

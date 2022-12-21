@@ -15,6 +15,11 @@ import os
 import sys
 from datetime import timedelta
 import json
+import locale
+
+
+# set locale to german style
+locale.setlocale(locale.LC_ALL, 'de_DE')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

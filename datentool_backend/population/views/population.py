@@ -310,7 +310,7 @@ class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
                 k = min(j+CHUNK_SIZE, len(ags_list))
                 ags = ags_list[j:k]
                 frames.append(api.query_population(ags=ags))
-                logger.info(f'{k}/{len(ags_list)} Gebiete abgefragt')
+                logger.info(f'{k:n}/{len(ags_list):n} Gebiete abgefragt')
         except PermissionDenied as e:
             msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
             'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
@@ -379,7 +379,7 @@ class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
         for i, population in enumerate(populations):
             disaggregate_population(population, use_intersected_data=True,
                                     drop_constraints=drop_constraints)
-            logger.info(f'{i + 1}/{len(populations)}')
+            logger.info(f'{i + 1:n}/{len(populations):n}')
         logger.info('Aggregiere Bevölkerungsdaten')
         aggregate_many(AreaLevel.objects.all(), populations,
                        drop_constraints=drop_constraints)
