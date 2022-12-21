@@ -138,7 +138,7 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
 
         mock_get.return_value = MyMock(ok=True, status_code=200, _get=mock_get)
         res = self.post('populations-pull-regionalstatistik',
-                        data={'drop_constraints': False, 'sync': True},
+                        data={'drop_constraints': False, },
                         extra={'format': 'json'})
 
         popentries = pd.DataFrame(PopulationEntry.objects.values())
@@ -148,7 +148,7 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         self.assertListEqual(list(actual), target)
 
         res = self.post('popstatistics-pull-regionalstatistik',
-                        data={'drop_constraints': False, 'sync': True,},
+                        data={'drop_constraints': False, },
                         extra={'format': 'json'})
 
         popstatentries = pd.DataFrame(PopStatEntry.objects.values())

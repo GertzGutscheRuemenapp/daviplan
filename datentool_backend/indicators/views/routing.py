@@ -32,7 +32,7 @@ from datentool_backend.utils.excel_template import (ExcelTemplateMixin,
 from datentool_backend.utils.raw_delete import delete_chunks
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
-                                                 run_sync, )
+                                                 )
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.utils.routers import OSRMRouter
@@ -234,8 +234,8 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
                     max_distance,
                     access_variant_id,
                     max_access_distance,
-                    air_distance_routing,
                     max_direct_walktime,
+                    air_distance_routing,
                     )
 
 
@@ -248,7 +248,6 @@ class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
                        name='TravelTimeSerializer',
                        fields={
                            'drop_constraints': drop_constraints,
-                           'run_sync': run_sync,
                            'air_distance_routing': air_distance_routing,
                            'variants': serializers.ListField(
                                child=serializers.PrimaryKeyRelatedField(
@@ -295,11 +294,12 @@ class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
         max_access_distance = request.data.get('max_access_distance')
         max_direct_walktime = request.data.get('max_direct_walktime')
 
-        error_msg = self.assert_routers_are_running()
+        if not air_distance_routing:
+            error_msg = self.assert_routers_are_running()
 
-        if error_msg and not air_distance_routing:
-            return Response({'Fehler': error_msg},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            if error_msg and not air_distance_routing:
+                return Response({'Fehler': error_msg},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
@@ -331,7 +331,6 @@ class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
                        name='TravelTimeSerializer',
                        fields={
                            'drop_constraints': drop_constraints,
-                           'run_sync': run_sync,
                            'air_distance_routing': air_distance_routing,
                            'transit_variant': serializers.PrimaryKeyRelatedField(
                                    queryset=ModeVariant.objects.filter(mode=Mode.TRANSIT),

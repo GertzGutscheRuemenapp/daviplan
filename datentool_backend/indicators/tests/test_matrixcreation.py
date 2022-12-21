@@ -73,8 +73,7 @@ class TestMatrixCreation(CreateTestdataMixin,
 
         data = {'variants': [walk.pk, car.pk, bike.pk],
                 'drop_constraints': False,
-                'air_distance_routing': True,
-                'sync': True,}
+                'air_distance_routing': True}
 
         res= self.post('matrixcellplaces-precalculate-traveltime', data=data,
                        extra={'format': 'json'})
@@ -99,7 +98,6 @@ class TestMatrixCreation(CreateTestdataMixin,
                 'drop_constraints': False,
                 'places': places,
                 'air_distance_routing': air_distance_routing,
-                'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
@@ -239,7 +237,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {
             'excel_file': file_content,
             'variant': self.transit.pk,
-            'sync': True,
         }
 
         url = reverse('stops-upload-template')
@@ -254,7 +251,6 @@ class TestMatrixCreation(CreateTestdataMixin,
             'excel_or_visum_file': file_content,
             'variant': self.transit.pk,
             'drop_constraints': False,
-            'sync': True,
         }
 
         url = reverse('matrixstopstops-upload-template')
@@ -291,7 +287,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'transit_variant': transit_variant.pk,
                 'access_variant': access_variant.pk,
                 'drop_constraints': False,
-                'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
@@ -323,7 +318,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'transit_variant': transit_variant.pk,
                 'access_variant': access_variant.pk,
                 'drop_constraints': False,
-                'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
@@ -355,7 +349,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'variants': [self.transit.pk],
                 'drop_constraints': False,
                 'access_variant': walk.pk,
-                'sync': True,
                 }
 
         #  use default access distance to stops
