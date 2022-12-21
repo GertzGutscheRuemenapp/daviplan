@@ -564,8 +564,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
              max_distance: float=None,
              access_variant_id: int=None,
              max_access_distance: float=None,
-             air_distance_routing: bool=False,
              max_direct_walktime:float=None,
+             air_distance_routing: bool=False,
              ):
         assert len(variant_ids) == 1
         transit_variant_id = variant_ids[0]
