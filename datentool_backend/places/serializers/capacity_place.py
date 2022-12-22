@@ -135,7 +135,11 @@ class PlaceSerializer(serializers.ModelSerializer):
                     return instance
                 dataframes.append(df)
             df = pd.concat(dataframes)
-            TravelTimeRouterMixin.save_df(df, MatrixCellPlace.objects.none(), False)
+            TravelTimeRouterMixin.save_df(df, MatrixCellPlace, False)
+            n_inserted = len(df)
+            model_name = MatrixCellPlace._meta.object_name
+            logger.info(f'Routenberechnung erfolgreich - {n_inserted:n} '
+                        f'{model_name}-Einträge geschrieben')
         return instance
 
 
