@@ -13,7 +13,7 @@ from datentool_backend.population.models import RasterCell
 class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
     hstnr = models.IntegerField()
-    name = models.TextField()
+    name = models.TextField(blank=True)
     geom = gis_models.PointField(srid=3857)
     variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
 

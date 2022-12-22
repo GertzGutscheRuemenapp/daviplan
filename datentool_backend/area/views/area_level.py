@@ -359,7 +359,7 @@ class AreaLevelViewSet(RunProcessMixin,
         logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
         n_pop = Population.objects.count()
         for i, population in enumerate(Population.objects.all()):
-            logger.info(f'{i + 1}/{n_pop}')
+            logger.info(f'{i + 1:n}/{n_pop: n}')
             try:
                 aggregate_population(area_level, population, drop_constraints=True)
             except Exception as e:
@@ -501,13 +501,13 @@ class AreaLevelViewSet(RunProcessMixin,
             logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
             n_pop = Population.objects.count()
             for i, population in enumerate(Population.objects.all()):
-                logger.info(f'{i + 1}/{n_pop}')
+                logger.info(f'{i + 1:n}/{n_pop:n}')
                 try:
                     aggregate_population(area_level, population, drop_constraints=True)
                 except Exception as e:
                     logger.error(str(e))
                     raise Exception(str(e))
-        logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
+        logger.info(f'{areas.count():n} Gebiete gespeichert und verarbeitet')
 
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])

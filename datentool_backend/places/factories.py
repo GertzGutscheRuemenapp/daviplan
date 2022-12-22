@@ -20,7 +20,7 @@ class PlaceFactory(DjangoModelFactory):
     class Meta:
         model = Place
 
-    name = faker.unique.word()
+    name = factory.Sequence(lambda n: faker.unique.word())
     infrastructure = factory.SubFactory(InfrastructureFactory)
     geom = get_point_from_latlon(faker.latlng(), 3857)
     attributes = {'firstname': faker.name(), 'employees': faker.pyint(),}

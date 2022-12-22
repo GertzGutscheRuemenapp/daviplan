@@ -75,9 +75,6 @@ class ExcelTemplateMixin(RunProcessMixin):
         """Upload the filled out Template"""
         serializer = self.get_serializer()
 
-        if queryset is None:
-            queryset = serializer.get_queryset(request) \
-                if hasattr(serializer, 'get_queryset') else self.get_queryset()
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
         params = self.get_read_excel_params(request)
@@ -85,7 +82,6 @@ class ExcelTemplateMixin(RunProcessMixin):
         return self.run_sync_or_async(func=self.process_excelfile,
                                       user=request.user,
                                       scope=serializer.scope,
-                                      queryset=queryset,
                                       drop_constraints=drop_constraints,
                                       **params)
 
@@ -94,27 +90,23 @@ class ExcelTemplateMixin(RunProcessMixin):
         return params
 
     @abstractstaticmethod
-    def process_excelfile(queryset,
-                          logger,
+    def process_excelfile(logger,
+                          model,
                           drop_constraints=False,
                           **params):
         # read excelfile
         df = pd.DataFrame()
         # write_df
-        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+        write_template_df(df, model, logger, drop_constraints=drop_constraints)
         # postprocess (optional)
 
 
-def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
-    model = queryset.model
+def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
     manager = model.copymanager
     with transaction.atomic():
         if drop_constraints:
             manager.drop_constraints()
             manager.drop_indexes()
-        if (len(queryset)):
-            logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
-            queryset.delete()
         try:
             if len(df):
                 logger.info('Schreibe Daten in Datenbank')
@@ -129,6 +121,18 @@ def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             msg = repr(traceback.format_tb(exc_traceback))
+            msg_df = f'''
+            try to save DataFrame
+            {df}
+            columns: {df.columns}
+            dtypes: {df.dtypes}
+            shape: {df.shape}
+            first_row: {df.iloc[0]}
+            last_row: {df.iloc[-1]}
+            to model {model._meta.object_name}
+            with columns {model._meta.fields}
+            '''
+            msg = msg + msg_df
             logger.error(msg)
             raise Exception(msg)
 

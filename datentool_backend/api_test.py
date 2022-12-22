@@ -272,7 +272,6 @@ class BasicModelPutPatchTest:
             assert response.data['id'] == self.obj.pk
 
         data = self.put_data.copy()
-        data['sync'] = True
 
         # check status code for put
         response = self.put(url, **kwargs,
@@ -288,7 +287,6 @@ class BasicModelPutPatchTest:
         self.compare_data(response.data, expected)
 
         data = self.patch_data.copy()
-        data['sync'] = True
 
         # check status code for patch
         response = self.patch(url, **kwargs,

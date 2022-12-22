@@ -129,7 +129,6 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         data = {
             'excel_file' : file_content,
             'infrastructure': self.infra.pk,
-            'sync':  True
         }
 
         url = reverse('places-upload-template')
@@ -158,7 +157,6 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         data = {
             'excel_file': file_content,
             'infrastructure': self.infra.pk,
-            'sync': True
         }
 
         url = reverse('places-upload-template')

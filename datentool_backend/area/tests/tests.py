@@ -83,14 +83,14 @@ class TestWfs(LoginTestCase, APITestCase):
     def test_pull_areas(self):
         url = reverse('arealevels-pull-areas',
                       kwargs={'pk': self.area_level_no_wfs.id})
-        response = self.post(url, {'sync': True},
+        response = self.post(url,
                              extra={'format': 'json'})
         self.assert_http_406_not_acceptable(response,
                                             msg='Quelle der Gebietseinteilung ist kein Feature-Service')
 
         url = reverse('arealevels-pull-areas',
                       kwargs={'pk': self.area_level.id})
-        response = self.post(url, data={'sync': True}, extra={'format': 'json'})
+        response = self.post(url, extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         areas = Area.objects.filter(area_level=self.area_level)
         # ToDo: test intersection with project area?
@@ -613,3 +613,4 @@ class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data.copy()
         cls.patch_data['is_key'] = False
+        cls.patch_data['name'] = faker.unique.word()
