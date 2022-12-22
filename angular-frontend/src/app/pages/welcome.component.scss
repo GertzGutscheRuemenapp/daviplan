@@ -6,6 +6,19 @@
 }
 
 h1{
-  font-size: 30px;
-
+  font-weight: 550;
 }
+
+h2{
+  font-weight: 550;
+}
+ul{
+  list-style-type: none;
+}
+ul li:before {
+    content: '-';
+    position: absolute;
+    margin-left: -20px;
+}
+
+
