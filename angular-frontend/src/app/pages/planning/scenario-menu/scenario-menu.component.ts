@@ -136,43 +136,34 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
       const baseCap = cap.find(scen => scen.scenarioId===0) || this.totalCapacities[0];
       if (!baseCap) return;
       cap.forEach(scen => {
-        if (scen.scenarioId===0){
+        if (scen.scenarioId === 0){
           this.totalCapacities[scen.scenarioId]= {
-            labelPlaces:scen.nPlaces.toLocaleString(),
-            labelCapacity:scen.totalCapacity.toLocaleString(),
+            labelPlaces: (scen.nPlaces || 0).toLocaleString(),
+            labelCapacity: (scen.totalCapacity || 0).toLocaleString(),
             scenarioId: scen.scenarioId,
-            totalCapacity: scen.totalCapacity,
-            nPlaces: scen.nPlaces}
+            totalCapacity: scen.totalCapacity || 0,
+            nPlaces: scen.nPlaces|| 0 }
         }
         else {
-          const totalCapacity = scen.totalCapacity - baseCap.totalCapacity;
-          const nPlaces = scen.nPlaces - baseCap.nPlaces;
+          const totalCapacity = (scen.totalCapacity || 0) - (baseCap.totalCapacity || 0);
+          const nPlaces = (scen.nPlaces || 0) - (baseCap.nPlaces || 0);
 
-          function labelTotalCapacity(value:number):string{
-            if (value > 0)
-              return scen.totalCapacity.toLocaleString() + " (+ " + value.toLocaleString()+")";
-            else if (value === 0)
-              return scen.totalCapacity.toLocaleString() + " (unverändert)";
-            else if (value < 0)
-              return scen.totalCapacity.toLocaleString() + " (" + value.toLocaleString() + ")";
-            return  value.toLocaleString();
-          }
-          function labelNPlaces(value:number):string{
-            if (value > 0)
-              return scen.nPlaces.toLocaleString() + " (+ " + value.toLocaleString()+")";
-            else if (value === 0)
-              return scen.nPlaces.toLocaleString() + " (unverändert)";
-            else if (value < 0)
-              return scen.nPlaces.toLocaleString() + " (" + value.toLocaleString() + ")";
-            return  value.toLocaleString();
+          function diffLabel(diff: number, reference: number): string {
+            if (diff > 0)
+              return reference.toLocaleString() + " (+ " + diff.toLocaleString()+")";
+            else if (diff === 0)
+              return reference.toLocaleString() + " (unverändert)";
+            else if (diff < 0)
+              return reference.toLocaleString() + " (" + diff.toLocaleString() + ")";
+            return '';
           }
 
           this.totalCapacities[scen.scenarioId] = {
             scenarioId: scen.scenarioId,
             totalCapacity: totalCapacity,
             nPlaces: nPlaces,
-            labelCapacity:labelTotalCapacity(totalCapacity),
-            labelPlaces:labelNPlaces(nPlaces)
+            labelCapacity: diffLabel(totalCapacity, scen.totalCapacity || 0),
+            labelPlaces: diffLabel(nPlaces, scen.nPlaces || 0)
           }
         }
       });
