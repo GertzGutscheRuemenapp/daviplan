@@ -1,14 +1,13 @@
-from typing import Dict, List
+from typing import Dict
 import os
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
-from django.db.models import Max, Min, Count, F
+from django.db.models import Max, Min, Count
 from django.conf import settings
 import logging
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datentool_backend.utils.crypto import encrypt
-from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
 

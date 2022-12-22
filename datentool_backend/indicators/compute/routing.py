@@ -1,4 +1,7 @@
 import logging
+import locale
+# set locale to german style
+locale.setlocale(locale.LC_ALL, 'de_DE')
 
 import pandas as pd
 import numpy as np
@@ -7,11 +10,12 @@ from io import StringIO
 
 from django.db import transaction, connection
 from django.db.models.query import QuerySet
-from django.db.models import FloatField, Q
+from django.db.models import FloatField, Q, Model
 from django.contrib.gis.db.models.functions import Transform, Func
 from requests.exceptions import ConnectionError
 
 from datentool_backend.utils.routers import OSRMRouter
+from datentool_backend.utils.raw_delete import delete_chunks
 
 from datentool_backend.population.models import RasterCell, RasterCellPopulation
 
@@ -118,18 +122,43 @@ class TravelTimeRouterMixin:
                 # null values in access_type: use nullable integer field
                 if 'access_variant_id' in df.columns:
                     df = df.astype(dtype={'access_variant_id': 'Int64' ,})
-                logger.info('Schreibe Ergebnisse in die Datenbank')
-                success, msg = self.save_df(df, queryset, drop_constraints)
-                if not success:
-                    raise RoutingError(msg)
+                self.write_results_to_database(logger, queryset, df, drop_constraints)
 
         except RoutingError as err:
             msg = str(err)
             logger.error(msg)
             raise Exception(msg)
         else:
-            logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
+
+    def write_results_to_database(self,
+                                  logger: logging.Logger,
+                                  queryset: QuerySet,
+                                  df: pd.DataFrame,
+                                  drop_constraints: bool,
+                                  stepsize: int = 100000):
+        """
+        Write results of Dataframe to database in chunks
+        """
+        logger.info('Schreibe Ergebnisse in die Datenbank')
+
+        delete_chunks(queryset, logger)
+        model = queryset.model
+        model_name = model._meta.object_name
+
+        n_rows = len(df)
+        logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
+        for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
+            chunk = df.iloc[i:i + stepsize]
+            self.save_df(chunk,
+                         model,
+                         drop_constraints=drop_constraints)
+            n_inserted = len(chunk)
+            logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}'
+                        '-Einträgen geschrieben')
+        msg = (f'Routenberechnung erfolgreich - {n_rows:n} {model_name}'
+               '-Einträge geschrieben')
+        logger.info(msg)
 
     def prepare_and_calc_transit_traveltimes(self,
                                              logger: logging.Logger,
@@ -154,9 +183,7 @@ class TravelTimeRouterMixin:
             variant_ids=[variant.pk],
             access_variant_id=access_variant.pk,
             places=places)
-        success, msg = matrix_place_stop.save_df(df_ps, qs, drop_constraints)
-        if not success:
-            raise RoutingError(msg)
+        self.write_results_to_database(logger, qs, df_ps, drop_constraints)
 
         # calculate time from stop to cell
         matrix_cell_stop = MatrixCellStopRouter()
@@ -182,11 +209,8 @@ class TravelTimeRouterMixin:
             variant_ids=[variant.pk],
             access_variant_id=access_variant.pk,
         )
-        success, msg = matrix_cell_stop.save_df(df_cs, qs, drop_constraints)
-        if not success:
-            raise RoutingError(msg)
+        self.write_results_to_database(logger, qs, df_cs, drop_constraints)
 
-        logger.debug(msg)
         df = self.calculate_transit_traveltime(
             access_variant=access_variant,
             transit_variant=variant,
@@ -261,16 +285,13 @@ class TravelTimeRouterMixin:
 
     @staticmethod
     def save_df(df: pd.DataFrame,
-                queryset: QuerySet,
+                model: Model,
                 drop_constraints: bool) -> (bool, str):
-        model = queryset.model
         manager = model.copymanager
         with transaction.atomic():
             if drop_constraints:
                 manager.drop_constraints()
                 manager.drop_indexes()
-
-            n_deleted, deleted_rows = queryset.delete()
 
             try:
                 with StringIO() as file:
@@ -283,17 +304,13 @@ class TravelTimeRouterMixin:
 
             except Exception as e:
                 msg = str(e)
-                return (False, msg)
+                raise RoutingError(msg)
 
             finally:
                 # recreate indices
                 if drop_constraints:
                     manager.restore_constraints()
                     manager.restore_indexes()
-            msg = (f'Berechnung der Reisezeiten erfolgreich, {n_deleted} Einträge '
-                   f'entfernt und {len(df)} Einträge hinzugefügt '
-                   f'({model._meta.object_name})')
-            return (True, msg)
 
     def get_filtered_queryset(variant_ids: List[int],
                               access_variant_id:int=None,
@@ -614,17 +631,13 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                 raise RoutingError(msg)
             else:
                 df = pd.concat(dataframes)
-                logger.info('Schreibe Ergebnisse in die Datenbank')
-                success, msg = self.save_df(df, queryset, drop_constraints)
-                if not success:
-                    raise RoutingError(msg)
+                self.write_results_to_database(logger, queryset, df, drop_constraints)
 
         except RoutingError as err:
             msg = str(err)
             logger.error(msg)
             raise Exception(msg)
         else:
-            logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
 
 
