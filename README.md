@@ -2,6 +2,15 @@
 
 a web tool to display and plan basic public services
 
+Testing Status
+
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/GertzGutscheRuemenapp/bule_datentool/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/GertzGutscheRuemenapp/bule_datentool/tree/main)
+
+Code Coverage
+
+[![codecov](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool/branch/main/graph/badge.svg?token=18FTTI6MF5)](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool)
+
+
 ## Setting up a development environment
 
 ### GDAL
@@ -43,6 +52,7 @@ There are two options to serve the Javascript-files:
 - use an IDE to run the frontend
 - serve them solely with django. in that case you have to bundle them manually:
 <em>\<path to installation\>/angular-frontend/ng build --stats-json</em>
+  > add argument <em>--configuration development</em> if you are in a development environment
   > add argument <em>--watch</em> to reload on change
 
 ### Serve backend

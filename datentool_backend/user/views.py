@@ -1,20 +1,13 @@
-from django.db.models import Q
 from django.contrib.auth.models import User
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import(HasAdminAccessOrReadOnly,
                                                 IsOwner
                                                 )
-from .permissions import CanUpdateProcessPermission, CanEditScenarioPermission
-from .serializers import (UserSerializer,
-                          PlanningProcessSerializer,
-                          ScenarioSerializer
-                          )
-from datentool_backend.models import PlanningProcess, Scenario
+from .serializers import UserSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -62,31 +55,3 @@ class UserViewSet(viewsets.ModelViewSet):
             settings = profile.settings
 
         return Response(settings)
-
-
-class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = PlanningProcess.objects.all()
-    serializer_class = PlanningProcessSerializer
-    permission_classes = [permissions.IsAuthenticated &
-                          CanUpdateProcessPermission]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        condition_user_in_user = Q(users__in=[self.request.user.profile])
-        condition_owner_in_user = Q(owner=self.request.user.profile)
-        return qs.filter(condition_user_in_user |
-                         condition_owner_in_user).distinct()
-
-
-class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Scenario.objects.all()
-    serializer_class = ScenarioSerializer
-    permission_classes = [CanEditScenarioPermission]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        condition_user_in_user = Q(planning_process__users__in=[self.request.user.profile])
-        condition_owner_in_user = Q(planning_process__owner=self.request.user.profile)
-        shared_or_owned = qs.filter(condition_user_in_user |
-                                    condition_owner_in_user)
-        return shared_or_owned.distinct().order_by('id')

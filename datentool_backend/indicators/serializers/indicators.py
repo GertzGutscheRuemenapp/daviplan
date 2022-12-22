@@ -7,7 +7,7 @@ from django.db import models
 from datentool_backend.indicators.models import Router
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import RasterCell
-from datentool_backend.infrastructure.models.places import Place
+from datentool_backend.places.models.places import Place
 
 
 class IndicatorSerializer(serializers.Serializer):

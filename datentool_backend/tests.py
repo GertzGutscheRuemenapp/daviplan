@@ -5,3 +5,5 @@ from .population.tests import *
 from .infrastructure.tests import *
 from .indicators.tests import *
 from .demand.tests import *
+from .places.tests import *
+from .site.tests import *

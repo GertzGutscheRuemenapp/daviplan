@@ -1,5 +1,4 @@
 import logging
-logger = logging.getLogger('routing')
 
 import pandas as pd
 import numpy as np
@@ -108,8 +107,8 @@ class TravelTimeRouterMixin:
                                 logger=logger,
                                 places=place_part)
                             dataframes.append(df)
-                            logger.info(f'{min((i+chunk_size), len(places))}/'
-                                        f'{len(places)} Orte berechnet')
+                            logger.info(f'{min((i+chunk_size), len(places)):n}/'
+                                        f'{len(places):n} Orte berechnet')
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'
@@ -565,8 +564,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
              max_distance: float=None,
              access_variant_id: int=None,
              max_access_distance: float=None,
-             air_distance_routing: bool=False,
              max_direct_walktime:float=None,
+             air_distance_routing: bool=False,
              ):
         assert len(variant_ids) == 1
         transit_variant_id = variant_ids[0]
@@ -607,8 +606,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                         places=place_part)
                     df.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
                     dataframes.append(df)
-                    logger.info(f'{min((i+chunk_size), len(places))}/'
-                                f'{len(places)} Orte berechnet')
+                    logger.info(f'{min((i+chunk_size), len(places)):n}/'
+                                f'{len(places):n} Orte berechnet')
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'

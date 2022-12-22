@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Infrastructure, Service, DemandRateSet, Gender, AgeGroup } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
@@ -19,7 +19,7 @@ import { showAPIError } from "../../../helpers/utils";
   templateUrl: './demand-quotas.component.html',
   styleUrls: ['./demand-quotas.component.scss']
 })
-export class DemandQuotasComponent implements AfterViewInit {
+export class DemandQuotasComponent implements OnInit, AfterViewInit {
   @ViewChild('demandTypeCard') demandTypeCard?: InputCardComponent;
   @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
   @ViewChild('demandRateSetCard') demandRateSetCard?: InputCardComponent;
@@ -53,11 +53,11 @@ export class DemandQuotasComponent implements AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit() {
+    this.isLoading$.next(true);
     this.restService.getYears().subscribe(years => this.years = years);
     this.restService.getGenders().subscribe(genders => this.genders = genders);
     this.restService.getAgeGroups().subscribe(ageGroups => this.ageGroups = ageGroups);
-    this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
       this.isLoading$.next(false);
@@ -68,6 +68,9 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.onServiceChange();
       }
     })
+  }
+
+  ngAfterViewInit(): void {
     this.demandRateSetPreview?.timeSlider?.valueChange.subscribe(year => this.year = year || undefined);
     this.setupDemandTypeCard();
     this.setupPropertiesCard();

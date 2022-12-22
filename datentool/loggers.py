@@ -2,12 +2,12 @@ import logging
 import json
 import time
 import channels.layers
-try:    
+try:
     # redis 4.*
     from redis.asyncio import RedisError
 except ModuleNotFoundError:
     # redis 3.*
-    from redis import RedisError 
+    from redis import RedisError
 from redis.exceptions import ConnectionError as RedisConnectionError
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -27,10 +27,7 @@ def send(channel: str, message: str, log_type: str='log_message',
     }
     rec.update(kwargs)
 
-    #try:
     async_to_sync(channel_layer.group_send)(channel, rec)
-    #except RuntimeError:
-    #channel_layer.group_send(channel, rec)
 
 
 class WebSocketHandler(logging.StreamHandler):

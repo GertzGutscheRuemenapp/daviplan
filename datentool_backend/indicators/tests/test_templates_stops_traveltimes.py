@@ -1,6 +1,10 @@
 import os
 from io import BytesIO
 import pandas as pd
+
+import logging
+logger = logging.getLogger(name='test')
+
 from openpyxl.reader.excel import load_workbook
 
 from matrixconverters.read_ptv import ReadPTVMatrix
@@ -52,7 +56,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         data = {
             'excel_file': file_content,
             'variant': self.mode_variant.id,
-            'sync': True,
         }
 
         url = reverse('stops-upload-template')
@@ -85,13 +88,12 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'excel_file': open(file_path, 'rb'),
             'drop_constraints': False,
             'variant': self.mode_variant.id,
-            'sync': True
         }
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assertContains(res,
                             'Haltestellennummer ist nicht eindeutig',
                             status_code=406)
-        print(res.content)
+        logger.debug(res.content)
 
     def create_mode_variant(self) -> int:
         return ModeVariantFactory().pk
@@ -102,7 +104,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'excel_file': open(self.get_file_path_stops(filename_stops), 'rb'),
             'drop_constraints': False,
             'variant': self.mode_variant.id,
-            'sync':  True
         }
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
@@ -136,7 +137,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                 'excel_or_visum_file': file_content,
                 'variant': mode_variant_id,
                 'drop_constraints': False,
-                'sync': True,
             }
 
             url = reverse('matrixstopstops-upload-template')
@@ -171,6 +171,17 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                 .set_index(['from_stop_id', 'to_stop_id'])
             pd.testing.assert_frame_equal(actual, expected, check_dtype=False)
 
+        # delete one stop
+        first_stop = Stop.objects.filter(variant=self.mode_variant).first()
+        url = 'stops-detail'
+        res = self.delete(url, pk=first_stop.pk, extra={'format': 'json'})
+        self.assert_http_204_no_content(res)
+
+        # delete the whole modevariant to test if the depending matrix entries are deleted
+        url = 'modevariants-detail'
+        res = self.delete(url, pk=self.mode_variant.pk, extra={'format': 'json'})
+        self.assert_http_204_no_content(res)
+
     def test_upload_broken_matrix_file(self):
         """
         test errors in upload files
@@ -185,10 +196,9 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'excel_or_visum_file' : open(file_path, 'rb'),
             'variant': mode_variant_id,
             'drop_constraints': False,
-            'sync': True,
         }
-        res = self.client.post(url, data, extra=dict(format='multipart/form-data'), varant=33)
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'), variant=33)
         self.assertContains(res,
                             'Haltestelle nicht in Haltestellennummern',
                             status_code=406)
-        print(res.content)
+        logger.debug(res.content)

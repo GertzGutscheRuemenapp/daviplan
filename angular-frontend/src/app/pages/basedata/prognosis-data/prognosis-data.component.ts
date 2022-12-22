@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../../../map/map.service";
+import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import {
   Area,
   AreaLevel,
@@ -24,21 +24,22 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { BehaviorSubject, Subscription } from "rxjs";
 import * as fileSaver from "file-saver";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-prognosis-data',
   templateUrl: './prognosis-data.component.html',
   styleUrls: ['./prognosis-data.component.scss','../real-data/real-data.component.scss']
 })
-export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
+export class PrognosisDataComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('yearCard') yearCard?: InputCardComponent;
   @ViewChild('ageTree') ageTree?: AgeTreeComponent;
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
   @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
-  isLoading$ = new BehaviorSubject<boolean>(false);
+  isLoading$ = new BehaviorSubject<boolean>(true);
+  isProcessing$ = new BehaviorSubject<boolean>(true);
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   activePrognosis?: Prognosis;
@@ -51,7 +52,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   populations: Population[] = [];
   popLevel?: AreaLevel;
   popEntries: Record<number, PopEntry[]> = {};
-  popLevelMissing = false;
   defaultPopLevel?: AreaLevel;
   areas: Area[] = [];
   previewYear?: Year;
@@ -62,7 +62,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   dataYear?: Year;
   propertiesForm: FormGroup;
   file?: File;
-  isProcessing = false;
   subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private settings: SettingsService, private dialog: MatDialog,
@@ -73,25 +72,29 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       name: new FormControl(''),
       description: new FormControl('')
     });
+    this.isLoading$.next(true);
   }
 
   // ToDo: shares a lot of Code with real-data-component, at least the map view should be seperated into reusable view
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     this.mapControl = this.mapService.get('base-prog-data-map');
-    this.layerGroup = new MapLayerGroup('Bevölkerungsentwicklung (Prognose)', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Bevölkerungsentwicklung (Prognose)', { order: -1 });
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
+      this.isLoading$.next(false);
       if (this.popLevel) {
         this.popService.getAreas(this.popLevel.id, { reset: true }).subscribe(areas => this.areas = areas);
       }
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
-      this.isProcessing = baseSettings.processes?.population || false;
+      this.isProcessing$.next(baseSettings.processes?.population || false);
     }));
     this.settings.fetchBaseDataSettings();
     this.fetchData();
+  }
+
+  ngAfterViewInit() {
     this.setupYearCard();
     this.setupPropertiesCard();
   }
@@ -185,10 +188,9 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
         max = Math.max(max, value);
       })
-      this.previewLayer = new VectorLayer(this.popLevel!.name, {
+      this.previewLayer = this.layerGroup?.addVectorLayer(this.popLevel!.name, {
         order: 0,
         description: this.popLevel!.name,
-        opacity: 1,
         style: {
           strokeColor: 'white',
           fillColor: 'rgba(165, 15, 21, 0.9)',
@@ -210,7 +212,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
             fillColor: 'rgba(255, 255, 0, 0.9)'
           }
         },
-        showLabel: true,
         valueStyles: {
           field: 'value',
           radius: {
@@ -221,8 +222,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           max: max
         }
       });
-      this.layerGroup?.addLayer(this.previewLayer);
-      this.previewLayer.addFeatures(this.areas, {
+      this.previewLayer?.addFeatures(this.areas, {
         properties: 'properties',
         geometry: 'centroid',
         zIndex: 'value'
@@ -230,11 +230,11 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       if (this.previewArea)
         this.previewLayer?.selectFeatures([this.previewArea.id], { silent: true });
       this.updateAgeTree();
-      this.previewLayer!.featuresSelected.subscribe(features => {
+      this.previewLayer?.featuresSelected.subscribe(features => {
         this.previewArea = this.areas.find(area => area.id === features[0].get('id'));
         this.updateAgeTree();
       })
-      this.previewLayer!.featuresDeselected.subscribe(features => {
+      this.previewLayer?.featuresDeselected.subscribe(features => {
         if (this.previewArea?.id === features[0].get('id')) {
           this.previewArea = undefined;
           this.updateAgeTree();
@@ -469,7 +469,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       formData.append('prognosis', this.activePrognosis!.id.toString());
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.isProcessing = true;
+        this.isProcessing$.next(true);
         dialogRef.close();
       }, error => {
         showAPIError(error, this.dialog);
@@ -492,7 +492,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
 
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
-      this.isProcessing = false;
+      this.isProcessing$.next(false);
       this.popService.reset();
       this.fetchData();
     }

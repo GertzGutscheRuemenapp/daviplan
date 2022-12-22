@@ -1,4 +1,6 @@
 import pandas as pd
+import logging
+logger = logging.getLogger(name='test')
 
 from django.test import TestCase
 from test_plus import APITestCase
@@ -113,10 +115,10 @@ class TestIndicatorDescription(LoginTestCase,
             response = self.get(url)
             self.assert_http_200_ok(response)
             result = pd.DataFrame(response.data).set_index('name')
-            print(result['title'])
-            print(result['description'])
-            print(result['result_type'])
-            print(result['additional_parameters'])
+            logger.debug(result['title'])
+            logger.debug(result['description'])
+            logger.debug(result['result_type'])
+            logger.debug(result['additional_parameters'])
 
     def test_fixed_indicators(self):
         """Test the description of the fixed indicators"""
@@ -138,7 +140,7 @@ class TestIndicatorDescription(LoginTestCase,
             response = self.get(url)
             self.assert_http_200_ok(response)
             result = response.data
-            print(result['title'])
-            print(result['description'])
-            print(result['result_type'])
-            print(result['additional_parameters'])
+            logger.debug(result['title'])
+            logger.debug(result['description'])
+            logger.debug(result['result_type'])
+            logger.debug(result['additional_parameters'])

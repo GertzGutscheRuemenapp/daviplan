@@ -3,24 +3,31 @@ import urllib.request
 import requests
 import os
 import json
-import locale
-import threading
 
+from django.db.models import Q
 from django.conf import settings
-from django.core.serializers import serialize
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 from rest_framework.response import Response
+
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
 from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.views import ProtectCascadeMixin
-from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly, CanEditBasedata)
+from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
+                                                 CanEditBasedata)
+from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
+from datentool_backend.utils.raw_delete import delete_chunks
+
 from datentool_backend.site.models import ProjectSetting
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
+from datentool_backend.indicators.models import (MatrixCellStop,
+                                                 MatrixStopStop,
+                                                 MatrixPlaceStop,
+                                                 MatrixCellPlace,
+                                                 Stop,
+                                                 )
+
 from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
 
@@ -30,13 +37,64 @@ logger = logging.getLogger('routing')
 
 _l_i = 0
 
-class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class ModeVariantViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = ModeVariant.objects.all()
     serializer_class = ModeVariantSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        msg_start = f'Löschen der Variante {instance.label} gestartet'
+        msg_end = f'Löschen der Variante {instance.label} beendet'
+        response = self.run_sync_or_async(func=delete_depending_matrices,
+                                          user=request.user,
+                                          scope=ProcessScope.ROUTING,
+                                          message_async=msg_start,
+                                          message_sync=msg_end,
+                                          ret_status=status.HTTP_204_NO_CONTENT,
+                                          variant=instance)
+        instance.delete()
+        return response
 
-class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+
+def delete_depending_matrices(variant: ModeVariant,
+                              logger: logging.Logger,
+                              only_with_stops: bool = False):
+    """
+    Delete the depending objects in the matrices
+    in the database first to improve performance
+    """
+
+    qs = MatrixCellStop.objects\
+        .select_related('stop')\
+        .filter(stop__variant=variant)
+    delete_chunks(qs, logger)
+
+    qs = MatrixPlaceStop.objects\
+        .select_related('stop')\
+        .filter(Q(stop__variant=variant)
+                | Q(access_variant=variant))
+    delete_chunks(qs, logger)
+
+    if not only_with_stops:
+        qs = MatrixCellPlace.objects\
+            .filter(Q(variant=variant)
+                    | Q(access_variant=variant))
+        delete_chunks(qs, logger)
+
+    qs = MatrixStopStop.objects\
+        .select_related('from_stop')\
+        .select_related('to_stop')\
+        .filter(Q(from_stop__variant=variant) |
+                Q(to_stop__variant=variant))
+    delete_chunks(qs, logger)
+
+    qs = Stop.objects\
+        .filter(variant=variant)
+    delete_chunks(qs, logger)
+
+
+class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Network.objects.all()
     serializer_class = NetworkSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
@@ -49,19 +107,17 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
-        run_sync = request.data.get('sync', False)
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING) as ppm:
-            try:
-                ppm.run(self._pull_base_network, sync=run_sync)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'message': f'Download of base network successful'},
-                        status=status.HTTP_201_CREATED)
+        msg_start = 'Herunterladen des OSM-Pbf-Netzes gestarted'
+        msg_end = 'Herunterladen des OSM-Pbf-Netzes beendet'
+        return self.run_sync_or_async(func=self._pull_base_network,
+                                      user=request.user,
+                                      scope=ProcessScope.ROUTING,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
+                                      )
 
     @staticmethod
-    def _pull_base_network():
+    def _pull_base_network(logger: logging.Logger):
         fp = os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF)
         if os.path.exists(fp):
             os.remove(fp)
@@ -104,24 +160,32 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             logger.error(msg)
             return Response({'message': msg },
                             status=status.HTTP_400_BAD_REQUEST)
-        run_sync = request.data.get('sync', False)
 
-        with ProtectedProcessManager(user=request.user,
-                                     scope=ProcessScope.ROUTING) as ppm:
-            try:
-                ppm.run(self._build_project_network, sync=run_sync)
-            except Exception as e:
-                return Response({'message': str(e)},
-                                status.HTTP_500_INTERNAL_SERVER_ERROR)
+        fn_base_pbf = 'germany-latest.osm.pbf'
+        fp_base_pbf = os.path.join(settings.MEDIA_ROOT, fn_base_pbf)
+        if not os.path.exists(fp_base_pbf):
+            msg = 'Das Basisnetz wurde noch nicht heruntergeladen'
+            logger.error(msg)
+            return Response({'message': msg },
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'message': 'Bau der Router gestartet'},
-                        status=status.HTTP_200_OK)
+        msg_start = 'Bau der Router gestartet'
+        msg_end = 'Bau der Router beendet'
+        return self.run_sync_or_async(func=self._build_project_network,
+                                      user=request.user,
+                                      scope=ProcessScope.ROUTING,
+                                      message_async=msg_start,
+                                      message_sync=msg_end,
+                                      )
 
     @staticmethod
-    def _build_project_network():
-        fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
-        fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
-        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+    def _build_project_network(logger: logging.Logger):
+        fn_geojson_projectarea = 'projectarea.geojson'
+        fn_base_pbf = 'germany-latest.osm.pbf'
+        fn_target_pbf = 'projectarea.pbf'
+
+        fp_project_json = os.path.join(settings.MEDIA_ROOT, fn_geojson_projectarea)
+        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, fn_target_pbf)
 
         for fp in fp_target_pbf, fp_project_json:
             if os.path.exists(fp):
@@ -142,21 +206,17 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             'geometry': json.loads(buffered.geojson),
         })
 
-        #geojson = serialize('geojson', ProjectSetting.objects.all(),
-                            #geometry_field='project_area', fields=('id',))
 
         with open(fp_project_json, "w") as json_file:
             json_file.write(geojson)
 
-        if os.name == 'nt':
-            # osmium does not understand windows style paths at the -p argument,
-            # other paths work, a bug i guess
-            fp_project_json = os.path.splitdrive(
-                fp_project_json)[1].replace(os.sep, '/')
+        # execute the command in the media-root-folder to avoid problems with
+        # filepaths
 
-        cmd = ['osmium', 'extract', '-p', fp_project_json,
-               fp_base_pbf, '-o', fp_target_pbf]
-        process = subprocess.run(cmd)
+        cmd = ['osmium', 'extract', '-p', fn_geojson_projectarea,
+               fn_base_pbf, '-o', fn_target_pbf]
+        process = subprocess.run(cmd, cwd=settings.MEDIA_ROOT)
+
         if process.returncode != 0:
             msg = ('Verschneidung fehlgeschlagen. Das Projektgebiet konnte '
                    'nicht aus dem Basisnetz extrahiert werden')

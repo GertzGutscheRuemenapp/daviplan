@@ -5,7 +5,7 @@ from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.utils.copy_postgres import DirectCopyManager
 
-from datentool_backend.infrastructure.models.places import Place
+from datentool_backend.places.models import Place
 from datentool_backend.modes.models import ModeVariant, Mode
 from datentool_backend.population.models import RasterCell
 
@@ -13,7 +13,7 @@ from datentool_backend.population.models import RasterCell
 class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
     hstnr = models.IntegerField()
-    name = models.TextField()
+    name = models.TextField(blank=True)
     geom = gis_models.PointField(srid=3857)
     variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
 

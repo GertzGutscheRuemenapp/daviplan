@@ -1,2 +1,2 @@
-from .tests_place_fields import *
+from .test_infrastructure_service import *
 

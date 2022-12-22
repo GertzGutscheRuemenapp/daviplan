@@ -1,12 +1,15 @@
 from typing import List
 from rest_framework import serializers
-from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 
-from datentool_backend.population.models import (
-    Raster, PopulationRaster, RasterCell,
-    Prognosis, Population, PopulationEntry,
-    PopStatistic, PopStatEntry,
-    RasterCellPopulationAgeGender)
+from datentool_backend.population.models import (Raster,
+                                                 PopulationRaster,
+                                                 RasterCell,
+                                                 Prognosis,
+                                                 Population,
+                                                 PopulationEntry,
+                                                 PopStatistic,
+                                                 PopStatEntry,
+                                                 RasterCellPopulationAgeGender)
 from datentool_backend.site.models import Year
 
 
@@ -62,22 +65,10 @@ class PopulationDetailSerializer(serializers.ModelSerializer):
 
 
 class PopulationSerializer(serializers.ModelSerializer):
-    #year = serializers.IntegerField(source='year.year')
     class Meta:
         model = Population
         fields = ('id', 'year', 'genders', 'popraster',
                   'prognosis')
-
-    #def create(self, validated_data):
-        #year = validated_data['year']['year']
-        #instance = Population.objects.create(year=Year.objects.get(year=year))
-        #return instance
-
-    #def update(self, instance, validated_data):
-        #year = validated_data['year']['year']
-        #instance.year = Year.objects.get(year=year)
-        #instance.save()
-        #return instance
 
 
 class PopulationEntrySerializer(serializers.ModelSerializer):

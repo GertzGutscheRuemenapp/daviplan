@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from typing import List, Tuple, Union
 import re
 import requests
@@ -391,7 +389,8 @@ class BKGGeocoder:
                 parser = ErrorCodeParser()
                 parser.feed(reply.content.decode('utf-8'))
                 message = self.exception_codes.get(parser.error)
-                raise ConnectionError(message)
+                from django.core.exceptions import ValidationError
+                raise ValidationError(message)
         if reply.status_code == 500:
             raise ValueError('500 - interner Serverfehler')
         if reply.status_code == None:

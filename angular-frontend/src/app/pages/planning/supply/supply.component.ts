@@ -8,11 +8,10 @@ import {
   Service,
   Scenario, FieldType, PlaceField, Capacity, User
 } from "../../../rest-interfaces";
-import { MapControl, MapService } from "../../../map/map.service";
-import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
+import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { VectorLayer } from "../../../map/layers";
 import { PlaceFilterComponent } from "../place-filter/place-filter.component";
 import { Geometry, Point } from "ol/geom";
 import { transform } from "ol/proj";
@@ -25,6 +24,7 @@ import { sortBy } from "../../../helpers/utils";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { AuthService } from "../../../auth.service";
+import { FloatingDialogComponent } from "../../../dialogs/floating-dialog/floating-dialog.component";
 
 @Component({
   selector: 'app-supply',
@@ -76,8 +76,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup);
+    this.layerGroup = this.mapControl.addGroup('Angebot', { order: -1 });
     this.applyUserSettings();
     this.initData();
   }
@@ -146,13 +145,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getPlaces(placeOptions).pipe(map(places => this.places = places)));
 
     forkJoin(...observables).subscribe(() => {
-      let showLabel = true;
-      let legendElapsed = true;
-      if (this.placesLayer) {
-        showLabel = !!this.placesLayer.showLabel;
-        legendElapsed = !!this.placesLayer.legend?.elapsed
-        this.layerGroup?.removeLayer(this.placesLayer);
-      }
+      this.layerGroup?.clear();
       let mapPlaces: any[] = [];
       this.places?.forEach(place => {
         const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
@@ -179,10 +172,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
                   Minimum: ${min.toLocaleString()}<br>
                   Maximum: ${max.toLocaleString()}`;
       // ToDo description with filter
-      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+      this.placesLayer = this.layerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
+        id: 'supply-places',
+        visible: true,
         order: 0,
         description: desc,
-        opacity: 1,
         style: {
           fillColor: '#2171b5',
           strokeWidth: 1,
@@ -190,7 +184,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           symbol: 'circle'
         },
         labelField: 'name',
-        showLabel: showLabel,
         tooltipField: 'tooltip',
         select: {
           enabled: true,
@@ -198,11 +191,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             strokeWidth: 1,
             fillColor: 'yellow',
           },
+          // multi select is allowed in case you hit multiple features with one click
           multi: true
         },
         mouseOver: {
           enabled: true,
-          cursor: 'pointer'
+          cursor: 'pointer',
+          style: {
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
         },
         valueStyles: {
           radius: {
@@ -222,13 +220,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           entries: [
             { label: `mit Leistung "${this.activeService?.name}"`, color: '#2171b5', strokeColor: 'black' },
             { label: `ohne Leistung "${this.activeService?.name}"`, color: 'lightgrey', strokeColor: 'black' }
-          ],
-          elapsed: legendElapsed
+          ]
         }
       });
-      this.layerGroup?.addLayer(this.placesLayer);
 
-      this.placesLayer.addFeatures(mapPlaces);
+      this.placesLayer?.addFeatures(mapPlaces);
       if (options?.selectPlaceId !== undefined) {
         const place = this.places.find(p => p.id === options.selectPlaceId);
         if (place) {
@@ -243,21 +239,25 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.placesLayer?.selectFeatures(ids, { silent: true });
       }
       this.placesLayer?.featuresSelected?.subscribe(features => {
-        // on map selection deselect the previously selected ones by just setting empty list
+        // on map selection deselect the previously selected ones by setting empty list
         this.selectedPlaces = [];
-        features.forEach(f => this.selectPlace(f.get('id'), true));
+        // that's a little weird but otherwise previous selected features are still marked on map (because multi select enabled)
+        // just wiping everything and selecting the features again silently
+        this.placesLayer?.clearSelection();
+        this.placesLayer?.selectFeatures(features.map(f => f.get('id')), { silent: true });
+        features.forEach(f => this.toggleSelectPlace(f.get('id'), true));
       })
       this.placesLayer?.featuresDeselected?.subscribe(features => {
-        features.forEach(f => this.selectPlace(f.get('id'), false));
+        features.forEach(f => this.toggleSelectPlace(f.get('id'), false));
       })
 
       // add layer for marking changes in scenario
       if (!this.activeScenario?.isBase) {
-        this.scenarioMarkerLayer = new VectorLayer('Änderungen zu Status Quo', {
+        this.scenarioMarkerLayer = this.layerGroup?.addVectorLayer('Änderungen zu Status Quo', {
+          id: 'supply-marker',
           order: 1,
-          zIndex: this.placesLayer.getZIndex() + 1,
+          zIndex: (this.placesLayer?.getZIndex() || 0) + 1,
           description: 'im Szenario verändert',
-          opacity: 1,
           style: {
             strokeWidth: 3,
             symbol: 'circle'
@@ -280,12 +280,13 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               { label: 'Kapazität verringert', color: 'rgba(0,0,0,0)', strokeColor: '#fc450c' },
               { label: 'Kapazität erhöht', color: 'rgba(0,0,0,0)', strokeColor: '#00ff28' },
               { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#00c4ff' },
-            ],
-            elapsed: legendElapsed
+            ]
           }
         });
-        this.layerGroup?.addLayer(this.scenarioMarkerLayer);
-        this.scenarioMarkerLayer.addFeatures(mapPlaces.filter(place => place.properties.scenarioPlace || place.properties.capDecreased || place.properties.capIncreased));
+        // only add places with changes (compared to status quo) to marker layer
+        this.scenarioMarkerLayer?.addFeatures(mapPlaces.filter(
+          place => place.properties.scenarioPlace || place.properties.capDecreased || place.properties.capIncreased
+        ));
       }
 
       this.placePreviewDialogRef?.componentInstance?.setLoading(false);
@@ -301,7 +302,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     return `${capacity} ${Array.from(units).join('/')}`
   }
 
-  selectPlace(placeId: number, select: boolean) {
+  toggleSelectPlace(placeId: number, select: boolean) {
     const place = this.places?.find(p => p.id === placeId);
     if (!place) return;
     if (select) {
@@ -325,8 +326,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     if (this.placePreviewDialogRef && this.placePreviewDialogRef.getState() === 0)
       return;
     const template = this.placePreviewTemplate;
-    this.placePreviewDialogRef = this.dialog.open(FloatingDialog, {
-      panelClass: 'help-container',
+    this.placePreviewDialogRef = this.dialog.open(FloatingDialogComponent, {
+      panelClass: 'floating-container',
       hasBackdrop: false,
       autoFocus: false,
       data: {
@@ -348,7 +349,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     const desc = `${this.activeScenario?.name}<br>
                   Angebot für Leistung "${this.activeService?.name}"<br>
                   <b>${this.activeService?.facilityPluralUnit} ${this.year} mit Anzahl ${this.activeService?.capacityPluralUnit}
-                  ${(this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)? ' (gefiltert)': ''}</b>`
+                  ${(this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)? ' <i class="warning">(gefiltert)</i>': ''}</b>`
     this.mapControl?.setDescription(desc);
   }
 

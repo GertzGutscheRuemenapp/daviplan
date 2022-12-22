@@ -39,7 +39,8 @@
 <!--      <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>-->
       <!--<li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>-->
       <li>
-        <div class="row-button">
+        <div class="row-button"
+             (click)="zoomToPlaceExtent()">
           <label i18n>Zoom auf alle</label>
           <div class="fill-space"></div>
           <button mat-icon-button color="primary" class="small">

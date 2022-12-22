@@ -194,4 +194,8 @@ export class PlaceFilterComponent  implements AfterViewInit {
     this.timeSlider!.value = this.year;
     this.updateTable();
   }
+
+  downloadCSV(): void {
+    this.filterTable?.downloadCSV(`Standorte ${this.service?.name}.csv`);
+  }
 }

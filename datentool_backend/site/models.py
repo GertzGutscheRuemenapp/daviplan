@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.gis.db.models import MultiPolygonField
+from django.contrib.auth.models import User
+
 from datentool_backend.utils.models import SingletonModel
 from datentool_backend.base import DatentoolModelMixin
-from django.contrib.auth.models import User
 
 
 class Year(DatentoolModelMixin, models.Model):

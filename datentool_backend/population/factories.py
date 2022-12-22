@@ -2,12 +2,16 @@ import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point, Polygon
 
-from .models import (Raster, PopulationRaster,
-                     RasterCell, RasterCellPopulation,
+from .models import (Raster,
+                     PopulationRaster,
+                     RasterCell,
+                     RasterCellPopulation,
                      RasterCellPopulationAgeGender,
                      Prognosis,
-                     Population, PopulationEntry,
-                     PopStatistic, PopStatEntry,
+                     Population,
+                     PopulationEntry,
+                     PopStatistic,
+                     PopStatEntry,
                      )
 from datentool_backend.area.factories import AreaFactory
 from datentool_backend.site.factories import YearFactory
@@ -15,6 +19,7 @@ from datentool_backend.demand.factories import AgeGroupFactory, GenderFactory
 
 from faker import Faker
 faker = Faker('de-DE')
+
 
 class RasterFactory(DjangoModelFactory):
     class Meta:
@@ -74,7 +79,7 @@ class PrognosisFactory(DjangoModelFactory):
     class Meta:
         model = Prognosis
 
-    name = faker.unique.word()
+    name = factory.Sequence(lambda n: faker.unique.word())
     is_default = faker.pybool()
 
 

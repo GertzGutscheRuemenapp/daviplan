@@ -1,4 +1,6 @@
-<button mat-icon-button color="primary" class="filter-button small"
+<button mat-icon-button
+        color="warning"
+        class="filter-button small"
         [ngClass]="{ inverted: planningService.getPlaceFilters(infrastructure).length > 0 }"
         [disabled]="!infrastructure"
         [ngbPopover]="filterPopover"
@@ -41,6 +43,7 @@
                     color="primary" style="margin-top: -10px; margin-bottom: 5px;">
     Auch Standorte ohne Leistung "{{service?.name}}" anzeigen
   </mat-slide-toggle>
+  <button (click)="downloadCSV()">Als CSV speichern</button>
   <app-filter-table maxTableHeight="40vh" #filterTable
                     [columns]="_columnDescriptors"
                     [rows]="rows">

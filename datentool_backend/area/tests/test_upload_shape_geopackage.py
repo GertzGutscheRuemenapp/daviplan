@@ -45,7 +45,6 @@ class UploadTest(LoginTestCase, APITestCase):
         file_content = open(file_path_areas, 'rb')
         data = {
                 'file' : file_content,
-                'sync' : True,
             }
 
         url = reverse('arealevels-upload-shapefile',
@@ -54,7 +53,7 @@ class UploadTest(LoginTestCase, APITestCase):
                                extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
         self.assertEqual(json.loads(res.content)['message'],
-                         'Hochladen der Gebiete gestartet')
+                         'Hochladen der Gebiete erfolgreich beendet')
 
         # test if areas > threashold were put into the database
         self.assertEqual(Area.objects.count(), 3)
@@ -95,7 +94,6 @@ class UploadTest(LoginTestCase, APITestCase):
         file_content = open(file_path_areas, 'rb')
         data = {
                 'file' : file_content,
-                'sync': True,
             }
 
         url = reverse('arealevels-upload-shapefile',
@@ -104,7 +102,7 @@ class UploadTest(LoginTestCase, APITestCase):
                                extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
         self.assertEqual(json.loads(res.content)['message'],
-                         'Hochladen der Gebiete gestartet')
+                         'Hochladen der Gebiete erfolgreich beendet')
 
         # test if areas > threashold were put into the database
         self.assertEqual(Area.objects.count(), 3)
@@ -134,7 +132,6 @@ class UploadTest(LoginTestCase, APITestCase):
         file_content = open(file_path_areas, 'rb')
         data = {
                 'file' : file_content,
-                'sync': True,
             }
 
         url = reverse('arealevels-upload-shapefile',

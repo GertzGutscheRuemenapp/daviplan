@@ -4,8 +4,11 @@ import { OlMap } from "./map";
 import { Feature } from "ol";
 import { Layer as OlLayer } from "ol/layer";
 import { v4 as uuid } from "uuid";
-import { sortBy } from "../helpers/utils";
 import * as d3 from "d3";
+
+/**
+ * wrappers for ol-map layers
+ */
 
 export interface LayerStyle extends Symbol {
   strokeWidth?: number
@@ -18,56 +21,11 @@ interface LegendEntry {
 }
 
 interface ColorLegend {
-  entries: LegendEntry[],
-  elapsed?: boolean
+  entries: LegendEntry[]
 }
 
-export class MapLayerGroup {
-  name: string;
-  id?: number | string;
-  children: MapLayer[] = [];
-  external?: boolean;
-  map?: OlMap;
-  order?: number;
-
-  constructor(name: string, options?: {
-    order?: number,
-    external?: boolean,
-    id?: number,
-    global?: boolean
-  }) {
-    this.id = options?.id;
-    this.name = name;
-    this.external = options?.external;
-    this.order = options?.order;
-  }
-
-  addLayer(layer: MapLayer): void {
-    layer.group = this;
-    // only add if not already a child
-    if (this.children.indexOf(layer) < 0) {
-      this.children.push(layer);
-      this.children = sortBy(this.children, 'order');
-      layer.addToMap(this.map);
-    }
-  }
-
-  removeLayer(layer: MapLayer): void {
-    const idx = this.children.indexOf(layer);
-    if (idx < 0) return;
-    this.children.splice(idx, 1);
-    layer.removeFromMap();
-  }
-
-  clear(): void {
-    this.children.forEach(l => l.removeFromMap());
-    this.children = [];
-  }
-}
-
-interface LayerOptions {
+export interface LayerOptions {
   id?: string | number,
-  group?: MapLayerGroup,
   url?: string,
   description?: string,
   order?: number,
@@ -76,7 +34,8 @@ interface LayerOptions {
   opacity?: number,
   visible?: boolean,
   active?: boolean,
-  legend?: ColorLegend
+  legend?: ColorLegend,
+  legendElapsed?: boolean
 }
 
 export abstract class MapLayer {
@@ -84,7 +43,6 @@ export abstract class MapLayer {
   url?: string;
   id?: number | string;
   mapId?: string;
-  group?: MapLayerGroup;
   description?: string = '';
   order?: number = 1;
   zIndex?: number;
@@ -94,13 +52,15 @@ export abstract class MapLayer {
   map?: OlMap;
   active?: boolean;
   legend?: ColorLegend;
+  legendElapsed?: boolean
   protected _legend?: ColorLegend;
+  attributeChanged = new EventEmitter<{attribute: string, value: any}>();
 
   protected constructor(name: string, options?: LayerOptions) {
     this.name = name;
     this.id = options?.id;
-    this.map = options?.group?.map;
     this.url = options?.url;
+    this.legendElapsed = options?.legendElapsed;
     this.description = options?.description;
     this.attribution = options?.attribution;
     this.opacity = options?.opacity;
@@ -109,25 +69,31 @@ export abstract class MapLayer {
     this.active = options?.active;
     this.zIndex = options?.zIndex;
     this._legend = options?.legend;
-    if (options?.group) options?.group.addLayer(this);
   }
 
   getZIndex(): number {
-    if (this.zIndex) return this.zIndex;
+    if (this.zIndex)
+      return this.zIndex;
+    // if no zIndex defined try to derive it from the layer order
     let zIndex = 90 - (this.order || 0);
-    if (this.group?.order)
-      zIndex += 10000 - (this.group.order * 100);
     return zIndex;
+  }
+
+  setLegendElapsed(elapsed: boolean) {
+    this.legendElapsed = elapsed;
+    this.attributeChanged.emit({ attribute: 'legendElapsed', value: elapsed });
   }
 
   setOpacity(opacity: number) {
     this.opacity = opacity;
     this.map?.setOpacity(this.mapId!, opacity);
+    this.attributeChanged.emit({ attribute: 'opacity', value: opacity });
   }
 
   setVisible(visible: boolean) {
     this.visible = visible;
     this.map?.setVisible(this.mapId!, visible);
+    this.attributeChanged.emit({ attribute: 'visible', value: visible });
   }
 
   clearFeatures(): void {
@@ -147,7 +113,7 @@ export abstract class MapLayer {
   abstract addToMap(map?: OlMap): OlLayer<any> | undefined;
 }
 
-interface TileLayerOptions extends LayerOptions {
+export interface ServiceLayerOptions extends LayerOptions {
   legendUrl?: string,
   layerName?: string
 }
@@ -157,7 +123,7 @@ export class TileLayer extends MapLayer {
   layerName?: string;
   legendUrl?: string;
 
-  constructor(name: string, url: string, options?: TileLayerOptions) {
+  constructor(name: string, url: string, options?: ServiceLayerOptions) {
     super(name, options);
     this.url = url;
     this.layerName = options?.layerName;
@@ -171,7 +137,7 @@ export class TileLayer extends MapLayer {
     this.mapId = uuid();
     return this.map.addTileServer(
       this.mapId, this.url!, {
-        zIndex: this.getZIndex(),
+        zIndex: this.zIndex,
         params: { layers: this.layerName },
         visible: this.visible,
         opacity: this.opacity,
@@ -228,7 +194,7 @@ export interface ValueStyle {
   max?: number
 }
 
-interface VectorLayerOptions extends LayerOptions {
+export interface VectorLayerOptions extends LayerOptions {
   showLabel?: boolean,
   tooltipField?: string,
   labelField?: string,
@@ -285,6 +251,7 @@ export class VectorLayer extends MapLayer {
     this.labelField = options?.labelField;
     this.style = options?.style;
     this.opacity = options?.opacity;
+    this.visible = options?.visible;
     this.mouseOver = options?.mouseOver?.enabled;
     this.mouseOverStyle = options?.mouseOver?.style;
     this.selectable = options?.select?.enabled;
@@ -374,12 +341,11 @@ export class VectorLayer extends MapLayer {
     })
   }
 
-  protected _getColorLegend(): ColorLegend | undefined {
+  protected updateLegend(): ColorLegend | undefined {
     if (this._legend) return this._legend;
     if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
     let legend: ColorLegend = {
-      entries: [],
-      elapsed: true
+      entries: []
     }
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     if (this.valueStyles.fillColor.bins){
@@ -453,13 +419,13 @@ export class VectorLayer extends MapLayer {
       olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
     }
     this.map.addFeatures(this.mapId!, olFeatures);
-    this.legend = this._getColorLegend();
+    this.legend = this.updateLegend();
     return olFeatures;
   }
 
   protected initSelect() {
     this.map?.selected.subscribe(evt => {
-      if (evt.layer.get('id') !== this.id) return;
+      if (evt.layer.get('name') !== this.mapId) return;
       if (evt.selected && evt.selected.length > 0)
         this.featuresSelected.emit(evt.selected);
       if (evt.deselected && evt.deselected.length > 0)
@@ -485,6 +451,7 @@ export class VectorLayer extends MapLayer {
   setShowLabel(show: boolean): void {
     this.showLabel = show;
     this.map?.setShowLabel(this.mapId!, show);
+    this.attributeChanged.emit({ attribute: 'showLabel', value: show });
   }
 
   removeFeature(feature: Feature<any> | number): void {
@@ -505,7 +472,7 @@ interface ValueMap {
   values: Record<string, number>
 }
 
-interface VectorTileLayerOptions extends VectorLayerOptions {
+export interface VectorTileLayerOptions extends VectorLayerOptions {
   valueMap?: ValueMap
 }
 
@@ -526,7 +493,7 @@ export class VectorTileLayer extends VectorLayer {
     this.initFunctions();
     this.initSelect();
     if (this.valueStyles?.fillColor)
-      this.legend = this._getColorLegend();
+      this.legend = this.updateLegend();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
       zIndex: this.getZIndex(),
       visible: this.visible,

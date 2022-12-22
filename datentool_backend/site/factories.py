@@ -1,10 +1,10 @@
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Polygon, MultiPolygon
-from faker import Faker
 
 from .models import ProjectSetting, SiteSetting, Year
 
+from faker import Faker
 faker = Faker('de-DE')
 
 
@@ -23,12 +23,20 @@ class ProjectSettingFactory(DjangoModelFactory):
         Polygon(((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)))
         )
 
+def fakeword50(n=None):
+    found = False
+    while not found:
+        word = faker.unique.word()
+        if len(word) < 50:
+            found = True
+    return word
+
 
 class SiteSettingFactory(DjangoModelFactory):
     class Meta:
         model = SiteSetting
 
-    name = faker.unique.word()
+    name = factory.Sequence(fakeword50)
     title = faker.word()
     contact_mail = faker.email()
     logo = faker.image_url('https://picsum.photos/788/861')
