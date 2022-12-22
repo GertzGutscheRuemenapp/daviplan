@@ -37,13 +37,21 @@
       </app-time-slider>
     </div>
   </div>
-  <mat-slide-toggle *ngIf="service && showIgnoreCapacitiesToggle"
-                    [(ngModel)]="_ignoreCapacities"
-                    (change)="updateTable()"
-                    color="primary" style="margin-top: -10px; margin-bottom: 5px;">
-    Auch Standorte ohne Leistung "{{service?.name}}" anzeigen
-  </mat-slide-toggle>
-  <button (click)="downloadCSV()">Als CSV speichern</button>
+  <div style="display: flex; align-items: baseline;">
+    <mat-slide-toggle *ngIf="service && showIgnoreCapacitiesToggle"
+                      [(ngModel)]="_ignoreCapacities"
+                      (change)="updateTable()"
+                      color="primary" style="margin-top: -10px; margin-bottom: 5px;">
+      Auch Standorte ohne Leistung "{{service?.name}}" anzeigen
+    </mat-slide-toggle>
+    <button color="primary"
+            mat-button
+            style="margin-left: auto;"
+            (click)="downloadCSV()">
+      <mat-icon class="material-icons-outlined">save</mat-icon>
+      Als CSV speichern
+    </button>
+  </div>
   <app-filter-table maxTableHeight="40vh" #filterTable
                     [columns]="_columnDescriptors"
                     [rows]="rows">
