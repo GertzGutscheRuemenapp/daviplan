@@ -43,4 +43,4 @@ OSRM_ROUTING = {
 
 USE_DJANGO_Q = False
 
-LOCALE = 'en_US'
+LOCALE = ''
