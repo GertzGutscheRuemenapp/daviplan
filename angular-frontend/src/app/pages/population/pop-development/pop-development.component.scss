@@ -1,0 +1,30 @@
+@import "~src/constants";
+
+.grid-container {
+  width: calc(100% - 350px);
+  float: right;
+}
+
+#control mat-card{
+  position: relative;
+}
+
+#gender-select {
+  border-bottom: 1px solid lightgrey;
+}
+
+.age-select-box {
+  padding: 8px 16px;
+  border: 1px solid lightgrey;
+  label {
+    text-transform: none;
+    display:inline-block;
+    width: calc(100% - 30px);
+  }
+  .checked label {
+    color: $primary;
+  }
+  .age-row {
+    width: 100%;
+  }
+}

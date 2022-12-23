@@ -1,0 +1,217 @@
+<app-header-card [title]="'Einstellungen Webseite'"
+                 cookieId="exp-settings-header"
+                 width="780px">
+  Hier legen Sie fest, wie Ihre individuelle kommunale oder
+  regionale Anwendung von daviplan für die Nutzenden erscheinen soll (Name, Logo, Willkommenstext, Kontakt)
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card #titleEdit
+                   [title]="'Name der Seite'"
+                   subtitle="Name ändern"
+                   [dialogTitle]="'Namen der Seite ändern'"
+                   infoText="<p>Hier können Sie den Namen der Webseite individuell anpassen, z.B. „Daseinsvorsorgeplanung XY-Region“.</p>
+                   <p>Der Name erscheint als Titel des Browser-Tabs, in dem daviplan geöffnet wird.</p>"
+                   [editTemplate]="titleTemplate"
+                   [editButton]="titleEditButton">
+      <div #titleEditButton class="row-button" style="width: 90%">
+        <label>{{settings?.title}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+    </app-input-card>
+    <app-input-card #welcomeTextEdit
+                    [title]="'Willkommenstext für die Startseite'"
+                    subtitle="Willkommenstext ändern"
+                    [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
+                    dialogWidth="1000px"
+                    infoText="<p>Hier können Sie einen Text eintragen, der auf der Startseite angezeigt wird.</p>
+                    <p>Die Startseite ist die Seite, die die Nutzer:innen nach dem Login sehen. Sie kann auch über ein Anklicken des Logos oben links erreicht werden.</p>"
+                    [editTemplate]="welcomeTextTemplate"
+                    [editButton]="welcomeTextEditButton">
+      <div #welcomeTextEditButton style="width: 100%">
+        <div class="text" style="user-select: none;">
+          <div style="transform: scale(0.5, 0.5); margin: -3% 0 -20% -105px;"><div style="width: 150%;" [innerHTML]="settings?.welcomeText"></div></div>
+          <button mat-icon-button color="primary"
+                  style="position: absolute; left: 42%; top: 40%; pointer-events: none; z-index: 1;">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+      </div>
+    </app-input-card>
+    <app-input-card #BKGEdit
+                    [title]="'BKG Geokodierung (optional)'"
+                    subtitle="Zugangsdaten ändern"
+                    [dialogTitle]="'Zugangsdaten für den BKG-Geocoder'"
+                    dialogWidth="600px"
+                    infoText="<p>Für die Geokodierung von Standortdaten wird die Geocoding-Schnittstelle des BKG verwendet.
+                    Um diesen nutzen zu können, wird ein eindeutiger Nutzeridentifikator (UUID) benötigt,
+                    der vom BKG bezogen werden kann.</p>
+                    <p>Dafür laden Sie bitte oben den Nutzungsantrag herunter, füllen die Felder aus und mailen den
+                    unterschriebenen Antrag an <a href='mailto:dlz@bkg.bund.de'>dlz@bkg.bund.de</a> sowie
+                    in CC an <a href='mailto:rs1@bbr.bund.de.'> rs1@bbr.bund.de. </a> </p>
+                    <p>Den Nutzeridentifikator erhalten Sie per Mail. </p>
+                    <p>Bitte wählen Sie die Editierfunktion über das Stiftsymbol aus und geben diesen ein.</p>"
+                    [editTemplate]="BKGTemplate"
+                    [editButton]="BKGEditButton">
+      <div #BKGEditButton
+           class="row-button"
+           style="width: 90%">
+        <label>{{settings?.bkgPasswordIsSet? '·········': 'nicht gesetzt'}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+      <div>
+        <button mat-button class="mat-button-dv"
+                title="Zugangsdaten für den BKG-Geokodierungsdienst entfernen"
+                [disabled]="!settings?.bkgPasswordIsSet? true : null"
+                color="primary" (click)="removeBKGCredentials()">
+          <mat-icon>close</mat-icon>&nbsp; entfernen
+        </button>
+        <a mat-stroked-button color="primary"
+           style="margin-left: 25px;"
+           title="BKG Nutzungsantrag"
+           href="{{backend}}/static/Formular_Nutzung_BKG-Geocoding.pdf"
+           target="_blank"
+           download>
+          <mat-icon>description</mat-icon>
+          Nutzungsantrag
+        </a>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card #contactEdit
+                    [title]="'Kontakt E-Mail (optional)'"
+                    subtitle="E-Mail ändern"
+                    [dialogTitle]="'Kontakt E-Mail ändern'"
+                    infoText="<p>Diese E-Mail-Adresse wird im Loginbereich als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw.
+                    zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.</p>
+                    <p>Zum Entfernen der Mail muss das Eingabefeld leer gelassen werden.</p>"
+                    [editTemplate]="contactTemplate"
+                    [editButton]="contactEditButton">
+      <div #contactEditButton class="row-button" style="width: 90%">
+        <label>{{settings?.contactMail || '-'}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+    </app-input-card>
+    <app-input-card #logoEdit
+                    [title]="'Eigenes Logo (optional)'"
+                    subtitle="Logo ändern"
+                    [dialogTitle]="'Bilddatei als Logo festlegen'"
+                    infoText="<p>Die Individualisierung des Logos ist optional. Falls ein Logo gesetzt wird, wird es auf der Loginseite angezeigt und
+                    links in der Hauptnavigationsleiste.</p>
+                    <p> Ist es nicht gesetzt, wird stattdessen das daviplan-Logo in der Navigation angezeigt.</p>"
+                    [editTemplate]="logoTemplate"
+                    [editButton]="logoEditButton">
+      <div #logoEditButton class="img-wrapper">
+        <button mat-icon-button color="primary"
+                style="position: absolute; left: 42%; top: 40%; pointer-events: none; z-index: 1;">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <img [src]="settings?.logo" style="width: 100%;  object-fit: contain;">
+      </div>
+      <button mat-button class="mat-button-dv"
+              [disabled]="(!settings?.logo) ? true : null"
+              color="primary" (click)="removeLogo()" i18n>
+        <mat-icon>close</mat-icon>&nbsp; Logo entfernen
+      </button>
+    </app-input-card>
+    <app-input-card #regstatEdit
+                    [title]="'Regionalstatistik (optional)'"
+                    subtitle="Zugangsdaten ändern"
+                    [dialogTitle]="'Zugangsdaten für die Regionalstatistik'"
+                    dialogWidth="600px"
+                    infoText="<p> Sofern Sie noch keine Zugangsdaten zur Regionalstatistik haben, können Sie diese über den folgenden Link erhalten (Detailerläuterung im Handbuch): </p>
+                    <a href='https://www.regionalstatistik.de/genesis/online?Menu=Registrierung' target='_blank'>Regionalstatistik Registrierung</a></p>
+                    <p>Bitte nach dem Erhalt der Bestätigungsmail einmalig auf der Regionalstatistik-Webseite anmelden, um das Passwort zu ändern. Anschließend bitte den Nutzernamen und das geänderte Passowort hier eintragen."
+                    [editTemplate]="regstatTemplate"
+                    [editButton]="regstatEditButton">
+      <div #regstatEditButton class="row-button" style="width: 90%">
+        <label>{{settings?.regionalstatistikUser || 'nicht gesetzt'}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+      <div>
+        <button mat-button class="mat-button-dv"
+                title="Zugangsdaten für die Regionalstatistik entfernen"
+                [disabled]="!settings?.regionalstatistikUser? true : null"
+                color="primary" (click)="removeRegstatCredentials()">
+          <mat-icon>close</mat-icon>&nbsp; entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #titleTemplate>
+  <form [formGroup]="titleForm">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Neuen Namen eingeben</mat-label>
+      <input matInput formControlName="title" required/>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<ng-template #contactTemplate>
+  <form [formGroup]="contactForm">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>E-Mail</mat-label>
+      <input matInput formControlName="contact"/>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<ng-template #welcomeTextTemplate>
+  <ckeditor [editor]="Editor" [config]="editorConfig" [(ngModel)]="welcomeTextInput"></ckeditor>
+</ng-template>
+
+<ng-template #logoTemplate>
+  <div class="col-12 rmpm dropzone" appDrag (files)="filesDropped($event)">
+    <div class="text-wrapper">
+      <div class="centered" style="min-height: 300px;">
+        <div style="width: calc(100% - 60px)" class="drop-overlay">
+          <h4 i18n>Bilddatei hierher ziehen</h4>
+        </div>
+        <img *ngIf="logoFile" [src]="logoFile.url" width="100%">
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #regstatTemplate>
+  <form [formGroup]="regstatForm">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Nutzername</mat-label>
+      <input matInput formControlName="regstatUser" autocomplete="regstat-user"/>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Passwort</mat-label>
+      <input matInput formControlName="regstatPassword" autocomplete="regstat-pass"
+             [type]="showRegstatPassword ? 'text' : 'password'"
+             placeholder="·········" required>
+      <fa-icon matSuffix [icon]="showRegstatPassword? faEyeSlash: faEye" (click)="showRegstatPassword = !showRegstatPassword"></fa-icon>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<ng-template #BKGTemplate>
+  <form [formGroup]="BKGForm">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Nutzeridentifikator (UUID)</mat-label>
+      <input matInput formControlName="bkgPassword" autocomplete="bkg-uuid"
+             [type]="showBKGPassword ? 'text' : 'password'"
+             placeholder="·········" required>
+      <fa-icon matSuffix [icon]="showBKGPassword? faEyeSlash: faEye" (click)="showBKGPassword = !showBKGPassword"></fa-icon>
+    </mat-form-field>
+  </form>
+</ng-template>

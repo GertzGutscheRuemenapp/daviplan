@@ -1,0 +1,21 @@
+.editContent input:not([type=checkbox]) {
+  padding: .5rem;
+  width: 100%;
+}
+
+.editContent table {
+  padding: .5rem;
+  width: 90%;
+}
+
+.sensitive-check {
+  margin: 0 0 10px -15px;
+  transform: scale(0.8);
+  float: right;
+}
+
+mat-form-field fa-icon {
+ color: grey;
+ font-size: 1.2em;
+  cursor: pointer;
+}

@@ -1,0 +1,7 @@
+<button #helpButton title="Hilfe" mat-icon-button color="primary" class="small"
+        (click)="onClick($event)">
+  <mat-icon>help_outline</mat-icon>
+</button>
+<div #content style="display: none;">
+  <ng-content></ng-content>
+</div>

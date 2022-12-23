@@ -1,0 +1,24 @@
+.text-panel {
+  padding: 50px;
+  background-color: #ffffffcc;
+  max-width: 1000px;
+  margin: 8% 3%;
+}
+
+h1{
+  font-weight: 550;
+}
+
+h2{
+  font-weight: 550;
+}
+ul{
+  list-style-type: none;
+}
+ul li:before {
+    content: '-';
+    position: absolute;
+    margin-left: -20px;
+}
+
+

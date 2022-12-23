@@ -1,0 +1,14 @@
+@import "~src/constants";
+
+.dashboard-card {
+  margin: 10px;
+  border: 1px solid #0000001F;
+}
+
+.sub {
+  //color: #00000061;
+  //color: $light-black;
+  color: grey;
+  margin-bottom: 10px;
+  user-select: none;
+}

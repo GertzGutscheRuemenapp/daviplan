@@ -1,0 +1,208 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Nachfragequoten'"
+                 cookieId="exp-quota-header"
+                 width="1170px">
+  <p>Auf dieser Seite legen Sie für jede zuvor definierte Leistung fest, wie der Umfang der Nachfrage nach dieser Leistung berechnet werden soll. Dabei können Sie zwischen drei Berechnungsprinzipien wählen, die für die betreffende Leistung dann für alle Jahre und alle Gebietseinteilungen Ihres Planungsraums angewendet wird:</p>
+  <ol>
+    <li>Die Nachfrage wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b> Nachfragequote </b>(z.B. 35% der unter 3-Jährigen) mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b> Anzahl an Nachfrager:innen</b>, z.B. die Zahl der Krippenkinder.</li>
+    <li>Die Nachfrage wird berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nutzungshäufigkeit pro Einwohner:in </b>(z.B. 10 Arztkontakte pro Jahre) mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b>Anzahl an Nutzungen pro Jahr</b>, z.B. die Zahl der gewünschten Arztkontakte pro Jahr.</li>
+    <li>Die Nachfrage entspricht schlicht der <b>Gesamtzahl der Einwohner:innen</b>, z.B. beim Brandschutz.</li>
+  </ol>
+  <p>Wenn Sie für eine ausgewählte Leistung eines der ersten beiden Berechnungsprinzipien ausgewählt haben, werden sie anschließend aufgefordert, Nachfragequoten bzw. Nutzungshäufigkeiten zu definieren. Beim dritten Berechnungsprinzip ist dies nicht erforderlich.</p>
+  <p>Nachfragequoten und Nutzungshäufigkeiten unterscheiden sich häufig nach Alter (Beispiel: nur Kinder gehen in den Kindergarten) und Geschlecht (Beispiel: Inanspruchnahme der Fachrichtungen Urologie und Gynäkologie). Zudem können sie sich im Laufe der Zeit verändern (Beispiel: Steigender Anteil an Schüler:innen im Ganztag). Aus diesem Grunde können Sie die ggf. für ihr ausgewähltes Berechnungsprinzip notwendigen Nachfragequoten und Nutzungshäufigkeiten nach Geschlecht, Alter und Betrachtungsjahr differenzieren.</p>
+  <p>Da die Vorhersage zukünftiger Nachfragequoten und Nutzungshäufigkeiten nicht immer leicht ist, können Sie für eine Leistung auch mehrere Varianten definieren, zwischen denen Sie bei der Szenarienentwicklung im Abschnitt „Infrastrukturplanung“ hin- und herwechseln können. Wenn Sie für eine Leistung mehrere Nachfragequoten- bzw. Nutzungshäufigkeitsvarianten definiert haben, müssen Sie eine davor als Standardannahme für die von daviplan automatisch generierten Trendfortschreibungen auswählen.</p>
+  <p>Um für eine ausgewählte Leistung Nachfragequoten oder Nutzungshäufigkeiten zu definieren, klicken Sie in der Box „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“ auf „Hinzufügen“ und geben der Variante einen Namen. Daraufhin öffnet sich eine weitere Eingabebox, in der Sie die Nachfragequoten oder Nutzungshäufigkeiten eintragen können. Um weitere Varianten der Nachfragequoten bzw. Nutzungshäufigkeiten zu erstellen, klicken Sie in der Box „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“ erneut auf „Hinzufügen“ oder auf „Klonen“. </p>
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Leistungen'"
+                    [subtitle]="'Leistung auswählen, um das Prinzip der Nachfrageberechnung anzuzeigen und ggf. zu ändern.'"
+                    infoText="<p>Wählen Sie aus der Liste die Leistung aus, für die Sie das Prinzip der Nachfrageberechnung anzeigen und ggf. verändern möchten.</p>
+                    <p>Wählen Sie anschließend in der Box „Prinzip der Nachfrageberechnung“ das passende Berechnungsprinzip aus und definieren sie anschließend – falls erforderlich – Nachfragequote bzw. Nutzungshäufigkeiten nach Alter und Geschlecht.</p>">
+    <mat-selection-list [multiple]="false"
+                        class="categorized"
+                        id="service-select">
+        <ng-container *ngFor="let infrastructure of infrastructures">
+          <div mat-subheader>{{infrastructure.name}}</div>
+          <mat-list-option *ngFor="let service of infrastructure.services"
+                           (click)="activeService = service; onServiceChange();"
+                           [selected]="(service.id === activeService?.id)">
+            <div class="option-text">{{service.name}}</div>
+          </mat-list-option>
+          <mat-divider></mat-divider>
+        </ng-container>
+      </mat-selection-list>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px" [class.hidden]="!activeService">
+    <app-input-card #demandTypeCard
+                    [title]="'Prinzip der Nachfrageberechnung'"
+                    [editTemplate]="demandTypeEdit"
+                    [subtitle]="'Leistung ' + activeService?.name"
+                    infoText="<p>Klicken Sie auf „Editieren“, um das Prinzip der Nachfrageberechnung zu verändern.</p>
+                    <p>Wenn Sie eine Nachfrageberechnung mit Nutzungsquoten oder Nutzungshäufigkeiten ausgewählt haben, erscheint eine Eingabebox „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“, über die Sie diese Nutzungsquoten bzw. Nutzungshäufigkeiten definieren können. </p>">
+        <!-- <li *ngIf="activeService">{{demandTypes[activeService.demandType][0]}}</li> -->
+      <p *ngIf="activeService?.demandType === 1">
+        (1) Die Nachfrage in einem Gebiet wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nachfragequote</b> mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b>Anzahl an Nachfrager:innen </b>.
+      </p>
+      <p *ngIf="activeService?.demandType === 2">
+        (2) Die Nachfrage in einem Gebiet wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nutzungshäufigkeit pro Einwohner:in </b>mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b> Anzahl an Nutzungen pro Jahr </b>.
+      </p>
+      <p *ngIf="activeService?.demandType === 3">
+        (3) Die Nachfrage in einem Gebiet entspricht in jedem Jahr der <b> Gesamtzahl der Einwohner:innen </b>.
+      </p>
+    </app-input-card>
+  </div>
+</div>
+<div [ngClass]="{'hidden': !activeService || activeService?.demandType === 3}">
+  <mat-divider style="margin: 10px 0; max-width: 1250px;"></mat-divider>
+  <div fxLayout="row wrap">
+    <div fxLayout="column" fxFlex="350px">
+      <app-input-card [title]="'Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)'"
+                      [subtitle]="'Leistung ' + activeService?.name"
+                      infoText="<p>Klicken Sie auf „Hinzufügen“, um eine erste oder eine weitere Variante an Nachfragequoten oder Nutzungshäufigkeiten zu definieren. Daraufhin erscheint ein Eingabedialog, in dem Sie der Variante einen Namen sowie eine kurze Beschreibung geben können. Name und Beschreibung können Sie nachträglich ändern, indem Sie auf die Schaltfläche „Editieren“ unmittelbar über diesem Hilfetext klicken.</p>
+                                <p>Nach dem Hinzufügen (oder dem Auswählen einer bereits definierten) Variante erscheint eine Eingabebox, in der Sie die Nachfragequoten bzw. Nutzungshäufigkeiten in Abhängigkeit von Geschlecht, Alter und Betrachtungsjahr eintragen können.</p>
+                                <p>Um eine weitere Variante zu definieren, können Sie entweder erneut „Hinzufügen“ klicken (und mit einer leeren Tabelle starten) oder Sie wählen eine bereits definierte Variante aus und erstellen über die Schaltfläche „Klonen“ eine Kopie, der Sie einen neuen Namen geben. Diese können Sie anschließend punktuell verändern.</p>
+                                <p>Wenn Sie für eine Leistung mehrere Varianten definiert haben, müssen Sie festlegen, welche Variante bei den im Abschnitt „Infrastrukturplanung“ automatisch erzeugten Trendfortschreibungsszenario verwendet werden soll. Wählen Sie hierzu eine Variante in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“.</p>">
+        {{activeDemandRateSet?.name}}
+        <mat-selection-list #demandSetSelection [multiple]="false" id="quota-select" >
+          <mat-list-option *ngFor="let demandRateSet of demandRateSets"
+                           (click)="activeDemandRateSet = demandRateSet; onDemandRateSetChange();"
+                           [selected]="(demandRateSet.id === activeDemandRateSet?.id)"
+                           [ngClass]="{'star-option': demandRateSet.isDefault}"
+                           [title]="demandRateSet.name + (demandRateSet.isDefault? ' (Annahme für Trendfortschreibung)': '')">
+            <div class="option-text">{{demandRateSet.name}}</div>
+            <mat-icon *ngIf="demandRateSet.isDefault" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+          </mat-list-option>
+        </mat-selection-list>
+        <button mat-button color="primary"
+                class="multiline-button"
+                (click)="activeDemandRateSet && setDefaultDemandRateSet(activeDemandRateSet)">
+          <mat-icon class="material-icons-outlined">verified</mat-icon>
+          Als Annahme für Szenario 'Status Quo Fortschreibung' verwenden
+        </button>
+        <div>
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  title="Nachfragevariante hinzufügen"
+                  (click)="createDemandRateSet()">
+            <mat-icon>add</mat-icon>hinzuf.
+          </button>
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  title="Ausgewählte Nachfragevariante duplizieren"
+                  [disabled]="!activeDemandRateSet"
+                  (click)="cloneDemandRateSet()">
+            <mat-icon>content_copy</mat-icon>Klonen
+          </button>
+          <button mat-button color="primary"
+                  style="float: right;"
+                  title="Ausgewählte Nachfragevariante löschen"
+                  class="mat-button-dv"
+                  [disabled]="!activeDemandRateSet"
+                  (click)="deleteDemandRateSet()">
+            <mat-icon>close</mat-icon>entfernen
+          </button>
+        </div>
+        <div [class.hidden]="!activeDemandRateSet" [style.height]="!activeDemandRateSet? '0px': ''"
+             between>
+          <mat-divider style="margin: 10px 0;"></mat-divider>
+          <div style="padding: 10px 0;">
+            <app-input-card #propertiesCard
+                            [borderless]="true"
+                            [subtitle]="'Bezeichnung der ausgewählten Variante'"
+                            [editTemplate]="propertiesEdit">
+              <table *ngIf="activeDemandRateSet">
+                <tr>
+                  <td>Name</td>
+                  <td>{{activeDemandRateSet.name}}</td>
+                </tr>
+                <tr>
+                  <td>Beschreibung</td>
+                  <td>
+                    <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+                      {{activeDemandRateSet.description}}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </app-input-card>
+          </div>
+        </div>
+      </app-input-card>
+    </div>
+    <div fxLayout="column" fxFlex="840px">
+      <app-input-card #demandRateSetCard
+                      [title] = "getTitle(activeService?.demandType)"
+                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Variante „' + activeDemandRateSet?.name + '“'"
+                      [editTemplate]="demandRateSetEdit"
+                      [class.hidden]="!activeDemandRateSet"
+                      class="spaced"
+                      dialogWidth="1200px"
+                      [topRightHelp]="true"
+                      dialogInfoText="
+                      <p>Wählen Sie mit dem Zeitschieber das Jahr aus, für das Sie Nachfragequoten bzw. Nutzungshäufigkeit eintragen möchten und nehmen Sie anschließend Eintragungen vor. </p>
+                      <p>Damit Sie nicht alle Werte händisch eintragen müssen, stehen Ihnen die folgenden Funktionen zur Verfügung: </p>
+                      <p>Über die <b> blauen Schaltflächen mit dem Doppelpfeil </b> im Kopf der Tabellenspalten „männlich“ und „weiblich“ können Sie die Werte eines Geschlechts in die Datenspalte des anderen Geschlechts kopieren. </p>
+                      <p>Mit der <b> Schaltfläche „Kopieren“ </b> können Sie die Nachfragequoten bzw. Nutzungshäufigkeiten eines Jahres in ein anderes Jahr kopieren. Dazu öffnet sich nach dem Anklicken ein entsprechender Steuerungsdialog, über den Sie auch entscheiden können, ob die Werte auch in alle dazwischen liegenden Jahre kopiert werden sollen oder nicht. Kopiert werden die Nachfragequoten bzw. Nutzungshäufigkeit aller Altersgruppen und Geschlechter. </p>
+                      <p>Mit der <b> Schaltfläche „Interpolieren“ </b> haben Sie die Möglichkeit, die Nutzungsquoten zwischen zwei ausgewählten Jahren linear zu interpolieren. Wenn Sie z.B. im Jahr 2025 für Männer zwischen 35 und 40 eine Nachfragequote von 40% und im Jahr 2030 von 45% eingetragen haben, würde die Funktion „Interpolieren“ die Quote zwischen 2025 und 2030 jedes Jahr um 1% erhöhen. Diese Interpolation erfolgt gleichzeitig für allen Altersgruppen und beide Geschlechter. </p>
+                      <p>Die Wirkungen ihrer händischen Eintragungen sowie der vorstehenden Funktionen können Sie stets in den beiden Diagrammen kontrollieren. Das obere Diagramm zeigt nur die Werte für das mit dem Zeitschieber ausgewählte Jahr, das untere Diagramm nur die Werte der im Auswahlfeld zwischen den Diagrammen ausgewählten Altersgruppe. </p>"
+                      infoText="<p>In dieser Box können Sie die Nachfragequoten bzw. Nutzungshäufigkeiten der ausgewählten Variante in Tabellen- und Diagrammform betrachten, kontrollieren und bei Bedarf verändern.</p>
+                                <p>Klicken Sie auf „Editieren“, um die Werte erstmalig einzutragen oder zu verändern.</p>
+                                <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
+                                <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Nachfragequoten bzw. Nutzungshäufigkeiten der einzelnen Altersgruppen und Geschlechter in dem gerade ausgewählten Jahr.</p>
+                                <p>Wenn Sie über das Auswahlfeld zwischen den Diagrammen eine Altersgruppe auswählen, passt sich zudem das untere Diagramm an und zeigt Ihnen die Veränderung der Nachfragequote bzw. Nutzungshäufigkeit dieser Altersgruppe im Laufe der Zeit an.</p>">
+        <app-demand-rate-set-view #demandRateSetPreview
+                                  [years]="years"
+                                  [demandRateSet]="activeDemandRateSet"
+                                  [service]="activeService"
+                                  [genders]="genders"
+                                  [ageGroups]="ageGroups"
+                                  [chartHeight]="250">
+        </app-demand-rate-set-view>
+      </app-input-card>
+    </div>
+  </div>
+</div>
+
+<ng-template #demandTypeEdit>
+  <form [formGroup]="demandTypeForm" style="padding: 10px 0;">
+    <mat-radio-group formControlName="demandType">
+      <mat-radio-button *ngFor="let item of demandTypes | keyvalue" [value]="item.key">
+        {{item.value[0]}} {{item.value[1]}}
+      </mat-radio-button>
+    </mat-radio-group>
+  </form>
+</ng-template>
+
+<ng-template #propertiesEdit>
+  <form [formGroup]="propertiesForm" style="padding: 10px 0;">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" autocomplete="demand-variant-name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description"
+                  cdkTextareaAutosize cdkAutosizeMinRows="3"
+                  autocomplete="demand-variant-desc"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #demandRateSetEdit>
+  <app-demand-rate-set-view [years]="years"
+                            [year]="year"
+                            [edit]="true"
+                            [inPlace]="true"
+                            [demandRateSet]="editDemandRateSet"
+                            [service]="activeService"
+                            [genders]="genders"
+                            [ageGroups]="ageGroups"
+                            [chartHeight]="300">
+  </app-demand-rate-set-view>
+</ng-template>

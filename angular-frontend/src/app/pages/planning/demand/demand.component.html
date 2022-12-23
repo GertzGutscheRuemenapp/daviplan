@@ -1,0 +1,101 @@
+<app-scenario-menu domain="demand" helpText="
+        <p>Wählen Sie hier das Szenario aus, dessen Nachfrageschätzung Sie in der Karte anzeigen möchten.</p>
+        <p>Sie können die Nachfrageschätzung des Szenarios editieren, indem sie andere Nachfragequoten auf die (nicht veränderbaren) Einwohnerdaten anwenden. Zudem können Sie ein neues Szenario hinzufügen oder ein bestehendes löschen.</p>">
+</app-scenario-menu>
+<mat-expansion-panel cookieExpansion="exp-demand-services">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
+      </div>
+      Leistung
+      <mat-icon *ngIf="!planningService.activeService" class="warning"
+                title="Keine Leistung ausgewählt">
+        error_outline
+      </mat-icon>
+      <app-help-button title="Leistung" position="right">
+        <p>Wählen Sie hier die Leistung aus, deren Nachfrage Sie in der Karte anzeigen möchten.</p>
+        <p>Wählen Sie hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte Leistung.</p>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <app-service-select></app-service-select>
+</mat-expansion-panel>
+<mat-expansion-panel cookieExpansion="exp-demand-areas">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
+      </div>
+      Gebietseinteilung
+      <mat-icon *ngIf="!activeLevel" class="warning"
+                title="Keine Gebietseinteilung ausgewählt">
+        error_outline
+      </mat-icon>
+      <app-help-button title="Gebietseinteilung" position="right">
+        <p>Wählen Sie hier die Gebietseinteilung (z.B. Gemeinden oder Kreise) aus, nach der Sie die Darstellung der Nachfrage in der Karte räumlich differenzieren möchten.</p>
+        <p>Nutzen Sie für die Auswahl das Dropdown-Menü.</p>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field appearance="outline" class="small">
+    <mat-select disableOptionCentering disableRipple
+                [(ngModel)]="activeLevel"
+                (selectionChange)="onAreaLevelChange()">
+      <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
+        {{areaLevel.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-expansion-panel>
+<!--
+<mat-expansion-panel cookieExpansion="exp-demand-compare" class="disabled">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
+      </div>
+      Vergleichsdarstellung
+      <app-help-button title="Vergleichsdarstellung" position="right">
+        <p>Sie können die Karte für eine Vergleichsdarstellung nutzen, um zwei Nachfragezustände zu vergleichen.</p>
+        <p>Sie können entweder die Nachfrage in zwei unterschiedlichen Jahren des gleichen Szenarios vergleichen.</p>
+        <p>Oder Sie vergleichen die Nachfrage in zwei unterschiedlichen Szenarien für das gleiche Jahr.</p>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n>
+    Nachfrage vergleichen
+  </mat-checkbox>
+  <div class="sub-select-wrapper compare-radio-list">
+    <mat-radio-group [(ngModel)]="compareStatus">
+      <mat-radio-button value="option 1" color="primary"
+                        [disabled]="!compareSupply"
+                        i18n>
+        Mit Nachfrage im gleichen Szenario im Jahr
+      </mat-radio-button>
+      <mat-form-field appearance="outline" class="small">
+        <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
+          <mat-option *ngFor="let year of years" [value]="year">
+            {{year}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-radio-button value="option 2" color="primary"
+                        [disabled]="!compareSupply"
+                        i18n>
+        Mit Nachfrage im gleichen Jahr im Szenario
+      </mat-radio-button>
+      <mat-form-field appearance="outline" class="small">
+        <mat-select disableOptionCentering disableRipple value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
+          <mat-option value="1">
+            Szenario 1
+          </mat-option>
+          <mat-option value="2">
+            Szenario 2
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-radio-group>
+  </div>
+</mat-expansion-panel>
+-->

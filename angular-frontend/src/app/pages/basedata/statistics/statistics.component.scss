@@ -1,0 +1,33 @@
+@import "~src/constants";
+
+#year-select {
+  min-height: 200px;
+  max-height: 245px;
+}
+
+#base-statistics-map {
+  margin-top: 10px;
+  width: 100%;
+  height: 600px;
+  position: relative;
+  background-color: white;
+}
+
+::ng-deep app-statistics #statistics-theme {
+  position: absolute;
+  left: 0;
+  top: 25px;
+  z-index: 5;
+  pointer-events: none;
+  .side-toggle>div {
+    pointer-events: all;
+  }
+  .mat-checkbox-checked {
+    .mat-checkbox-label {
+      color: $primary !important;
+    }
+    .mat-checkbox-background {
+      background-color: $primary !important;
+    }
+  }
+}

@@ -1,0 +1,358 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Gebietseinteilungen'"
+                 cookieId="exp-areas-header"
+                 width="1170px">
+  <p>Nachdem Sie bei den Basisdefinitionen im Administrationsbereich einen Planungsraum definiert haben, auf das Sie daviplan anwenden möchten, können Sie diesen Planungsraum in Gebietseinteilungen unterteilen. Diese Gebietseinheiten dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen.</p>
+  <p>Die einzelnen Gebietseinteilungen werden über Gebietseinteilungen definiert, die den gesamten Planungsraum abdecken müssen.</p>
+  <p>Standardmäßig entsprechen die Gebietseinteilungen den administrativen Ebenen, d.h. den Gemeinden, Verwaltungsgemeinschaften (Ämter, Samtgemeinden, Verbandsgemeinden, VG), Kreisen und Bundesländern. Diese amtlichen Grenzen können auf Sie einfach vom Bundesamt für Kartographie und Geodäsie (BKG) herunterladen lassen und für Ihre daviplan-Anwendung auswählen.</p>
+  <p>Ergänzend können Sie benutzerdefinierte Gebietseinteilungen, z.B. Ortsteile, hinzufügen. Hierzu laden Sie ein gezipptes Shape-File oder ein Geopackage hoch. Auch die benutzerdefinierten Gebietseinteilungen müssen das gesamte Planungsgebiets abdecken.</p>
+  <p>Sie müssen mindestens eine Gebietseinteilung auswählen oder definieren, um mit der Erfassung der Grundlagendaten fortzufahren.</p>
+  <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, können Sie sich später die Ergebnisse von Auswertungen für jeden dieser Gebietseinteilungen (z.B. Gemeinden, Verwaltungsgemeinschaften und Kreise) auswerten lassen.</p>
+  <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, müssen Sie festlegen, welche davon die Grundlage für die Erfassung der Einwohnerdaten (Vergangenheit und Prognose) im nachfolgenden Schritt „Bevölkerung“ sein soll.</p>
+</app-header-card>
+<app-status-card *ngIf="!(isLoading$ | async) && !projectArea" [showSpinner]="false"
+                 infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Planungsraum definiert werden, bevor die Gebietseinteilungen bearbeitet werden können.">
+  Fehler: Es ist kein Planungsraum definiert!
+</app-status-card>
+<app-status-card *ngIf="isProcessing$ | async">
+  Es läuft gerade eine Berechnung im Bereich „Gebiete“
+</app-status-card>
+<div fxLayout="row wrap">
+  <div fxFlex="350px">
+    <app-input-card [title]="'Gebietseinteilungen'"
+                    [disabled]="(isProcessing$ | async) || !projectArea"
+                    subtitle="Administrative Ebenen aktivieren und/oder benutzerdefinierte Gebietseinteilung hinzufügen"
+                    infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
+                              <p>Nur aktive Gebietseinteilungen können außerhalb dieser Seite ausgewählt werden und in der Karte dargestellt werden. Die Aktivität kann über die Auswahlbox neben dem Namen der jeweiligen Gebietseinteilung umgeschaltet werden.</p>
+                              <p>In der Box „Darstellung der ausgewählten Gebietseinteilung“ können Sie den angezeigten Namen und die Linienfarbe der Gebietseinteilung verändern.</p>
+                              <p>Wiederholen Sie dieses Vorgehen für jede amtliche Gebietseinteilung, die Sie nutzen möchten.</p>
+                              <p>Um optional eine benutzerdefinierte Gebietseinteilung (Shape-File oder Geopackage) hinzuzufügen, klicken Sie auf „Hinzufügen“. Diese erscheint danach in der Liste der Gebietseinteilungen unterhalb einer Trennlinie zu den vier vorgegebenen Gebietseinheiten. Wenn Sie diese in der Liste auswählen, wird Sie in der Karte angezeigt und Sie können ihre Darstellung anpassen.</p>">
+      <div style="display: inline-flex;">
+        <mat-selection-list [multiple]="false"
+                            id="level-select">
+          <ng-container *ngIf="presetLevels.length">
+            <mat-optgroup>
+              Administrative Ebenen
+            </mat-optgroup>
+            <div style="margin: -20px 5px 0; float: right; color: grey; font-size: 14px;"><i>sichtbar</i></div>
+            <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
+              <mat-list-option [value]="areaLevel"
+                               [title]="areaLevel.name"
+                               (click)="selectAreaLevel(areaLevel)"
+                               [selected]="(activeLevel && (areaLevel.id === activeLevel.id))">
+                <div class="option-text">{{ areaLevel.name }}</div>
+                <mat-icon *ngIf="areaLevel.isPopLevel"
+                          style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">
+                  verified
+                </mat-icon>
+              </mat-list-option>
+              <mat-checkbox color="primary"
+                            [checked]="areaLevel.isActive!"
+                            (change)="setLevelActive(areaLevel, $event.checked)"
+                            title="Sichtbarkeit der Gebietseinteilung aktivieren/deaktivieren.">
+              </mat-checkbox>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="customAreaLevels.length">
+            <mat-divider></mat-divider>
+            <mat-optgroup>
+              Benutzerdefinierte Gebietseinteilungen
+            </mat-optgroup>
+            <div style="margin: -20px 5px 0; float: right; color: grey; font-size: 14px;"><i>sichtbar</i></div>
+            <div class="option-wrapper" *ngFor="let areaLevel of customAreaLevels">
+              <mat-list-option [value]="areaLevel"
+                               [title]="areaLevel.name"
+                               (click)="selectAreaLevel(areaLevel)"
+                               [selected]="(activeLevel && (areaLevel.id === activeLevel.id))">
+                <div class="option-text">{{ areaLevel.name }}</div>
+                <mat-icon *ngIf="areaLevel.isPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+              </mat-list-option>
+              <mat-checkbox color="primary"
+                            [checked]="areaLevel.isActive!"
+                            (change)="setLevelActive(areaLevel, $event.checked)"
+                            title="Sichtbarkeit der Gebietseinteilung aktivieren/deaktivieren.">
+              </mat-checkbox>
+            </div>
+          </ng-container>
+        </mat-selection-list>
+        <div class="order-controls">
+          <button mat-icon-button
+                  title="In der Sortierung eins nach oben"
+                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel?.isPreset || activeLevel === customAreaLevels[0]"
+                  (click)="moveSelected('up')">
+            <mat-icon>expand_less</mat-icon>
+          </button>
+          <button mat-icon-button
+                  title="In der Sortierung eins nach unten"
+                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel?.isPreset || activeLevel === customAreaLevels[customAreaLevels.length - 1]"
+                  (click)="moveSelected('down')">
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+      <button mat-button color="primary"
+              class="multiline-button"
+              style="width: 86%;"
+              (click)="activeLevel && setPopAreaLevel(activeLevel)"
+              [disabled]="activeLevel?.isPreset && !activeLevel?.isDefaultPopLevel">
+        <mat-icon class="material-icons-outlined">verified</mat-icon>
+        Als Gebietseinteilung für alle Einwohnerdaten festlegen
+      </button>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="onCreateAreaLevel()" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv"
+                [disabled]="activeLevel?.isPreset || (isProcessing$ | async) "
+                (click)="onDeleteAreaLevel()" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+    <app-input-card #editArealevelCard
+                    [ngClass]="{'hidden': !activeLevel}"
+                    [disabled]="(isProcessing$ | async) || !projectArea"
+                    [title]="'Eigenschaften der ausgewählten Gebietseinteilung'"
+                    [editTemplate]="propertiesEdit"
+                    [subtitle]="'In allen Karten der Anwendung so darstellen'"
+                    infoText="<p>Über die Schaltfläche „Editieren“ können Sie festlegen, wie die gerade ausgewählte Gebietseinteilung in allen Karten dieser Anwendung,
+                             d.h. auch in den Bereichen „Bevölkerung“ und „Infrastrukturplanung“ des Hauptmenüs dargestellt und bezeichnet werden soll.</p>
+                             <p>Bei benutzerdefinierten Gebietseinteilungen müssen Sie zudem festlegen, welche Spalte der Datentabelle Ihrer hochgeladenen
+                             Geodaten das eindeutige ID-Feld (ohne doppelte Werte!) ist und welche Spalte zur Beschriftung der Gebietseinheiten verwendet werden soll.</p>"
+                    dialogInfoText="<p>Namen und Beschriftungsfelder der vorgegebenen administrativen Ebenen können nicht verändert werden.</p>">
+      <table *ngIf="activeLevel">
+        <tr>
+          <td i18n>Name</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.name}}</td>
+        </tr>
+        <tr>
+          <td i18n>ID-Feld</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">
+            {{activeLevel.keyField || '-'}}
+          </td>
+        </tr>
+        <tr>
+          <td i18n>Beschriftung</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">
+            {{activeLevel?.labelField || '-'}}
+          </td>
+        </tr>
+        <tr>
+          <td i18n>Linienfarbe</td>
+          <td>
+            <div *ngIf="activeLevel?.symbol"
+                 style="margin-bottom: -5px;"
+                 class="symbol square"
+                 [style.backgroundColor]="activeLevel?.symbol?.strokeColor">
+            </div>
+            <div *ngIf="!activeLevel?.symbol">
+              keine Darstellung
+            </div>
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+  <div fxLayout="column">
+    <div fxLayout="row wrap">
+      <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
+                      [ngClass]="{'hidden': !activeLevel}"
+                      width="450px"
+                      [disabled]="(isProcessing$ | async)  || !projectArea"
+                      [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
+                      '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Daten-Historie entnehmen.</p>':
+                      '<p>Wenn die angezeigte Anzahl der Gebiete 0 ist, wurden noch keine Geodaten für diese benutzerdefinierte Gebietseinteilung hochgeladen. Klicken Sie auf „Shapefile (gezippt) oder Geopackage hochladen“, um der ausgewählte Gebietseinteilung räumliche Daten hinzuzufügen. Bereits hochgeladene Daten können Sie sich als Datentabelle oder in der Kartenvorschau anzeigen lassen.</p>' +
+                      '<p>Beachten Sie im Falle eines Uploads eines gezippten Shapefiles, dass alle Dateien auf der obersten Ebene ohne Unterordner innerhalb der Zip-Datei liegen müssen, um eingelesen werden zu können!</p>'">
+        <span class="subtitle1 sub">
+          Gebietseinteilung: <p style="font-size: 1.5em;">"{{activeLevel?.name || '-'}}"</p>
+        </span>
+        <table style="margin-top: 15px;">
+          <tr>
+            <td i18n>Gebiete</td>
+            <td [title]="activeLevel?.areaCount">
+              {{activeLevel?.areaCount}}
+            </td>
+          </tr>
+          <tr>
+            <td i18n>Quelle</td>
+            <td [title]="activeLevel?.source?.sourceType">
+              {{activeLevel?.source?.sourceType}}
+            </td>
+          </tr>
+          <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'"
+              [title]="activeLevel?.source?.url">
+            <td i18n>Layer</td>
+            <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
+              {{activeLevel?.source?.url}}
+            </td>
+          </tr>
+          <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'">
+            <td i18n>URL</td>
+            <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;"
+                [title]="activeLevel?.source?.layer">
+              {{activeLevel?.source?.layer}}
+            </td>
+          </tr>
+          <tr>
+            <td i18n>{{(activeLevel?.source?.sourceType === 'WFS')? 'letzter Abruf': 'letzter Upload'}}</td>
+            <td [title]="activeLevel?.source?.date">
+              {{activeLevel?.source?.date}}
+            </td>
+          </tr>
+        </table>
+        <div>
+          <button *ngIf="activeLevel?.source?.sourceType === 'WFS' || activeLevel?.isPreset"
+                  class="mat-button-dv"
+                  mat-button color="primary"
+                  style="margin-top: 20px;"
+                  (click)="pullWfsAreas()">
+            <mat-icon class="material-icons-outlined">refresh</mat-icon>
+            Daten abrufen bzw. aktualisieren
+          </button>
+          <button *ngIf="activeLevel?.source?.sourceType === 'FILE'"
+                  class="mat-button-dv"
+                  mat-button color="primary"
+                  style="margin-top: 20px;"
+                  (click)="uploadFile()">
+            <mat-icon class="material-icons-outlined">upload</mat-icon>
+            Shapefile (gezippt) oder Geopackage hochladen
+          </button>
+        </div>
+        <div>
+          <button class="mat-button-dv"
+                  mat-button color="primary"
+                  (click)="showDataTable()">
+            <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+            Datentabelle ansehen
+          </button>
+          <button class="mat-button-dv"
+                  mat-button color="warn"
+                  style="float: right; margin-right: 10px; box-shadow: none;"
+                  (click)="onDeleteAreas()">
+            <mat-icon>cancel</mat-icon>
+            Daten löschen
+          </button>
+  <!--            <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; margin-right: 10px; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>-->
+        </div>
+      </app-input-card>
+      <app-input-card subtitle="Daten-Historie Gebiete"
+                      infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Gebiete“ und aus der Definition des Planungsraums.</p>"
+                      width="350px">
+        <app-log room="areas" (onMessage)="onMessage($event)" height="310px"></app-log>
+      </app-input-card>
+    </div>
+    <div fxLayout="row wrap">
+      <app-input-card [title]="'Kartenvorschau'"
+                      [ngClass]="{'hidden': !activeLevel}"
+                      class="spaced"
+                      [topRightHelp]="true"
+                      width="820px"
+                      infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinteilung als ausgefüllte Flächen.<p>
+                      <p>Zusätzlich zeigt sie auf Wunsch alle zur Darstellung freigegeben Gebietseinteilungen, auswählbar über die Legende.
+                      Die Darstellung der einzelnen Gebietseinteilungen in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
+        <div id="base-areas-map" class="map-container">
+          <app-map-controls target="base-areas-map"></app-map-controls>
+          <app-side-toggle id="legend"
+                           icon="layers"
+                           direction="left"
+                           name="Legenden- und Layersteuerung"
+                           cookieExpansion="base-areas-legend" [initiallyExpanded]="true">
+            <app-legend target="base-areas-map"
+                        [showInternal]="true"
+                        [showExternal]="false">
+            </app-legend>
+          </app-side-toggle>
+        </div>
+      </app-input-card>
+    </div>
+  </div>
+</div>
+
+<ng-template #propertiesEdit>
+  <form [formGroup]="editLevelForm">
+    <div style="min-height: 130px">
+      <mat-form-field appearance="fill" style="width: 100%"
+                      [title]="activeLevel?.isPreset? 'Name unveränderlich für die vorgegebene administrative Ebenen': 'Name'">
+        <mat-label i18n>
+          Name <ng-container *ngIf="activeLevel?.isPreset">(unveränderlich)</ng-container>
+        </mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <div *ngIf="!activeLevel?.isPreset" style="display: grid;">
+        <mat-form-field appearance="fill">
+          <mat-label i18n>Beschriftungsfeld</mat-label>
+          <mat-select disableRipple formControlName="labelField">
+            <mat-option *ngFor="let field of activeLevel?.areaFields" [value]="field">
+              {{field}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label i18n>ID-Feld</mat-label>
+          <mat-select disableRipple formControlName="keyField">
+            <mat-option *ngFor="let field of activeLevel?.areaFields" [value]="field">
+              {{field}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <span style="color: grey;">Linienfarbe (Karte):</span>
+      <div style="display: flex; align-items: baseline;">
+        <div class="symbol square"
+             [(colorPicker)]="colorSelection"
+             [style.backgroundColor]="colorSelection"
+             style="cursor: pointer; align-self: center; margin-left: 15px; border: 1px solid grey;">
+        </div>
+        <button mat-button color="primary"
+                [(colorPicker)]="colorSelection">
+          Wählen
+        </button>
+      </div>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #createAreaLevel>
+  <form [formGroup]="editLevelForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill" style="width: 100%">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #dataTemplate>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>
+
+<ng-template #fileUploadTemplate>
+  <p>
+    Daten mit Gebieten für Gebietseinteilung "{{activeLevel?.name}}" hochladen.
+  </p>
+  <p>
+    Zulässige Formate: Geopackage (.gpkg) oder ESRI-Shape (in einer Zip-Datei).
+  </p>
+  <input #fileInput type="file" accept=".zip,.gpkg" (change)="setFiles($event)">
+</ng-template>
+
+<ng-template #pullWfsTemplate>
+  <p>
+    Sollen die Gebiete der Gebietseinteilung "{{this.activeLevel?.name}}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
+  </p>
+  <p>
+    Achtung: alle bereits eingespielten Gebiete der Gebietseinteilung und die damit verbundenen Daten werden entfernt!
+  </p>
+</ng-template>
+

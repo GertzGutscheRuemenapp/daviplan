@@ -1,0 +1,250 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
+                 cookieId="exp-services-header"
+                 width="1200px">
+  <p>Im Administrationsbereich wurde festgelegt, welche Infrastrukturbereiche der Daseinsvorsorge (z.B. Kindertagesbetreuung, Schule, Feuerwehr, ärztliche Versorgung, Einzelhandel, …) mit daviplan betrachtet werden sollen.</p>
+  <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer:innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
+  <p>Für den Infrastrukturbereich „Kindertagesbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ drei mögliche Leistungen sein. Bei der ärztlichen Versorgung z.B. „Hausärzte“ und „Fachärzte“, wobei ggf. bei den Fachärzten noch zwischen den wichtigsten Fachrichtungen unterschieden werden können, indem diese jeweils als eigene Leistung definiert werden. Für die Feuerwehr könnten z.B. unterschiedliche Einsatztypen durch entsprechende definierte Leistungen abgebildet werden.</p>
+  <p>Sie können die Leistungen jedes Infrastrukturbereichs frei definieren. Bedenken Sie jedoch, dass Sie im weiteren Verlauf der Datenaufbereitung in der Lage sein müssen, für diese Leistungen Angaben zu vorhandenen Kapazitäten sowie zum Häufigkeit der Nachfrage pro Einwohner:in („Nachfragequote“) zu machen.</p>
+  <p>Ein Infrastrukturstandort kann auch mehrere Leistungen anbieten, z.B. Kita mit Krippe und Elementarbetreuung oder Ärztehaus mit Haus- und Fachärzten.</p>
+  <p>Um eine Leistung zu definieren, fügen Sie diese zunächst in der Box „Leistungen“ dem betreffenden Infrastrukturbereich hinzu und ergänzen Sie anschließend deren Eigenschaften (Beschreibung, Kapazitätseinheit, Nachfrageeinheit) in den drei anderen Eingabeboxen.</p>
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Leistungen'"
+                    infoText="<p>Um eine Leistung hinzuzufügen, klicken Sie auf die Schaltfläche „Hinzufügen“. Anschließend können Sie deren Eigenschaften (Beschreibung, Kapazitätseinheit, Nachfrageeinheit) in den drei anderen Eingabeboxen eintragen.</p>
+                    <p>Um die Eigenschaften bereits hinzugefügter Leistungen zu sehen und ggf. zu verändern, wählen Sie diese in der Liste der Leistungen aus. Die drei anderen Eingabeboxen zeigen Ihnen die bisher definierten Eigenschaften. Über den jeweilige Schaltfläche „Editieren“ können Sie diese verändern.</p>">
+      <mat-selection-list [multiple]="false"
+                          class="categorized"
+                          id="service-select">
+        <ng-container *ngFor="let infrastructure of infrastructures">
+          <div mat-subheader>{{infrastructure.name}}</div>
+          <mat-list-option *ngFor="let service of infrastructure.services"
+                           (click)="activeService = service; onServiceChange();"
+                           [selected]="(service.id === activeService?.id)">
+            <div class="option-text">{{service.name}}</div>
+          </mat-list-option>
+          <mat-divider></mat-divider>
+        </ng-container>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="onCreateService()">
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv"
+                (click)="onDeleteService()">
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
+    <app-input-card #propertiesCard
+                    [title]="'Bezeichnung der ausgewählten Leistung'"
+                    [editTemplate]="propertiesEdit"
+                    infoText="<p>Der angezeigte Name entspricht der Bezeichnung in der Liste. Diese können Sie über die Schaltfläche „Editieren“ nachträglich noch verändern. Zudem können Sie eine Kurzbeschreibung hinzufügen.</p>
+                    <p>Beide Eigenschaften sind für die Nutzer:nnen des Hauptmenübereichs „Infrastrukturplanung“ als Auswahlbezeichnung bzw. kurzem Definitionstext sichtbar.</p>">
+      <table *ngIf="activeService">
+        <tr>
+          <td>Name</td>
+          <td>{{activeService.name}}</td>
+        </tr>
+        <tr>
+          <td>Beschreibung</td>
+          <td>
+            <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+              {{activeService.description}}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card #capacitiesCard
+                    [title]="'Einrichtungen und ihre Kapazität'"
+                    [editTemplate]="capacityEdit"
+                    [subtitle]="activeService?.name || ''"
+                    infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, ob für diese Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein.</p>
+                    <p>Bei manchen Leistungen ist es hingegen eher relevant, dass diese überhaupt an einem Ort verfügbar ist, wohingegen die Kapazität für Ihre Fragestellung eher zweitrangig ist (oder Ihnen keine Daten hierzu vorliegen). Dies können z.B. Feuerwehrstandorte, Ärzte oder Lebensmittelläden sein. In diesem Fall löschen Sie bitte das Häkchen vor der Eingangsfrage.</p>
+                    <p>Je nach Fragestellung oder Datenstand können Sie aber natürlich auch für diese beispielhaft genannten Infrastrukturen eine Kapazität definieren. In diesem Fall setzen Sie das Häkchen.</p>
+                    <p>Wenn Sie das Häkchen gesetzt haben, werden Sie gebeten anzugeben, wie die Maßeinheit der Kapazität für diese Leistung heißt, z.B. „Plätze“ oder „Patienten (max.)“ (Die eigentlichen Werte geben Sie im nachfolgenden Menüpunkt „Kapazitäten“ an.). Um im weiteren Verlauf Anzeigen wie „1 Plätze“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Platz“) an.</p>">
+      <div  *ngIf="activeService">
+        <table style="margin-top: 10px;">
+          <tr>
+            <td>Artikel Einrichtung (Einzahl)</td>
+            <td class="service-capacity">{{activeService.facilityArticle}}</td>
+          </tr>
+          <tr>
+            <td>Einrichtung Einzahl</td>
+            <td class="service-capacity">{{activeService.facilitySingularUnit}}</td>
+          </tr>
+          <tr>
+            <td>Einrichtung Mehrzahl</td>
+            <td class="service-capacity">{{activeService.facilityPluralUnit}}</td>
+          </tr>
+        </table>
+        <div class="capacity-checkbox">
+        <mat-checkbox disabled [checked]="activeService.hasCapacity">
+          Für diese Leistung sollen die Kapazitäten der Einrichtungen berücksichtigt werden
+        </mat-checkbox>
+          </div>
+        <table>
+          <tr *ngIf="activeService.hasCapacity">
+            <td>Einheit Einzahl</td>
+            <td class="service-capacity">{{activeService.capacitySingularUnit}}</td>
+          </tr>
+          <tr *ngIf="activeService.hasCapacity">
+            <td>Einheit Mehrzahl</td>
+            <td class="service-capacity">{{activeService.capacityPluralUnit}}</td>
+          </tr>
+        </table>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="470px" [ngClass]="{'hidden': !activeService}">
+    <app-input-card #demandCard
+                    [title]="'Nachfrage nach der Leistung'"
+                    [editTemplate]="demandEdit"
+                    [subtitle]="activeService?.name || ''"
+                    infoText="Platzhalter"
+                    dialogInfoText= 'Tragen Sie in den beiden oberen Felder bitte ein, wie die Nachfragenden nach der ausgewählten Leistung in der Einzahl und der Mehrzahl heißen (z.B. "Krippenkind" und "Krippenkinder" oder "Patient:in" und "Patient:innen". <br>
+                                     Wählen Sie im untersten Feld zudem aus, ob die Nachfragenden zu den Einrichtungen gehen, um die Leistung in Anspruch zu nehmen (Kitas, Schule, Läden, Ärzte, ...) oder ob die Leistung von den Einrichtungen zu den Nachfragenden kommt (Feuerwehr, Rettungsdienst, ...).'>
+      <div *ngIf="activeService">
+        <table style="margin-top: 10px;">
+          <tr>
+            <td>Nachfragende Einzahl</td>
+            <td>{{activeService.demandSingularUnit}}</td>
+          </tr>
+          <tr>
+            <td>Nachfragende Mehrzahl</td>
+            <td>{{activeService.demandPluralUnit}}</td>
+          </tr>
+          <tr>
+            <td>Richtung der Wegebeziehung </td>
+            <td>{{(activeService.directionWayRelationship === 1)? 'die Nachfragenden gehen zu den Einrichtungen': (activeService.directionWayRelationship === 2)? 'die Leistung kommt zu den Nachfragenden': '-'}}</td>
+          </tr>
+        </table>
+      </div>
+    </app-input-card>
+    <app-dash-card *ngIf="(indicators.length > 0)"
+                   subtitle='Beispieltexte auf Basis der aktuellen Einstellungen für die ausgewählte Leistung "{{activeService?.name}}"'>
+      <ul>
+        <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
+          {{indicator.description}}
+        </li>
+      </ul>
+    </app-dash-card>
+  </div>
+</div>
+
+<ng-template #propertiesEdit>
+  <form [formGroup]="propertiesForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #capacityEdit>
+  <form [formGroup]="capacitiesForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Artikel Einrichtung (Einzahl)</mat-label>
+        <mat-select disableRipple formControlName="facilityArticle" required>
+          <mat-option value="der">
+            der
+          </mat-option>
+          <mat-option [value]="'die'">
+            die
+          </mat-option>
+          <mat-option value="das">
+            das
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Einrichtung Einzahl</mat-label>
+        <input matInput formControlName="facilitySingularUnit">
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Einrichtung Mehrzahl</mat-label>
+        <input matInput formControlName="facilityPluralUnit">
+      </mat-form-field>
+
+      <mat-checkbox #hasCapCheck formControlName="hasCapacity" color="primary">
+        Für diese Leistung sollen die Kapazitäten der Einrichtungen berücksichtigt werden
+      </mat-checkbox>
+      <mat-form-field appearance="fill" *ngIf="hasCapCheck.checked">
+        <mat-label i18n>Einheit Einzahl</mat-label>
+        <input matInput formControlName="capacitySingularUnit">
+      </mat-form-field>
+      <mat-form-field appearance="fill" *ngIf="hasCapCheck.checked">
+        <mat-label i18n>Einheit Mehrzahl</mat-label>
+        <input matInput formControlName="capacityPluralUnit">
+      </mat-form-field>
+
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #demandEdit>
+  <form [formGroup]="demandForm">
+    <div fxLayout="column" >
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nachfragende Einzahl</mat-label>
+        <input matInput formControlName="demandSingularUnit">
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nachfragende Mehrzahl</mat-label>
+        <input matInput formControlName="demandPluralUnit">
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Richtung der Wegebeziehung (Erläuterung in der Hilfe)</mat-label>
+        <mat-select disableRipple formControlName="directionWayRelationship" required>
+          <mat-option [value]="1">
+            die Nachfragenden gehen zu den Einrichtungen
+          </mat-option>
+          <mat-option [value]="2">
+            die Leistung kommt zu den Nachfragenden
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+<!--
+  <td>Richtung drer Wegebeziehung</td>
+<td>{{(activeSevice.directionWayRelationship === 1)? 'Zu': (activeService.directionWayRelationship === 2)? 'Von': '-'}}</td>
+-->
+
+
+<ng-template #createService>
+  <form [formGroup]="serviceForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Infrastrukturbereich</mat-label>
+        <mat-select disableRipple formControlName="infrastructure" required> <!-- [value]="infrastructures[0].id">-->
+          <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
+            {{infrastructure.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name der Leistung</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>

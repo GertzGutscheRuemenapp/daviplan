@@ -1,0 +1,36 @@
+table {
+  border-spacing: 0;
+  overflow: auto;
+  display: block;
+  .header {
+    position: sticky;
+    position: -webkit-sticky;
+    top: -1px;
+    z-index: 1;
+    background-color: white;
+  }
+  th {
+    background-color: #f4f4f4;
+    white-space: nowrap;
+    >div {
+      display: flex;
+      align-items: center;
+    }
+    .subtitle1, .sort-icon {
+      cursor: pointer;
+      display: flex;
+    }
+    .sort-icon {
+      height: 25px;
+    }
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid lightgrey;
+  }
+  td {
+    padding-left: 20px;
+    padding-right: 20px;
+    white-space: nowrap;
+  }
+}

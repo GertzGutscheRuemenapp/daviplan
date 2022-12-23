@@ -1,0 +1,252 @@
+<app-scenario-menu domain="supply" helpText="
+    <p>Wählen Sie hier das Szenario aus, dessen Angebotsstruktur Sie in der Karte anzeigen möchten. Eine Angebotsstruktur beschreibt, an welchen Standorten die ausgewählte Leistung in welchem Jahr (und ggf. mit welcher Kapazität) angeboten wird.</p>
+    <p>Sie können die Angebotsstruktur editieren. Zudem können Sie ein neues Szenario hinzufügen oder ein bestehendes löschen.</p>">
+</app-scenario-menu>
+<mat-expansion-panel cookieExpansion="exp-supply-services">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
+      </div>
+      Standorte / Leistungen
+      <mat-icon *ngIf="!planningService.activeService" class="warning"
+                title="Keine Leistung ausgewählt">
+        error_outline
+      </mat-icon>
+      <app-help-button title="Standorte / Leistungen" position="right">
+        <p>Wählen Sie hier die Leistung aus, dessen Angebotsstruktur Sie in der Karten anzeigen möchten. Wählen Sie
+          hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte
+          Leistung.</p>
+        <p>Sie können zusätzlich Standorte nach eigenen Kriterien filtern. Klicken Sie hierzu auf das Filtersymbol
+          neben dem Dropdown-Menü.</p>
+        <p>Um die Wirkung zusätzlicher Standorte zu prüfen, können Sie mit der Schaltfläche „Neuen Standort hinzufügen“
+          Einrichtungsstandorte in der Karte platzieren, die nicht in den Bestandsdaten enthalten sind.</p>
+<!--        <p>Über die beiden Schalter „Cluster“ und „Verdrängung“ steuern sie, wie Standorte in der Karte dargestellt
+          werden sollen, die nahe beieinander liegen oder sogar die gleiche Adresse haben.</p>-->
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <div style="padding-bottom: 10px; display: flex;">
+    <app-service-select></app-service-select>
+    <app-place-filter-button
+      #placeFilter
+      style="margin-top: 7px;"
+      [showIgnoreCapacitiesToggle]="true"
+      [ignoreCapacities]="ignoreCapacities"
+      (onFilter)="onFilter()"
+      [infrastructure]="activeInfrastructure"
+      [scenario]="activeScenario"
+      [service]="activeService"
+      [year]="year">
+    </app-place-filter-button>
+  </div>
+  <mat-slide-toggle [(ngModel)]="ignoreCapacities"
+                    (change)="onIgnoreCapacitiesChange()"
+                    color="primary"
+                    style="margin-top: 10px; margin-bottom: 20px;">
+    <span>
+      Auch Standorte ohne ausgewählte Leistung anzeigen
+    </span>
+  </mat-slide-toggle>
+  <mat-divider></mat-divider>
+  <div>
+    <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
+<!--      <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>-->
+      <!--<li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>-->
+      <li>
+        <div class="row-button"
+             (click)="zoomToPlaceExtent()">
+          <label i18n>Zoom auf alle</label>
+          <div class="fill-space"></div>
+          <button mat-icon-button color="primary" class="small">
+            <mat-icon>location_searching</mat-icon>
+          </button>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <ng-container *ngIf="activeScenario && !activeScenario.isBase && processEditable">
+    <mat-divider></mat-divider>
+    <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="togglePlaceMode()" style="padding-left: 10px;">
+      <label i18n>Neuen Standort hinzufügen</label>
+      <div class="fill-space"></div>
+      <button color="primary" [ngClass]="{inverted: addPlaceMode}" mat-icon-button class="small">
+        <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
+      </button>
+    </div>
+  </ng-container>
+</mat-expansion-panel>
+<!--workaround to cover visible scenario menu-->
+<div style="width: 100%; height:200px; background-color: white;"></div>
+
+<ng-template #placePreviewTemplate><!-- let-place="place">-->
+  <div *ngFor="let place of selectedPlaces" style="margin-bottom: 20px; border: 1px solid lightgrey; padding: 10px 5px; ">
+    <div style="margin-bottom: 10px; text-align: center">
+      <b style="font-size: 1.3em; width: 100%;">{{ place.name }}</b>
+      <p *ngIf="place.scenario !== null"
+            style="color: #00c4ff;">
+        <i>(Szenariostandort)</i>
+      </p>
+    </div>
+    <div style="padding: 5px 10px; margin: 0 5px;">
+      <ng-container *ngIf="activeInfrastructure?.placeFields && activeInfrastructure!.placeFields!.length > 0">
+        <table>
+          <tr *ngFor="let field of activeInfrastructure?.placeFields">
+            <td style="padding-right: 10px;">{{field.label || field.name}}</td>
+            <td><i>{{place.attributes[field.name] || '-'}}</i></td>
+          </tr>
+        </table>
+        <button *ngIf="place.scenario !== null || !processEditable"
+                mat-button class="mat-button-dv"
+                (click)="showEditPlace(place)"
+                color="primary">
+          <mat-icon>edit</mat-icon>Attribute editieren
+        </button>
+        <mat-divider [inset]="true" style="margin: 10px 0; width: 100%;"></mat-divider>
+      </ng-container>
+      <div *ngIf="activeService">
+        {{activeService.name}} ({{(activeService?.hasCapacity)? 'Kapazität ': ''}}{{year}}):<br>
+        <b *ngIf="activeService?.hasCapacity">{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>
+        <b *ngIf="!activeService?.hasCapacity">{{(place.capacity)? 'Ja': 'Nein'}}</b>
+        <mat-divider [inset]="true" style="margin: 10px 0; width: 100%;"></mat-divider>
+        {{activeService.name}}<br>(gesamter Betrachtungszeitraum):
+        <table *ngVar="getCapacities(place) as capacities" style="margin-top: 10px;">
+          <tr *ngFor="let capacity of capacities;">
+            <td style="padding-right: 10px;">
+              ab {{(capacity.fromYear === 0)? realYears[0]: capacity.fromYear}}
+            </td>
+            <td *ngIf="activeService.hasCapacity">{{capacity.capacity}} {{(capacity.capacity === 1)? activeService.capacitySingularUnit: activeService.capacityPluralUnit}}</td>
+            <td *ngIf="!activeService.hasCapacity">{{(capacity.capacity)? 'Ja': 'Nein'}}</td>
+          </tr>
+        </table>
+      </div>
+      <button *ngIf="!activeScenario?.isBase || !processEditable"
+              mat-button class="mat-button-dv"
+              (click)="showEditCapacities(place)"
+              color="primary">
+        <mat-icon>edit</mat-icon>
+        {{(activeService?.hasCapacity)? 'Kapazitäten': 'Angebot'}} editieren
+      </button>
+      <ng-container *ngIf="place.scenario !== null">
+        <mat-divider [inset]="true" style="margin: 7px 0; width: 100%;"></mat-divider>
+        <button mat-button class="mat-button-dv"
+                (click)="removePlace(place)"
+                color="warn">
+          <mat-icon>close</mat-icon>Standort entfernen
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #placeEditTemplate let-place="place">
+  <form *ngIf="placeForm" [formGroup]="placeForm">
+    <div *ngIf="placeForm.errors">
+      <mat-error *ngFor="let error of placeForm.errors | keyvalue" class="alert">
+        {{ error.key }}: {{ error.value }}
+      </mat-error>
+    </div>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+    <div *ngFor="let field of activeInfrastructure?.placeFields">
+      <ng-container *ngVar="getFieldType(field) as fieldType">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label i18n>{{field.label || field.name}}</mat-label>
+          <input matInput *ngIf="fieldType.ftype === 'STR'" [formControlName]="field.name">
+          <input matInput *ngIf="fieldType.ftype === 'NUM'" [formControlName]="field.name" type="number">
+          <mat-select *ngIf="fieldType.ftype === 'CLA'" [formControlName]="field.name">
+            <mat-option *ngFor="let class of fieldType.classification"
+                        [value]="class.value">
+              {{class.value}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-container>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #placeCapacitiesEditTemplate let-place="place">
+  <div><b>Standort "{{ place.name }}"</b></div>
+  <div>Leistung "{{ activeService?.name }}"</div>
+  <mat-divider style="margin: 10px 0;"></mat-divider>
+  <table id="capacityTable">
+    <ng-container *ngFor="let capacity of _editCapacities; let i = index;">
+      <tr>
+        <td style="display: flex; align-items: baseline;">
+          <div *ngIf="i === 0 else notStart" style="margin-top: 10px;">&nbsp;{{realYears[0]}}&nbsp;</div>
+          <ng-template #notStart>
+            <mat-form-field appearance="outline" class="small yearInput">
+              <mat-label i18n>ab</mat-label>
+              <input matInput type="number" required
+                     [(ngModel)]="capacity.fromYear"
+                     [max]="(i === _editCapacities.length-1)? 9999: _editCapacities[i+1].fromYear-1"
+                     [min]="(i>1)? _editCapacities[i-1].fromYear + 1: realYears[0] + 1">
+            </mat-form-field>
+          </ng-template>
+          <div *ngIf="i !== _editCapacities.length - 1"
+               style="margin-left: auto;">
+            bis {{ _editCapacities[i+1].fromYear-1 }}
+          </div>
+        </td>
+        <td *ngIf="activeService?.hasCapacity">
+          <mat-form-field appearance="outline" class="small"
+                          style="margin: 0 5px 0 20px;">
+            <mat-label i18n>Kapazität</mat-label>
+            <input matInput type="number" required
+                   [(ngModel)]="capacity.capacity"
+                   style="text-align:right;"
+                   [min]="0">
+          </mat-form-field>
+          {{activeService?.capacityPluralUnit}}
+        </td>
+        <td *ngIf="!activeService?.hasCapacity">
+          <mat-checkbox [checked]="!!capacity.capacity"
+                        color="primary" style="margin-left: 10px;"
+                        [style.transform]="(i===0)? 'translateY(10px)': 'translateY(5px)' "
+                        (change)="capacity.capacity = $event.checked? 1: 0;">
+            Leistung wird angeboten
+          </mat-checkbox>
+        </td>
+        <td *ngIf="i > 0">
+          <button mat-button color="warn"
+                  class="mat-button-dv"
+                  (click)="removeEditCap(i)"
+                  title="Zeitraum entfernen">
+            <mat-icon>close</mat-icon>
+<!--              Jahr entfernen-->
+          </button>
+        </td>
+      </tr>
+      <tr style="height: 20px;">
+<!--          <ng-container *ngIf="i !== _editCapacities.length - 1">
+          <td>
+            <mat-divider></mat-divider>
+            <div style="position: absolute; margin-top: -15px; background-color: white; padding-right: 10px;">
+              bis
+            </div>
+          </td>
+          <td><mat-divider></mat-divider></td>
+        </ng-container>-->
+        <ng-container *ngIf="i !== _editCapacities.length - 1">
+          <td><mat-divider></mat-divider></td>
+          <td><mat-divider></mat-divider></td>
+        </ng-container>
+        <td>
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  *ngIf="(i === _editCapacities.length-1) || (_editCapacities[i+1].fromYear - capacity.fromYear > 1) "
+                  (click)="insertEditCap(i+1, place)"
+                  [title]="(i === _editCapacities.length-1)? 'Jahr hinzufügen': 'Zeitraum einfügen'" i18n>
+            <mat-icon>add</mat-icon>
+<!--              Jahr <ng-container *ngIf="i !== _editCapacities.length - 1">einfügen</ng-container>-->
+            <ng-container *ngIf="i === _editCapacities.length - 1">Jahr</ng-container>
+          </button>
+        </td>
+      </tr>
+    </ng-container>
+  </table>
+  <mat-divider></mat-divider>
+</ng-template>

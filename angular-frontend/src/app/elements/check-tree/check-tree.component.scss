@@ -1,0 +1,81 @@
+@import "~src/constants";
+
+.mat-form-field {
+  margin-right: 4px;
+}
+
+.toggle-tree-node {
+  margin: 0 3px;
+}
+
+.node, .top-node {
+  display: flex;
+  cursor: pointer;
+  width: 100%;
+  mat-checkbox {
+    margin: 10px 10px 0 0;
+  }
+  .node-label {
+    padding-top: 6px;
+    cursor: pointer;
+    color: grey;
+  }
+}
+
+.item-button {
+  position: absolute;
+  right: 20px;
+}
+
+.node {
+  padding-left: 30px;
+}
+
+mat-tree-node {
+  position: relative;
+}
+
+mat-tree-node.selected {
+  background-color: $primary-light;
+}
+
+mat-tree-node.checked {
+  .node-label {
+    color: $primary;
+  }
+}
+
+mat-tree-node.selected, mat-tree-node:hover {
+  .mat-icon-button {
+    background-color: transparent;
+  }
+  .mat-icon-button:hover {
+    background-color: white;
+  }
+}
+
+mat-tree-node:not(.selected):hover {
+  background-color: #f4f4f4;
+}
+
+::ng-deep app-check-tree {
+
+  .mat-checkbox {
+    //padding-left: 5px;
+
+    .mat-checkbox-frame {
+      border-color: grey;
+    }
+
+    .mat-checkbox-checked {
+      .mat-checkbox-label {
+        color: $primary;
+      }
+
+      .mat-checkbox-background {
+        background-color: $primary;
+      }
+    }
+  }
+}
+

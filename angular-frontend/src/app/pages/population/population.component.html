@@ -1,0 +1,66 @@
+<div class="loadOverlay" *ngIf="isLoading">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<mat-toolbar class="sub-nav" [style.visibility]="">
+  <span class="sub-links">
+    <a routerLink="/bevoelkerung/entwicklung" routerLinkActive="active-link" i18n> Bevölkerungsentwicklung </a>
+    <a routerLink="/bevoelkerung/statistik" routerLinkActive="active-link" i18n> Bevölkerungssalden </a>
+  </span>
+  <app-help-button title="Bevölkerung" position="center" [top]="50" [width]="600"
+                   style="margin-left: 8px;">
+    <p>Im gerade angezeigten Hauptmenübereich „Bevölkerung“ können Sie sich die aktuell in daviplan hinterlegten
+      Einwohnerdaten ansehen und detailliert auswerten. Die Anzeige ist in die beiden Abschnitte „Bevölkerungsentwicklung“
+      und „Bevölkerungssalden“ untergliedert.</p>
+    <p>Im Abschnitt „Bevölkerungsentwicklung“ können Sie sich die Zahl der Einwohner:innen in ausgewählten Altersgruppen
+      und Gebietseinteilungen sowie deren Entwicklung im Zeitverlauf ansehen. Sofern hinterlegt, können dabei auch
+      Bevölkerungsprognosen, ggf. auch in unterschiedlichen Varianten betrachtet werden.</p>
+    <p>Der Abschnitt „Bevölkerungssalden“ bezieht sich hingegen ausschließlich auf die Vergangenheit und ermöglicht eine
+      detaillierte Anzeige und Analyse der natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) sowie der
+      Wanderungen (Zuzüge und Fortzüge). Auch hierbei ist die räumliche Ebene (z.B. Gemeinden oder Kreise) frei wählbar.</p>
+    <p>Beide Abschnitte dienen nur der Anzeige und Analyse der Bevölkerungsdaten. Ein Editieren ist nicht möglich.
+      Zusätzliche, aktualisierte oder korrigierte Bevölkerungsdaten können von zugangsberechtigten Nutzer:innen im
+      Abschnitt „Grundlagendaten“ eingepflegt werden.</p>
+    <p>Die angezeigten Bevölkerungsdaten bilden die Grundlage der Nachfrageberechnungen im Hauptmenübereich
+      „Infrastrukturplanung“. Dies gilt sowohl für die Realdaten der Vergangenheit wie für ggf. eingepflegte
+      Prognosedaten.</p>
+  </app-help-button>
+</mat-toolbar>
+<div class="map-wrapper">
+  <div id="population-map">
+    <app-map-controls target="population-map" [bookmarks]="true"></app-map-controls>
+    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
+      <div class="handle" title="Kartentitel" cdkDragHandle>
+        <mat-icon class="material-icons-outlined" color="primary">map</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-description" [initiallyExpanded]="true">
+        <div id="pop-description" [innerHTML]="mapDescription"></div>
+      </app-side-toggle>
+    </div>
+    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
+      <div class="handle" title="Anzeigezeit" cdkDragHandle>
+        <mat-icon color="primary">date_range</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-timeslider" [initiallyExpanded]="true">
+        <div style="padding: 18px 10px 12px 10px">
+          <app-time-slider #timeSlider [prognosisStart]="2013"></app-time-slider>
+        </div>
+      </app-side-toggle>
+    </div>
+    <app-side-toggle id="legend"
+                     icon="layers"
+                     direction="left"
+                     name="Legenden- und Layersteuerung"
+                     cookieExpansion="exp-pop-legend" [initiallyExpanded]="true">
+      <app-legend target="population-map"></app-legend>
+    </app-side-toggle>
+  </div>
+</div>
+<mat-sidenav #drawer class="context-bar"
+             [disableClose]="true"
+             [autoFocus]="false"
+             [opened]="(isSM$ | async) === false">
+  <router-outlet>
+  </router-outlet>
+</mat-sidenav>

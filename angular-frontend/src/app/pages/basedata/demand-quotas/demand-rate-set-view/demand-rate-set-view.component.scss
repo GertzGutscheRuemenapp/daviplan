@@ -1,0 +1,34 @@
+@import "~src/constants";
+
+.editRow:hover {
+  background-color: $primary-light;
+}
+
+.diagram-wrapper {
+  width: 100%;
+  border: 1px solid lightgrey;
+  padding: 5px;
+  margin-bottom: 15px;
+}
+
+.table-wrapper {
+  width: 40%;
+  border: 1px solid lightgrey;
+  padding: 8px;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.mat-mini-fab {
+  box-shadow: none;
+}
+
+table .mat-mini-fab.small {
+  top: 5px;
+  .mat-icon {
+    margin-top: -12px;
+  }
+}
+.mat-label{
+  min-width: 30px;
+}

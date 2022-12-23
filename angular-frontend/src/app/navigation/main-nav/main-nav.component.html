@@ -1,0 +1,57 @@
+<mat-toolbar *ngIf="user$ | async" class="main-nav">
+  <div fxShow="true" fxHide.gt-sm="true">
+    <button mat-icon-button (click)="sidenav.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+  </div>
+  <div style="width: 320px; padding-top: 5px;">
+    <a class="logo" routerLink="/" title="Startseite">
+      <img *ngIf="settings?.logo; else noLogo" [src]="settings?.logo" alt="Startseite" title="Startseite" height="50px">
+      <ng-template #noLogo>
+          <img src="{{backend}}/static/img/test-logo.png" height="56px" alt="Logo"/>
+          <div i18n> <p>davi</p><p>plan</p> </div>
+      </ng-template>
+    </a>
+  </div>
+  <span class="page-links" fxShow="true" fxHide.lt-md="true">
+    <a *ngFor="let item of menuItems"
+       class="link"
+       [title]="item.name"
+       [routerLink]="'/'+item.url"
+       routerLinkActive="active-link"
+       [routerLinkActiveOptions]="{exact: false}">
+      {{item.name}}
+    </a>
+  </span>
+  <span class="fill-space"></span>
+
+  <button mat-button routerLink="/impressum"> Impressum </button>
+  <button mat-button routerLink="/datenschutz"> Datenschutz </button>
+
+  <button mat-button [matMenuTriggerFor]="profileMenu">
+    <mat-icon>person_outline</mat-icon>
+    {{(user)? user.username: 'Profil'}}
+  </button>
+  <mat-menu #profileMenu>
+    <a mat-menu-item *ngIf="!user" routerLink="/login">Login</a>
+    <a mat-menu-item *ngIf="user" (click)="logout()" href="">Logout</a>
+  </mat-menu>
+</mat-toolbar>
+<mat-sidenav-container fxFlexFill>
+  <mat-sidenav class="main-collapse" color="primary"
+               #sidenav fxLayout="column" mode="over"
+               opened="false">
+    <div fxLayout="column">
+      <a *ngFor="let item of menuItems"
+         mat-button
+         routerLinkActive="active-link"
+         [routerLink]="'/'+item.url"
+         [routerLinkActiveOptions]="{exact: false}">
+        {{item.name}}
+      </a>
+    </div>
+  </mat-sidenav>
+  <mat-sidenav-content fxFlexFill>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,190 @@
+@import "~src/constants";
+
+/*.mat-select-panel {
+  max-height: unset !important;
+}*/
+
+.sub-nav {
+  //padding: 0 0 0 $context-bar-width;
+}
+
+.map-wrapper {
+  // always in background
+  position: fixed;
+  // minus top menus
+  height: calc(100% - 120px);
+  // leave space for planning context bars
+  //width: calc(100% - #{$context-bar-width});
+  width: 100%;
+  padding-left: calc(#{$context-bar-width});
+}
+
+#planning-map {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: white;
+}
+
+#process-select {
+  width: calc(#{$context-bar-width} - 15px);
+  padding: 0 9px 0 2px;
+  height: 70px;
+  margin-top: -10px;
+  border-right: 1px solid lightgrey;
+  mat-form-field {
+    width: 190px;
+  }
+  button, app-help-button {
+    position: relative;
+    float: right;
+  }
+  button {
+    top: 27px;
+  }
+  app-help-button {
+    top: 22px;
+    margin-right: 3px;
+  }
+  .mini-fab-icon {
+    //top: 5px;
+  }
+}
+
+::ng-deep #process-select {
+  .mat-form-field-infix {
+    padding: 0.1em 0 1em 0;
+  }
+/*  .mat-select-placeholder::before {
+
+  }*/
+}
+
+::ng-deep app-planning .context-bar {
+  position: fixed;
+  top: 60px + $sub-nav-height;
+  mat-form-field, .sub-select-wrapper {
+    width: calc(#{$context-bar-width} - 105px);
+    margin-right: 5px;
+  }
+  mat-divider {
+    width: calc(#{$context-bar-width} - 105px);
+  }
+  .row-button {
+    padding-right: 7px;
+  }
+  .mat-mini-fab {
+    margin-left: auto;
+    .mat-button-wrapper {
+      padding: 0;
+    }
+  }
+}
+
+mat-toolbar mat-form-field {
+  //font-size: 15px;
+  //margin-right: 30px;
+  margin-top: 10px;
+}
+
+.mat-option.selected, .mat-selected span {
+  color: $primary;
+}
+
+#toggle-settings {
+  position: fixed;
+  z-index: 13;
+  top: 74px;
+  left: 10px;
+}
+
+::ng-deep {
+  #scenario-toggle .mat-expansion-panel-header[aria-disabled=true]{
+    pointer-events: none;
+  }
+
+  #scenario-toggle .mat-content {
+    border-top: none;
+  }
+
+  #scenario-toggle.mat-expanded {
+    mat-expansion-panel-header {
+      background-color: $primary !important;
+    }
+
+    .mat-content {
+      padding-bottom: 1px;
+      border-bottom: none;
+    }
+
+    mat-panel-title, .mat-expansion-indicator:after {
+      color: white;
+    }
+  }
+}
+
+::ng-deep app-planning {
+
+  #scenario-menu {
+    position: fixed;
+    top: 155px;
+    //left: calc(#{$context-bar-width} - 100% - 100px);
+    left: calc(#{$context-bar-width} - 1000px);
+    transition: 0.4s ease-out left, 0.4s ease-out opacity;
+    z-index: -1;
+    opacity: 0;
+  }
+
+  #scenario-menu.expanded {
+    left: $context-bar-width;
+    opacity: 1;
+  }
+  #process-select .mat-form-field-appearance-standard.mat-form-field-has-label .mat-select:not(.mat-select-empty) .mat-select-arrow-wrapper {
+    //transform: none;
+    transform: translateY(-30%);
+  }
+/*  .sub-select-wrapper {
+    mat-radio-button  {
+      text-transform: uppercase;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  }*/
+  .compare-radio-list {
+    margin-top: 5px;
+    mat-form-field {
+      margin-top: -10px;
+      margin-left: 26px;
+      width: calc(#{$context-bar-width} - 153px);
+    }
+    mat-form-field:not(:last-child) {
+      margin-bottom: 10px;
+    }
+  }
+}
+
+@media only screen and (max-width: 63.9375em) {
+  .sub-links {
+    a {
+      font-size: 16px !important;
+      padding: 0 10px;
+    }
+  }
+}
+
+// small
+@media only screen and (max-width: 39.9375em) {
+  .map-wrapper {
+    padding-left: 0;
+    width: 100%;
+  }
+  .sub-nav {
+    padding-left: 60px;
+  }
+  app-scenario-menu {
+    left: -700px;
+  }
+  .context-bar {
+    top: 60px;
+  }
+}

@@ -1,0 +1,27 @@
+{% load static %}
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+  <link rel="stylesheet" href="{% static styles %}">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body class="mat-typography">
+  <app-root></app-root>
+  <script type="text/javascript" src="{% static runtime %}"></script>
+  <script type="text/javascript" src="{% static polyfills %}"></script>
+  {% if scripts %}
+    <script type="text/javascript" src="{% static scripts %}"></script>
+  {% endif %}
+  {% if vendor %}
+    <script type="text/javascript" src="{% static vendor %}"></script>
+  {% endif %}
+  <script type="text/javascript" src="{% static main %}"></script>
+</body>
+</html>

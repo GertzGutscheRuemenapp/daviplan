@@ -1,0 +1,46 @@
+@import "~src/constants";
+
+#chart-toggle {
+  position: fixed;
+  left: $context-bar-width;
+  top: 360px;
+  z-index: -1;
+
+  .diagram-wrapper {
+    padding: 10px;
+    max-height: 500px;
+    width: 500px;
+    height: 400px;
+    margin: 10px 10px;
+    border: 1px solid lightgrey;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+}
+
+#time-slider {
+  align-items: center;
+  display: flex;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  padding: 0 10px;
+  mat-slider {
+    width: 500px;
+  }
+}
+
+::ng-deep app-rating #chart-toggle {
+  // side toggle for charts does not "lie under" side nav (context bar)
+  // workaround to make it look like it does by adding left inner shadow
+  .side-toggle-indicator {
+    box-shadow: inset 8px 1px 7px -8px #a7a7a7, 1px 0px 3px 1px #a7a7a7;
+  }
+  .side-toggle-content-wrapper {
+    box-shadow: inset 8px 1px 7px -8px #a7a7a7, 5px 1px 10px -3px #a7a7a7;
+  }
+  .side-toggle-icon .mat-icon {
+    margin-left: 10px;
+    transform: rotate(90deg);
+  }
+}

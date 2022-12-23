@@ -1,0 +1,242 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Personen und Berechtigungen'"
+                 cookieId="exp-users-header"
+                 width="1110px">
+  <p>Diese Seite dient der Nutzerverwaltung. In der Eingabebox „Benutzerkonten“ können Sie daviplan-Nutzende anlegen, verwalten und wieder löschen. Wenn Sie ein Benutzerkonto in der Liste anklicken, werden dessen Eigenschaften und Berechtigungen in drei weiteren Eingabeboxen sichtbar und können hier editiert werden. Für das Administratorkonto werden keine Berechtigungen angezeigt, da es über alle Berechtigungen verfügt.</p>
+  <p>Legen Sie für jedes Nicht-Admin-Nutzerkonto zunächst in der Eingabebox „Sichtbarkeit der Infrastrukturbereiche“ fest, welche Infrastrukturbereiche die betreffende Person sehen können soll. Sie können dabei auch auswählen, ob dieser Person dabei auch als sensibel gekennzeichnete Daten anzeigt werden sollen.</p>
+  <p>Eine Sichtberechtigung für einen Infrastrukturbereich bedeutet, dass die Nutzenden Daten- und Modellergebnisse sehen und im Rahmen von Szenarien verändern können.</p>
+  <p>Möchten Sie einem Nutzerkonto weitere Berechtigungen geben, wählen Sie diese bitte in der Eingabebox „Weitergehende Berechtigungen“ aus.</p>
+  <p>Stellen Sie sicher, dass für jeden Infrastrukturbereich mindestens eine Person die Grundlagendaten editieren und Planungsprozesse anlegen kann. Das Admin-Konto hat immer auch diese Berechtigungen. </p>
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card #userList
+                    [title]="'Benutzerkonten'"
+                    subtitle="Konten auswählen und bearbeiten"
+                    [dialogTitle]="'Namen der Seite ändern'"
+                    infoText="<p>Nur Nutzer:innen mit einem Konto haben Zugriff auf das System. </p>
+                    <p>Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.</p>
+                    <p>Die Detailinformationen zu einem Konto werden Ihnen in den anderen Boxen angezeigt, sobald sie dieses Konto in der Liste ausgewählt haben. In den anderen Boxen können Sie das Konto jeweils über die Schaltflächen „Editieren“ verändern.</p>">
+      <mat-selection-list [multiple]="false" style="min-height: 300px">
+        <mat-list-option *ngFor="let user of users"
+                         [value]="user"
+                         (click)="onSelect(user)"
+                         [selected]="(selectedUser && (user.id === selectedUser.id))">
+          <mat-icon *ngIf="!user.isSuperuser" class="material-icons-outlined" mat-list-icon>person</mat-icon>
+          <mat-icon *ngIf="user.isSuperuser" class="material-icons-outlined"  mat-list-icon>admin_panel_settings</mat-icon>
+          <div mat-line>{{ user.username }}</div>
+          <div mat-line *ngIf="user.isSuperuser"><i style="font-size: 14px;" i18n>Administrator</i></div>
+          <div mat-line *ngIf="!user.isSuperuser"><i style="font-size: 14px;" i18n>{{user.firstName}} {{user.lastName}}</i></div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="onCreateUser()" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv"
+                [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
+                (click)="onDeleteUser()" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="row wrap">
+    <div fxLayout="column" fxFlex="380px" [ngClass]="{'hidden': !selectedUser}">
+      <app-input-card #accountCard
+                     [title]="'Ausgewähltes Konto'"
+                     infoText="Über die Schaltfläche „Editieren“ können Sie Namen, E-Mail-Adresse und Passwort verändern."
+                     [editTemplate]="accountEdit">
+        <table *ngIf="selectedUser">
+          <tr>
+            <td i18n>Nutzername</td>
+            <td>{{selectedUser?.username}}</td>
+          </tr>
+          <tr>
+            <td i18n>Vorname</td>
+            <td>{{selectedUser?.firstName || '-'}}</td>
+          </tr>
+          <tr>
+            <td i18n>Nachname</td>
+            <td>{{selectedUser?.lastName || '-'}}</td>
+          </tr>
+          <tr>
+            <td i18n>E-Mail</td>
+            <td>{{selectedUser?.email || '-'}}</td>
+          </tr>
+          <tr>
+            <td i18n>Passwort</td>
+            <td>************</td>
+          </tr>
+        </table>
+      </app-input-card>
+      <app-input-card #permissionCard
+                      [title]="'Weitergehende Berechtigungen des ausgewählten Kontos'"
+                      infoText="<p>Über die Schaltfläche „Editieren“ können Sie die Berechtigungen des ausgewählten Kontos einstellen.</p>
+                      <p>Die Optionen „Kann Grundlagendaten editieren“ und „Kann Planungsprozesse anlegen“ gelten für alle Infrastrukturbereiche, für die Sie in der Box „Zugang zu Infrastrukturbereichen“ einen Zugriff gewähren.</p>
+                      <p>Für Nutzer:innen mit der aktivierten Option „Kann Seite administrieren“ ist der Hauptmenübereich „Administration“ sicht- und editierbar. </p>
+                      <p>Für Nutzer:innen mit der aktivierten Option „Kann Grundlagendaten editieren“ sind die entsprechenden Abschnitte des Hauptmenübereichs „Grundlagendaten“ sicht- und editierbar.</p>
+                      <p>Der Hauptmenübereich „Bevölkerung“ ist für alle Nutzer:innen sichtbar.</p>
+                      <p>Der Hauptmenübereich „Infrastrukturplanung“ ist für alle Nutzer:innen sichtbar, für die ein Zugriff auf den entsprechenden Infrastrukturbereich in der Box „Sichtberechtigung des ausgewählten Kontos“ gewährt wurde.</p>
+                      <p>Nutzer:innen mit der aktivierten Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ eigene Planungsprozesse anlegen und bearbeiten.</p>
+                      <p>Nutzer:innen ohne die aktivierte Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ vorhandene Planungsprozesse nur betrachten, wenn Sie zu diesen eingeladen werden. Im Zuge dieser Einladung kann ihnen optional die Berechtigung zugewiesen werden, innerhalb des betreffenden Planungsprozesses Szenarien anzulegen und zu editieren. </p>"
+                      [ngClass]="{'hidden': selectedUser?.isSuperuser}"
+                      [editTemplate]="permissionEdit">
+        <div *ngIf="selectedUser">
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.adminAccess" i18n>
+            Kann Seite administrieren
+          </mat-checkbox>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditBasedata" i18n>
+            Kann Grundlagendaten editieren
+          </mat-checkbox>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateProcess" i18n>
+            Kann Planungsprozesse anlegen
+          </mat-checkbox>
+        </div>
+      </app-input-card>
+    </div>
+    <div fxLayout="column" fxFlex="350px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
+      <app-input-card #accessCard
+                      [title]="'Sichtberechtigung des ausgewählten Kontos'"
+                      [disabled]="!infrastructures.length"
+                      infoText="<p>Die Auswahlliste umfasst alle Infrastrukturbereiche, die im vorstehenden Menüpunkt „Infrastrukturbereiche“ definiert wurden.</p>
+                      <p>Sie können dem ausgewählten Konto einen Sichtzugriff auf alle oder einzelne Infrastrukturbereiche gewähren, indem Sie auf „Editieren“ klicken. Hier können Sie auch festlegen, ob die betreffende Personen Daten sehen darf, die im Hauptmenübereich „Grundlagendaten“ als „sensible Daten“ mit einem besonderen Datenschutzstatus versehen wurden.</p>
+                      <p>Wenn Sie die Zugriffsberechtigung über das reine Anzeigen von Daten (sowie das Anlegen und Bearbeiten von Szenarien) erweitern wollen, legen Sie dies bitte in der Box „Weitergehende Berechtigungen“ fest. Diese weiteren Berechtigungen gelten für alle hier ausgewählten Infrastrukturbereiche.</p>"
+                      [subtitle]="infrastructures.length? 'Das auswählte Konto kann diese Infrastrukturbereiche sehen': 'Es sind noch keine Infrastrukturen definiert'"
+                      dialogWidth="430px"
+                      [editTemplate]="dataAccessEdit">
+        <div style="display: flex;" *ngFor="let infrastructure of infrastructures">
+          <mat-checkbox class="infra-check" disabled
+                        [checked]="userAccess(selectedUser, infrastructure) != undefined">
+            {{infrastructure.name}}
+          </mat-checkbox>
+          <div class="dotted-fill"
+               [style.borderColor]="(userAccess(selectedUser, infrastructure)?.allowSensitiveData !== true)? '#00000061': ''">
+          </div>
+          <mat-checkbox class="sensitive-check" disabled [checked]="userAccess(selectedUser, infrastructure)?.allowSensitiveData === true">
+            sensible Daten
+          </mat-checkbox>
+        </div>
+      </app-input-card>
+    </div>
+  </div>
+</div>
+
+<ng-template #accountEdit>
+  <form [formGroup]="accountForm">
+    <div formGroupName="user" fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nutzername</mat-label>
+        <input matInput formControlName="username" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Vorname</mat-label>
+        <input matInput formControlName="firstName"/>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nachname</mat-label>
+        <input matInput formControlName="lastName"/>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>E-Mail</mat-label>
+        <input matInput formControlName="email"/>
+      </mat-form-field>
+    </div>
+    <div fxLayout="column">
+      <mat-checkbox #passCheck
+                    formControlName="changePass"
+                    color="primary"
+                    style="margin-bottom: 10px;"
+                    (change)="onTogglePassChange(passCheck.checked)">
+        Passwort ändern
+      </mat-checkbox>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort</mat-label>
+        <input matInput formControlName="password"
+               [type]="showAccountPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showAccountPassword? faEyeSlash: faEye" (click)="showAccountPassword = !showAccountPassword"></fa-icon>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort bestätigen</mat-label>
+        <input matInput formControlName="confirmPass"
+               [type]="showAccountPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showAccountPassword? faEyeSlash: faEye" (click)="showAccountPassword = !showAccountPassword"></fa-icon>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #permissionEdit>
+  <form [formGroup]="permissionForm">
+    <div formGroupName="profile" fxLayout="column" style="min-height: 100px;">
+      <mat-checkbox color="primary"
+                    formControlName="adminAccess" i18n>
+        Kann Seite administrieren
+      </mat-checkbox>
+      <mat-checkbox color="primary"
+                    formControlName="canEditBasedata" i18n>
+        Kann Grundlagendaten editieren
+      </mat-checkbox>
+      <mat-checkbox color="primary"
+                    formControlName="canCreateProcess" i18n>
+        Kann Planungsprozesse anlegen
+      </mat-checkbox>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #createUser>
+  <form [formGroup]="createUserForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nutzername</mat-label>
+        <input matInput formControlName="username" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort</mat-label>
+        <input matInput formControlName="password"
+               [type]="showNewUserPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showNewUserPassword? faEyeSlash: faEye" (click)="showNewUserPassword = !showNewUserPassword"></fa-icon>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort bestätigen</mat-label>
+        <input matInput formControlName="confirmPass"
+               [type]="showNewUserPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showNewUserPassword? faEyeSlash: faEye" (click)="showNewUserPassword = !showNewUserPassword"></fa-icon>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #dataAccessEdit>
+  <form *ngIf="accessForm" [formGroup]="accessForm">
+    <div *ngFor="let infrastructure of infrastructures"
+         [formGroupName]="infrastructure.id" style="display: flex;">
+      <ng-container *ngIf="accessForm.value[infrastructure.id]">
+        <mat-checkbox formControlName="hasAccess" class="infra-check" color="primary">
+          {{accessForm.value[infrastructure.id].infrastructure.name}}
+        </mat-checkbox>
+        <div class="dotted-fill"
+             [style.borderColor]="(!accessForm.value[infrastructure.id].hasAccess)? '#00000061': ''">
+        </div>
+        <mat-checkbox
+          formControlName="allowSensitiveData"
+          [disabled]="!accessForm.value[infrastructure.id].hasAccess"
+          class="sensitive-check"
+          color="primary">
+          sensible Daten
+        </mat-checkbox>
+      </ng-container>
+    </div>
+  </form>
+</ng-template>

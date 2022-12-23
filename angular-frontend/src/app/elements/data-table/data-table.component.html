@@ -1,0 +1,24 @@
+<div style="overflow-y: auto">
+  <table id="filter-table" [style.max-height]="height">
+    <tr class="header">
+      <th *ngFor="let th of _columns; let i = index;">
+        <div>
+          <span class="subtitle1"
+                (click)="toggleSort(i)"
+                style="color: grey; white-space: pre-wrap;">
+            {{th}}
+          </span>
+          <div class="sort-icon"
+               (click)="toggleSort(i)"
+               style="position: relative; min-width: 30px;">
+            <mat-icon [style.opacity]="(sorting[i] !== 'asc')? 1: 0" style="position: absolute; top: -3px; left: 5px;">arrow_drop_up</mat-icon>
+            <mat-icon [style.opacity]="(sorting[i] !== 'desc')? 1: 0" style="position: absolute; top: 4px; left: 5px;">arrow_drop_down</mat-icon>
+          </div>
+        </div>
+      </th>
+    </tr>
+    <tr *ngFor="let row of sortedRows">
+      <td *ngFor="let value of row">{{(value && value.toLocaleString)? value.toLocaleString(): value}}</td>
+    </tr>
+  </table>
+</div>

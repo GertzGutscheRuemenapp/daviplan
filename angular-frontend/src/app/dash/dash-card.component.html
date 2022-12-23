@@ -1,0 +1,12 @@
+<mat-card class="dashboard-card mat-elevation-z0" [style.height]="height">
+<!--  <mat-card-header>
+    <mat-card-title>
+      {{title}}
+    </mat-card-title>
+  </mat-card-header>-->
+  <mat-card-content class="dashboard-card-content">
+    <h2 *ngIf="title" class="title">{{title}}</h2>
+    <span *ngIf="subtitle" class="subtitle1 sub">{{subtitle}}</span>
+    <ng-content></ng-content>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,250 @@
+<div class="loadOverlay" *ngIf="isLoading">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<mat-toolbar class="sub-nav">
+  <div id="process-select">
+    <div class="mini-fab-icon inverted primary">
+      <div class="davicon icon-GGR-davicons-Font-Simple-1-Planungsprozess"></div>
+    </div>
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Planungsprozess</mat-label>
+      <mat-select #processSelect disableOptionCentering disableRipple
+                  [ngbPopover]="activeProcessPopover"
+                  [popoverTitle]="activeProcess?.name"
+                  placement="auto"
+                  container="body"
+                  triggers="mouseenter:mouseleave"
+                  panelClass="custom-option-panel"
+                  [value]="activeProcess? activeProcess.id: -1"
+                  (selectionChange)="setProcess($event.value, {persist: true})">
+        <mat-select-trigger>
+          <span *ngIf="activeProcess">
+            {{ activeProcess.name }}
+          </span>
+          <span *ngIf="!activeProcess" style="display: flex">
+            <span style="margin-right: 5px;">keine Auswahl</span>
+            <mat-icon style="color: red;">
+              error_outline
+            </mat-icon>
+          </span>
+        </mat-select-trigger>
+        <mat-option [value]="-1" style="display: none;"></mat-option>
+        <mat-optgroup *ngIf="user?.profile?.canCreateProcess || myProcesses.length > 0"
+                      label="Meine Planungsprozesse">
+          <button *ngIf="user?.profile?.canCreateProcess || user?.isSuperuser"
+                  title="Planungsprozess erstellen"
+                  mat-icon-button color="primary" class="small"
+                  style="position: absolute; right: 6px; top: 8px;"
+                  (click)="onCreateProcess()">
+            <mat-icon>add</mat-icon>
+          </button>
+          <ng-container *ngFor="let process of myProcesses">
+            <!--unfortunatelly can't pass parameter to popover template-->
+            <ng-template #ProcessPopover>
+              <div [innerHTML]="getProcessPopoverHTML(process)"></div>
+            </ng-template>
+            <mat-option class="custom-option"
+                        [value]="process.id"
+                        [ngbPopover]="ProcessPopover"
+                        [popoverTitle]="process?.name"
+                        placement="right"
+                        container="body"
+                        triggers="mouseenter:mouseleave">
+              <div class="option-title">
+                {{process.name}}
+              </div>
+              <div class="option-controls">
+                <button mat-icon-button color="primary" class="small"
+                        (click)="$event.stopPropagation(); editProcess(process)"
+                        title="Planungsprozess editieren">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="primary" class="small"
+                        (click)="$event.stopPropagation(); deleteProcess(process);"
+                        title="Planungsprozess löschen">
+                  <mat-icon>remove</mat-icon>
+                </button>
+              </div>
+            </mat-option>
+          </ng-container>
+        </mat-optgroup>
+        <mat-optgroup *ngIf="sharedProcesses.length > 0" label="Geteilte Planungsprozesse">
+          <ng-container *ngFor="let process of sharedProcesses">
+            <ng-template #ProcessPopover>
+              <div [innerHTML]="getProcessPopoverHTML(process)"></div>
+            </ng-template>
+            <mat-option [value]="process.id"
+                        [ngbPopover]="ProcessPopover"
+                        [popoverTitle]="process?.name"
+                        placement="right"
+                        container="body"
+                        triggers="mouseenter:mouseleave">
+              {{ process.name }}
+            </mat-option>
+          </ng-container>
+        </mat-optgroup>
+      </mat-select>
+    </mat-form-field>
+    <button *ngIf="activeProcess && activeProcess.owner === user?.id" class="process-button small"
+            title="ausgewählten Planungsprozess editieren"
+            mat-icon-button color="primary"
+            (click)="editProcess(activeProcess)" i18n>
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button *ngIf="!activeProcess && (user?.profile?.canCreateProcess || user?.isSuperuser)" class="process-button small"
+            title="Planungsprozess erstellen"
+            mat-icon-button color="primary"
+            (click)="onCreateProcess()" i18n>
+      <mat-icon>add</mat-icon>
+    </button>
+    <app-help-button title="Planungsprozess"
+                     position="right" [top]="50">
+      <p>Legen Sie hier einen Planungsprozess (z.B. „Kita-Bedarfsplanung“, „Feuerwehrkonzept“ oder
+        „Zukunftskonzept Hausarztversorgung“) an und wählen Sie die dafür relevanten Infrastrukturbereiche aus.  </p>
+      <p> Ein Planungsprozess bildet den Rahmen für Ihre Szenarien zur Infrastrukturentwicklung und deren Bewertung.
+        Sie legen fest, welche daviplan-Nutzer/innen den Planungsprozess sehen und bearbeiten können sollen.</p>
+      <p>
+        Alle Szenarien eines Planungsprozesses beziehen sich auf alle von Ihnen für diesen Prozess ausgewählten
+        Infrastrukturbereiche und deren Leistungen.
+      </p>
+    </app-help-button>
+  </div>
+  <span class="sub-links">
+    <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
+    <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
+    <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
+    <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
+  </span>
+  <app-help-button title="Infrastrukturplanung" position="center" style="margin-left: 8px;" [top]="50" [width]="600">
+    <p>Im gerade angezeigten Hauptmenübereich „Infrastrukturplanung“ können Sie auf Basis von Szenarien eine
+    Infrastrukturplanung für die zuvor definierten Infrastrukturbereiche vornehmen.</p>
+    <p>Wenn Sie auf „Nachfrage“ klicken, können Sie sich für jede einzelne Leistung eine Nachfrageschätzung ansehen und
+      die editieren. Die Nachfrage errechnet sich für jede Gebietseinteilung aus der Zahl der Einwohner:innen in einem
+      bestimmten Alter und einer Nachfragequote.</p>
+    <p>Im Abschnitt „Angebot“ können Sie sich das Angebot aktuelle Angebot ansehen, d.h. die räumliche Verteilung
+      und ggf. die Kapazitäten der Einrichtungen, die die von Ihnen betrachtete Leistung anbieten. Dieses Angebot
+      können Sie über Szenarien für die Zukunft variieren.</p>
+    <p>Der Abschnitt „Erreichbarkeiten“ ermöglicht Ihnen eine Analyse der Wegzeiten zwischen den Wohnstandorten der
+      Nachfragenden und den Einrichtungen. Auch hier können Sie in Szenarien unterschiedliche Erreichbarkeitsverhältnisse
+      definieren.</p>
+    <p>Im Abschnitt „Bewertung“ überprüfen Sie, in welchen Szenario Ihre Annahmen zur Nachfrage-, Angebots- und
+      Erreichbarkeitsentwicklung zur besten Versorgungssituation führen. Bei Bedarf kehren Sie zu einem der anderen
+      Abschnitte zurück, um Ihre Annahmen anzupassen oder weitere Szenarien zu definieren.</p>
+    <p>Bevor Sie mit der Szenarienarbeit beginnen, legen Sie oben links einen Planungsprozess an. Mit diesem
+      definieren Sie, welche Infrastrukturbereiche betrachtet werden sollen und wer an der Szenarienentwicklung
+      mitwirken darf.</p>
+  </app-help-button>
+</mat-toolbar>
+<div class="map-wrapper">
+  <div class="deactivateOverlay" title="Bitte wählen bzw. erstellen Sie einen Planungsprozess!"
+       *ngIf="!activeProcess">
+  </div>
+  <div id="planning-map" class="map-container">
+    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Kartentitel" cdkDragHandle>
+        <mat-icon class="material-icons-outlined" color="primary">map</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
+                       [initiallyExpanded]="true">
+        <div style="padding: 5px 15px; min-height: 70px; line-height: normal;" [innerHTML]="mapDescription"></div>
+      </app-side-toggle>
+    </div>
+    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigezeit" cdkDragHandle>
+        <mat-icon color="primary">event</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider"
+                       [initiallyExpanded]="true">
+        <div style="padding: 18px 10px 12px 10px">
+          <app-time-slider #timeSlider></app-time-slider>
+        </div>
+      </app-side-toggle>
+    </div>
+    <app-map-controls target="planning-map" [bookmarks]="true"></app-map-controls>
+    <app-side-toggle id="legend"
+                     icon="layers"
+                     name="Legenden- und Layersteuerung"
+                     direction="left"
+                     cookieExpansion="exp-planning-legend" [initiallyExpanded]="true">
+      <app-legend #planningLegend target="planning-map"></app-legend>
+    </app-side-toggle>
+  </div>
+</div>
+<!--unfortunatelly can't pass parameter to popover template-->
+<ng-template #activeProcessPopover>
+  <ng-container *ngIf="activeProcess">
+    <div [innerHTML]="getProcessPopoverHTML(activeProcess)"></div>
+  </ng-container>
+  <div *ngIf="!activeProcess" i18n>
+    <p>Bitte wählen Sie hier einen Planungsprozess aus.</p>
+    <p>Falls keiner zur Auswahl steht, erstellen Sie bitte einen neuen Planungsprozess.</p>
+    <p><i>Ohne aktiven Planungsprozess kann diese Seite nicht genutzt werden!</i></p>
+  </div>
+</ng-template>
+<mat-sidenav #drawer class="context-bar"
+             [disableClose]="true"
+             [opened]="(isSM$ | async) === false">
+  <div class="deactivateOverlay" title="Bitte wählen bzw. erstellen Sie einen Planungsprozess!"
+       *ngIf="!activeProcess">
+  </div>
+  <router-outlet>
+  </router-outlet>
+</mat-sidenav>
+<button type="button"
+        id="toggle-settings"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        color="primary"
+        (click)="drawer.toggle()"
+        *ngIf="isSM$ | async">
+  <mat-icon aria-label="Side nav toggle icon">arrow_circle_down</mat-icon>
+</button>
+
+<ng-template #processTemplate>
+  <form [formGroup]="editProcessForm">
+    <div fxLayout="row wrap">
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <mat-form-field appearance="fill">
+          <mat-label i18n>Name</mat-label>
+          <input matInput formControlName="name">
+        </mat-form-field>
+      </div>
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <mat-form-field appearance="fill">
+          <mat-label i18n>Beschreibung</mat-label>
+          <textarea matInput rows="3" formControlName="description"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+    <mat-divider style="width: 100%; margin-bottom: 10px;"></mat-divider>
+    <div fxLayout="row wrap">
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
+        <div class="border-box" style="height: 250px;">
+          <mat-checkbox class="reverse" color="primary"
+                        *ngFor="let infrastructure of allInfrastructures"
+                        (change)="infrastructure.included = $event.checked"
+                        [checked]="infrastructure.included || false">
+            {{infrastructure.name}}
+          </mat-checkbox>
+        </div>
+      </div>
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <span class="subtitle1" style="color: grey;">Zugriff auf Planungsprozess</span>
+        <div class="border-box" style="height: 250px;">
+          <mat-checkbox class="reverse" color="primary"
+                        *ngFor="let user of otherUsers"
+                        (change)="user.shared = $event.checked"
+                        [checked]="user.shared || false">
+            {{getPrettyUserName(user)}}
+          </mat-checkbox>
+        </div>
+        <mat-checkbox formControlName="allowSharedChange" style="margin-top: 10px;" color="primary">
+          Änderungen an Szenarien erlauben
+        </mat-checkbox>
+      </div>
+    </div>
+  </form>
+</ng-template>

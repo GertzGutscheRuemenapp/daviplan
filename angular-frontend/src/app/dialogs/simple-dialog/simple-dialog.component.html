@@ -1,0 +1,37 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<div style="position: relative">
+  <h4 *ngIf="data.title" [style.text-align]="data.centerContent? 'center': ''" mat-dialog-title>{{ data.title }}</h4>
+  <span *ngIf="data.subtitle" class="subtitle1 sub">{{data.subtitle}}</span>
+  <button *ngIf="data.showCloseButton"
+          color="primary"
+          mat-icon-button
+          mat-dialog-close
+          title="Dialog schließen"
+          id="close-button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <div style="display: flex">
+    <div *ngIf="data.message" [innerHTML]="data.message" [style.max-width]="data.showAnimatedDots? 'calc(100% - 30px)': '100%'"></div>
+    <div *ngIf="data.showAnimatedDots" style="align-self: end; margin-left: 12px; margin-bottom: 6px;">
+      <div class="dot-flashing"></div>
+    </div>
+  </div>
+  <ng-container *ngTemplateOutlet="data.template; context: data.context"></ng-container>
+  <div *ngIf="data.infoText" class="info-text" style="margin-top: 15px;">
+    <mat-expansion-panel class="text-panel" [expanded]="data.infoExpanded">
+      <mat-expansion-panel-header>
+        <mat-icon color="primary" class="material-icons-outlined"
+                  style="margin-right: 5px;">help_outline</mat-icon>
+        <span class="subtitle1" style="color: grey;">Hilfe</span>
+      </mat-expansion-panel-header>
+      <span [innerHTML]="data.infoText"></span>
+    </mat-expansion-panel>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions *ngIf="data.showConfirmButton" [style.justify-content]="data.centerContent? 'center': ''">
+  <button mat-button mat-dialog-close class="mat-button-dv" color="primary">OK</button>
+</mat-dialog-actions>

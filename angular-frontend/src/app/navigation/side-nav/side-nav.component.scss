@@ -1,0 +1,60 @@
+@import "~src/constants";
+
+.sidenav-container {
+  height: 100%;
+}
+
+.sidenav {
+  .mat-toolbar {
+    background: inherit;
+  }
+  .mat-icon, .davicon {
+    color: $accent;
+  }
+/*  mat-expansion-panel-header {
+    .mat-icon, .davicon {
+      color: grey;
+    }
+  }*/
+  .active-link {
+    .mat-icon, .davicon {
+      color: white;
+    }
+  }
+  .mat-icon {
+    margin-right: 5px;
+  }
+  .davicon {
+    font-size: 32px;
+    margin-left: -4px;
+  }
+  .subitem:not(.active-link) {
+    .mat-icon, .davicon {
+      color: lightgrey;
+    }
+  }
+}
+
+mat-sidenav .active-link, mat-sidenav .active-link:hover, mat-sidenav .active-link:focus{
+  color: white !important;
+  background-color: $primary !important;
+}
+
+::ng-deep .sidenav {
+  .mat-list-item {
+    font-size: 18px !important;
+    height: 70px !important;
+  }
+  .mat-list-item-content {
+    padding-left: 40px !important;
+  }
+  .mat-list-item:hover {
+    background-color: $primary-light !important;
+  }
+  .mat-expansion-panel-body {
+    border-bottom: 1px #0000000B solid;
+  }
+  .mat-expansion-panel-header-title {
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
