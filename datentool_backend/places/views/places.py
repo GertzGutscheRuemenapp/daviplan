@@ -79,7 +79,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
     def update(self, request, *args, **kwargs):
         attributes = request.data.get('attributes')
-        request.data['attributes'] = camelize(attributes)
+        request.data['attributes'] = camelize(attributes) or {}
         return super().update(request, *args, **kwargs)
 
     def get_queryset(self):

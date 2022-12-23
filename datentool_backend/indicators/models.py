@@ -6,7 +6,12 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.utils.copy_postgres import DirectCopyManager
 
 from datentool_backend.places.models import Place
-from datentool_backend.modes.models import ModeVariant, Mode
+from datentool_backend.modes.models import (ModeVariant,
+                                            Mode,
+                                            Network,
+                                            get_default_access_variant,
+                                            )
+
 from datentool_backend.population.models import RasterCell
 
 
@@ -53,18 +58,6 @@ class MatrixCellPlace(DatentoolModelMixin, models.Model):
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
-
-
-def get_default_access_variant():
-    variant, created = ModeVariant.objects.get_or_create(mode=Mode.WALK, is_default=True)
-    return variant.pk
-    #return 1
-
-def get_default_transit_variant():
-    variant, created = ModeVariant.objects.get_or_create(mode=Mode.TRANSIT, is_default=True)
-    return variant.pk
-    #return 4
-
 
 
 class MatrixCellStop(DatentoolModelMixin, models.Model):

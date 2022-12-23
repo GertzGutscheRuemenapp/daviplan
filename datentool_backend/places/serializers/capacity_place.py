@@ -1,21 +1,28 @@
 import logging
 logger = logging.getLogger('routing')
 
+from typing import List
 import pandas as pd
 from requests.exceptions import ConnectionError
 from rest_framework.validators import ValidationError
 from rest_framework import serializers
 
+from datentool_backend.utils.raw_delete import delete_chunks
 from datentool_backend.population.models import RasterCell
-from datentool_backend.modes.models import ModeVariant, Mode
-from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.indicators.compute.routing import (TravelTimeRouterMixin,
+from datentool_backend.modes.models import (ModeVariant,
+                                            Mode,
+                                            DEFAULT_MAX_DIRECT_WALKTIME,
+                                            get_default_access_variant)
+from datentool_backend.indicators.models import MatrixCellPlace, MatrixPlaceStop
+from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
+                                                          MatrixPlaceStopRouter,
                                                           RoutingError)
+from datentool_backend.indicators.models import Stop
 from datentool_backend.area.models import FClass, FieldTypes
 from datentool_backend.places.models import (Place,
-                                                            Capacity,
-                                                            PlaceField,
-                                                            )
+                                             Capacity,
+                                             PlaceField,
+                                             )
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.infrastructure.models import Infrastructure
 
@@ -113,34 +120,104 @@ class PlaceSerializer(serializers.ModelSerializer):
         model = Place
         fields = ('id', 'name', 'geom', 'infrastructure', 'attributes', 'scenario')
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> Place:
         instance = super().create(validated_data)
         # auto calc. travel times for scenario places
         if instance.scenario:
-            sources = TravelTimeRouterMixin.annotate_coords(
-                Place.objects.filter(pk=instance.pk), geom='geom')
-            destinations = TravelTimeRouterMixin.annotate_coords(
-                RasterCell.objects.filter(rastercellpopulation__isnull=False),
-                geom='pnt')
-            dataframes = []
-            for variant in ModeVariant.objects.all():
-                # ToDo: route transit
-                if variant.mode == Mode.TRANSIT:
-                    continue
-                try:
-                    df = TravelTimeRouterMixin.route(
-                        variant, sources, destinations, logger,
-                        id_columns=['place_id', 'cell_id'])
-                except (ConnectionError, RoutingError):
-                    return instance
-                dataframes.append(df)
-            df = pd.concat(dataframes)
-            TravelTimeRouterMixin.save_df(df, MatrixCellPlace, False)
-            n_inserted = len(df)
-            model_name = MatrixCellPlace._meta.object_name
-            logger.info(f'Routenberechnung erfolgreich - {n_inserted:n} '
-                        f'{model_name}-Einträge geschrieben')
+            self.calc_traveltimes_for_place(instance)
         return instance
+
+    def calc_traveltimes_for_place(self, instance: Place):
+        places = MatrixCellPlaceRouter.annotate_coords(
+            Place.objects.filter(pk=instance.pk), geom='geom')
+        cells = MatrixCellPlaceRouter.annotate_coords(
+            RasterCell.objects.filter(rastercellpopulation__isnull=False),
+            geom='pnt')
+        access_variant = ModeVariant.objects.get(pk=get_default_access_variant())
+        model_name = MatrixCellPlace._meta.object_name
+
+        # delete existing entries for the place in the CellPlace and PlaceStop-Matrix
+        qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
+        delete_chunks(qs_to_delete, logger)
+        qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
+        delete_chunks(qs_to_delete, logger)
+
+        # calcauats
+        for variant in ModeVariant.objects.all():
+            try:
+                if variant.mode == Mode.TRANSIT:
+                    df = self.get_transit_df(variant, access_variant, places)
+                else:
+                    df = self.get_prt_df(variant, places, cells)
+
+                n_inserted = len(df)
+                if not n_inserted:
+                    continue
+                logger.info(f'Routing für Modus {repr(variant)}: {n_inserted:n} Relationen gefunden')
+                MatrixCellPlaceRouter.save_df(df, MatrixCellPlace, False)
+                logger.info(f'{n_inserted:n} {model_name}-Einträge geschrieben')
+
+            except (ConnectionError, RoutingError):
+                logger.warn(f'Routing für {variant.label} hat nicht funktioniert')
+
+        logger.info(f'Routenberechnung erfolgreich')
+
+    def update(self, instance: Place, validated_data: dict) -> Place:
+        geom = validated_data.get('geom')
+        instance = super().update(instance, validated_data)
+        if geom:
+            self.calc_traveltimes_for_place(instance)
+        return instance
+
+    def get_prt_df(self,
+                   variant: ModeVariant,
+                   places: List[Place],
+                   cells: List[RasterCell]) -> pd.DataFrame:
+        df = MatrixCellPlaceRouter.route(
+            variant,
+            sources=places,
+            destinations=cells,
+            logger=logger,
+            id_columns=MatrixCellPlaceRouter.columns)
+        return df
+
+    def get_transit_df(self,
+                       variant: ModeVariant,
+                       access_variant: ModeVariant,
+                       places: List[Place]) -> pd.DataFrame:
+        """get the dataframe for transit """
+        # get the stops of the transit-variant
+        # and add coordinates in WGS84
+        stops = MatrixPlaceStopRouter.annotate_coords(
+            Stop.objects.filter(variant=variant), geom='geom')
+        if not stops:
+            return pd.DataFrame()
+
+        # calculate access time from the new place to the stops
+        df_ps = MatrixPlaceStopRouter.route(
+            variant=access_variant,
+            sources=places,
+            destinations=stops,
+            logger=logger,
+            id_columns=MatrixPlaceStopRouter.columns)
+
+        df_ps.rename(
+            columns={'variant_id': 'access_variant_id', },
+            inplace=True)
+        # add the access times to the database
+        MatrixPlaceStopRouter.save_df(df_ps,
+                                      MatrixPlaceStop,
+                                      drop_constraints=False)
+
+        # calc the shortest transit time from the new stop via the
+        # access stops to all cells
+        df = MatrixCellPlaceRouter.calculate_transit_traveltime(
+            transit_variant=variant,
+            access_variant=access_variant,
+            max_direct_walktime=DEFAULT_MAX_DIRECT_WALKTIME,
+            places=places.values_list('id', flat=True),
+            id_columns=MatrixCellPlaceRouter.columns)
+        return df
 
 
 class PlaceFieldListSerializer(serializers.ListSerializer):

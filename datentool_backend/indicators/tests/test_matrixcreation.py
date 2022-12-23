@@ -5,6 +5,7 @@ from typing import List
 import logging
 logger = logging.getLogger(name='test')
 
+import pandas as pd
 from test_plus import APITestCase
 from django.urls import reverse
 from django.contrib.gis.geos import Point
@@ -12,16 +13,18 @@ from django.contrib.gis.geos import Point
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
+from datentool_backend.places.models import Place
+from datentool_backend.places.factories import ScenarioFactory
 from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
-                                                 Place,
                                                  )
 
-from datentool_backend.modes.factories import (Mode,
-                                               ModeVariant,
+from datentool_backend.modes.models import (Mode,
+                                            Network,
+                                            )
+from datentool_backend.modes.factories import (ModeVariant,
                                                ModeVariantFactory,
-                                               NetworkFactory,
                                                )
 
 
@@ -149,14 +152,13 @@ class TestMatrixCreation(CreateTestdataMixin,
             'osrm docker not running')
     def test_create_routed_matrix_for_new_places(self):
         """Test to create an walk matrix from routing"""
-
+        self.client.force_login(self.profile.user)
         # setup modevariants
-        network = self.network
-        walk = ModeVariantFactory(mode=Mode.WALK, network=network)
-        bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
-        car = ModeVariantFactory(mode=Mode.CAR, network=network)
-        transit1 = ModeVariantFactory(mode=Mode.TRANSIT, network=network)
-        transit2 = ModeVariantFactory(mode=Mode.TRANSIT, network=network)
+        walk = ModeVariant.objects.get(mode=Mode.WALK, is_default=True)
+        bike = ModeVariant.objects.get(mode=Mode.BIKE, is_default=True)
+        car = ModeVariant.objects.get(mode=Mode.CAR, is_default=True)
+        transit1 = ModeVariantFactory(mode=Mode.TRANSIT, network=None, label='T1')
+        transit2 = ModeVariantFactory(mode=Mode.TRANSIT, network=None, label='T2')
         self.create_stops(transit_variant_id=transit1.pk)
         self.create_stops(transit_variant_id=transit2.pk)
         variants = [walk.pk, bike.pk, car.pk, transit1.pk, transit2.pk]
@@ -171,17 +173,21 @@ class TestMatrixCreation(CreateTestdataMixin,
         transit2_rows_before = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
         self.assertEqual(transit2_rows_before, 12)
 
-        # add new infrastructure
+        # add new places in a scenario
+        scenario = ScenarioFactory()
         infrastructure = self.place1.infrastructure
-        new_place = Place.objects.create(name='NewPlace',
-                                         infrastructure=infrastructure,
-                                         geom=Point(x=1000010, y=6500026))
+        url = 'places-list'
+        data = dict(name='NewPlace',
+                    infrastructure=infrastructure.pk,
+                    geom=Point(x=1000010, y=6500026, srid=3857).ewkt,
+                    attributes={},
+                    scenario=scenario.pk,
+                    )
+        res = self.post(url, data=data, extra={'format': 'json'})
+        self.assert_http_201_created(res)
+        new_place = Place.objects.get(pk=res.data['id'])
 
         # recalculate one place, add one new
-        places = [self.place2.pk, new_place.pk]
-        content = self.calc_cell_place_matrix(variants=variants,
-                                              access_variant=walk.pk,
-                                              places=places)
         walk_rows_after = MatrixCellPlace.objects.filter(variant=walk.pk).count()
         self.assertEqual(walk_rows_after, 48)
         bike_to_new_place = MatrixCellPlace.objects.filter(variant=bike.pk,
@@ -192,6 +198,41 @@ class TestMatrixCreation(CreateTestdataMixin,
         transit2_rows_after = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
         self.assertEqual(transit2_rows_after, 20)
 
+
+        url = 'places-detail'
+        df_before = pd.DataFrame(
+            MatrixCellPlace.objects.filter(place=self.place2).values())
+        # change name of existing point
+        patch_data = {'name': 'New Name', }
+        res = self.patch(url, pk=self.place2.pk, data=patch_data, extra={'format': 'json'})
+        self.assert_http_200_ok(res)
+        self.place2.refresh_from_db()
+        self.assertEqual(self.place2.name, patch_data['name'])
+        df_after_patch_name = pd.DataFrame(
+            MatrixCellPlace.objects.filter(place=self.place2).values())
+        # changing name should not change the travel times
+        pd.testing.assert_frame_equal(df_before, df_after_patch_name)
+
+        # change geometry of existing point
+        geom_before = self.place2.geom.wkt
+
+        x, y = 1000320, 6500036
+        patch_data = {'geom': Point(x=x, y=y, srid=3857).ewkt, }
+        res = self.patch(url, pk=self.place2.pk, data=patch_data, extra={'format': 'json'})
+        self.place2.refresh_from_db()
+        geom_after = self.place2.geom.wkt
+        # test if geometry changed
+        self.assertAlmostEqual(self.place2.geom.x, x)
+        self.assertAlmostEqual(self.place2.geom.y, y)
+
+        df_after_patch_geom = pd.DataFrame(
+            MatrixCellPlace.objects.filter(place=self.place2).values())
+
+        # the travel times should have changed, if not, the exception would not be raised
+        with self.assertRaises(AssertionError) as e:
+            pd.testing.assert_frame_equal(df_after_patch_geom, df_before)
+
+        places = [self.place2.pk, new_place.pk]
         content = self.calc_cell_place_matrix(variants=variants,
                                               access_variant=walk.pk,
                                               places=places,
@@ -216,7 +257,7 @@ class TestMatrixCreation(CreateTestdataMixin,
     @classmethod
     def create_network(cls):
         """create network"""
-        cls.network = NetworkFactory()
+        cls.network = Network.objects.get_or_create(is_default=True)
 
     def create_stops(self, transit_variant_id: int=None):
         """upload stops from excel-template"""
@@ -331,8 +372,8 @@ class TestMatrixCreation(CreateTestdataMixin,
     def test_create_place_cell_transit_matrix(self):
         """Test to create an transit matrix from place to stop"""
         self.create_stops()
-        walk, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
-                                                          network=self.network)
+        walk = ModeVariant.objects.get_or_create(mode=Mode.WALK,
+                                                 network=self.network)
         # precalculate the walk time from places and rastercells to stops
         content = self.calc_cell_stop_matrix(transit_variant=self.transit,
                                              access_variant=walk,
