@@ -247,6 +247,11 @@ class TravelTimeRouterMixin:
         if not router.is_running:
             router.run()
 
+        if not (sources.exists() and destinations.exists()):
+            id_columns = id_columns or ['source_id', 'destination_id']
+            df = pd.DataFrame(columns=id_columns + ['minutes', 'variant_id'])
+            return df
+
         sources = sources.order_by('id')
         destinations = destinations.order_by('id')
 

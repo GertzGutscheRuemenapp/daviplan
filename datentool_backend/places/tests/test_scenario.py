@@ -145,6 +145,7 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
         modevariant2 = ModeVariantFactory(mode=2)
         modevariant3 = ModeVariantFactory(mode=modevariant2.mode)
 
+        # create new scenario_modes, that replace existing ones
         ScenarioMode.objects.create(scenario=scenario,
                                     variant=modevariant1)
         ScenarioMode.objects.create(scenario=scenario,
