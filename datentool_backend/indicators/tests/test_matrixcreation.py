@@ -257,7 +257,7 @@ class TestMatrixCreation(CreateTestdataMixin,
     @classmethod
     def create_network(cls):
         """create network"""
-        cls.network = Network.objects.get_or_create(is_default=True)
+        cls.network, created = Network.objects.get_or_create(is_default=True)
 
     def create_stops(self, transit_variant_id: int=None):
         """upload stops from excel-template"""
@@ -372,8 +372,8 @@ class TestMatrixCreation(CreateTestdataMixin,
     def test_create_place_cell_transit_matrix(self):
         """Test to create an transit matrix from place to stop"""
         self.create_stops()
-        walk = ModeVariant.objects.get_or_create(mode=Mode.WALK,
-                                                 network=self.network)
+        walk, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
+                                                          network=self.network)
         # precalculate the walk time from places and rastercells to stops
         content = self.calc_cell_stop_matrix(transit_variant=self.transit,
                                              access_variant=walk,
