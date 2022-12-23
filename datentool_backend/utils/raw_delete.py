@@ -12,6 +12,8 @@ def delete_chunks(qs: QuerySet,
     logger.info(f'Suche zu löschende {model_name}-Einträge')
     ids = np.fromiter(qs.values_list('id', flat=True), np.dtype(np.int64))
     n_rows = ids.shape[0]
+    if not n_rows:
+        return
     logger.info(f'Lösche insgesamt {n_rows:n} {model_name}-Einträge')
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = ids[i:i + stepsize]

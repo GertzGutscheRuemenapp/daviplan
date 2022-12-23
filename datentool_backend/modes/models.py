@@ -1,3 +1,4 @@
+from typing import List
 from django.db import models
 
 from datentool_backend.base import (NamedModel,
@@ -39,17 +40,37 @@ class Network(DatentoolModelMixin, NamedModel, models.Model):
     is_default = models.BooleanField(default=False)
     network_file = models.FileField(null=True)
 
-    def save(self, *args, **kwargs):
-        # only one network can be a default
-        if self.is_default:
-            Network.objects.filter(is_default=True).update(is_default=False)
-
-        variants = []
-        if self.pk is None:
-            for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-                variants.append(ModeVariant(network=self, mode=mode))
+    def save(self, *args, modes2create=[Mode.WALK, Mode.BIKE, Mode.CAR], **kwargs):
+        self._set_as_default()
+        # create the modes for this network
+        created = self.pk is None
+        if created:
+            variants = self._create_network_modes(modes2create)
         super().save(*args, **kwargs)
-        ModeVariant.objects.bulk_create(variants)
+        if created:
+            ModeVariant.objects.bulk_create(variants)
+
+    def _set_as_default(self):
+        """only one network can be a default"""
+        if self.is_default:
+            Network.objects\
+                .filter(is_default=True)\
+                .exclude(pk=self.pk)\
+                .update(is_default=False)
+
+    def _create_network_modes(self,
+                              modes: List[Mode] =
+                              [Mode.WALK, Mode.BIKE, Mode.CAR]) -> List['ModeVariant']:
+        """Create the modes for the network"""
+        variants = []
+        for mode in modes:
+            # is there is no another default variant
+            is_default = not ModeVariant.objects.filter(mode=mode,
+                                                        is_default=True).exists()
+            variants.append(ModeVariant(network=self,
+                                        mode=mode,
+                                        is_default=is_default))
+        return variants
 
 
 class ModeVariant(DatentoolModelMixin, models.Model):
@@ -66,22 +87,45 @@ class ModeVariant(DatentoolModelMixin, models.Model):
         return f'{Mode(self.mode).name} - {self.label}'
 
     def save(self, *args, **kwargs):
-        if self.pk is None and not self.network:
-            try:
-                self.network = Network.objects.get(is_default=True)
-            except Network.DoesNotExist:
-                pass
+
+        # for each mode, there should be exactly one default mode
         if self.is_default:
             ModeVariant.objects.filter(
-                is_default=True, network=self.network).update(is_default=False)
-        # on creation -> look if there is already a default transit variant,
-        # else set this as default (so there is always a default one)
-        elif self.mode == Mode.TRANSIT and self.pk is None:
-            try:
-                ModeVariant.objects.get(is_default=True, mode=Mode.TRANSIT)
-            except ModeVariant.DoesNotExist:
+                is_default=True,
+                mode=self.mode)\
+                .exclude(pk=self.pk)\
+                .update(is_default=False)
+        else:
+            other_default = ModeVariant.objects.filter(mode=self.mode,
+                                                       is_default=True).exists()
+            if not other_default:
                 self.is_default = True
-        return super().save(*args, **kwargs)
+
+        if self.mode == Mode.TRANSIT:
+            # on creation
+            if self.pk is None:
+                #-> look if there is already a default transit variant,
+                try:
+                    ModeVariant.objects.get(is_default=True, mode=Mode.TRANSIT)
+                # else set this as default (so there is always a default one)
+                except ModeVariant.DoesNotExist:
+                    self.is_default = True
+        else:
+            # for non-transit-modes, if no network is defined,
+            # take or create the default network
+            if not self.network:
+                try:
+                    network = Network.objects.get(is_default=True)
+                except Network.DoesNotExist:
+                    # if it does not exist, the network should only create the
+                    # other mode variants automatically
+                    network = Network(is_default=True)
+                    modes2create = [m for m in
+                                       [Mode.WALK, Mode.BIKE, Mode.CAR]
+                                       if m != self.mode]
+                    network.save(modes2create=modes2create)
+                self.network = network
+        super().save(*args, **kwargs)
 
     def delete(self, **kwargs):
         # deleting transit variant marked as default -> mark another one
@@ -100,3 +144,15 @@ class CutOffTime(models.Model):
     mode_variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
     minutes = models.FloatField()
+
+
+def get_default_access_variant():
+    variant, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
+                                                is_default=True)
+    return variant.pk
+
+
+def get_default_transit_variant():
+    variant, created = ModeVariant.objects.get_or_create(mode=Mode.TRANSIT,
+                                                         is_default=True)
+    return variant.pk

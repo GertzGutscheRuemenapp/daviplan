@@ -379,3 +379,5 @@ def load_stats_json():
         return chunk_paths
 
 ANGULAR_RESOURCES = load_stats_json() or {}
+
+LOCALE = 'de_DE'
