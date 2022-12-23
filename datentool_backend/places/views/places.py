@@ -82,6 +82,11 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
         request.data['attributes'] = camelize(attributes) or {}
         return super().update(request, *args, **kwargs)
 
+    def perform_destroy(self, instance):
+        serializer: PlaceSerializer = self.get_serializer()
+        serializer.delete_existing_martixentries_for_place(instance)
+        instance.delete()
+
     def get_queryset(self):
         try:
             profile = self.request.user.profile
