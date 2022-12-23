@@ -32,6 +32,7 @@ from datentool_backend.modes.models import (ModeVariant,
                                             MODE_MAX_DISTANCE,
                                             DEFAULT_MAX_DIRECT_WALKTIME,
                                             MODE_SPEED,
+                                            get_default_access_variant,
                                             )
 
 
@@ -72,7 +73,7 @@ class TravelTimeRouterMixin:
                     if access_variant_id:
                         access_variant = ModeVariant.objects.get(id=access_variant_id)
                     else:
-                        access_variant = ModeVariant.objects.filter(mode=Mode.WALK).first()
+                        access_variant = get_default_access_variant()
 
                     max_access_distance = float(max_access_distance or
                                                 MODE_MAX_DISTANCE[variant.mode])
@@ -216,6 +217,7 @@ class TravelTimeRouterMixin:
             transit_variant=variant,
             places=places,
             max_direct_walktime=max_direct_walktime,
+            id_columns=['place_id', 'cell_id'],
         )
         return df
 
@@ -378,11 +380,12 @@ class TravelTimeRouterMixin:
 
         return df
 
-    def calculate_transit_traveltime(self,
-                                     transit_variant: ModeVariant,
+    @staticmethod
+    def calculate_transit_traveltime(transit_variant: ModeVariant,
                                      access_variant: ModeVariant,
                                      max_direct_walktime: float,
-                                     places:List[int],
+                                     places: List[int],
+                                     id_columns: List[str],
                                      **kwargs) -> pd.DataFrame:
         raise NotImplementedError()
 
@@ -433,13 +436,13 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
             .values('id', 'lon', 'lat')
         return destinations
 
-    def calculate_transit_traveltime(self,
-                                     transit_variant: ModeVariant,
+    @staticmethod
+    def calculate_transit_traveltime(transit_variant: ModeVariant,
                                      access_variant: ModeVariant,
                                      max_direct_walktime: float,
                                      places: List[int],
+                                     id_columns=['place_id', 'cell_id'],
                                      **kwargs) -> pd.DataFrame:
-
         # travel time place to stop
         qs = MatrixPlaceStop.objects.filter(
             stop__variant=transit_variant,
@@ -509,7 +512,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
 
         with connection.cursor() as cursor:
             cursor.execute(query, params)
-            columns = self.columns + ['minutes']
+            columns = id_columns + ['minutes']
             df = pd.DataFrame(cursor.fetchall(),
                               columns=columns)
 
