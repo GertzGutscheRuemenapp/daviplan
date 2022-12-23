@@ -1,13 +1,12 @@
 import logging
 import locale
-# set locale to german style
-locale.setlocale(locale.LC_ALL, 'de_DE')
 
 import pandas as pd
 import numpy as np
 from typing import List, Tuple
 from io import StringIO
 
+from django.conf import settings
 from django.db import transaction, connection
 from django.db.models.query import QuerySet
 from django.db.models import FloatField, Q, Model
@@ -35,6 +34,9 @@ from datentool_backend.modes.models import (ModeVariant,
                                             get_default_access_variant,
                                             )
 
+
+# set locale to local style defined in settings
+locale.setlocale(locale.LC_ALL, settings.LOCALE)
 
 
 class RoutingError(Exception):
