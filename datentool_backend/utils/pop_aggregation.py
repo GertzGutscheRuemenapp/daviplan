@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from io import StringIO
 from django.db import connection
 from django.db.utils import ProgrammingError
@@ -8,13 +9,15 @@ from django.db.models import Max, Sum, F
 
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.population.models import (
-                                      PopulationRaster,
-                                      AreaCell,
-                                      Population,
-                                      PopulationAreaLevel,
-                                      AreaPopulationAgeGender,
-                                      RasterCellPopulationAgeGender,
-                                      RasterCellPopulation)
+    PopulationRaster,
+    AreaCell,
+    Population,
+    PopulationAreaLevel,
+    AreaPopulationAgeGender,
+    RasterCellPopulationAgeGender,
+    RasterCellPopulation)
+from datentool_backend.utils.raw_delete import delete_chunks
+from datentool_backend.utils.excel_template import write_template_df
 
 import logging
 logger = logging.getLogger('population')
@@ -103,15 +106,19 @@ def disaggregate_population(population: Population,
     # updating would leave values for rastercells, that do not exist any more
     rc_exist = RasterCellPopulationAgeGender.objects\
         .filter(population=population)
-    rc_exist.delete()
+    delete_chunks(rc_exist, logger)
 
-    with StringIO() as file:
-        df_cellagegender.to_csv(file, index=False)
-        file.seek(0)
-        RasterCellPopulationAgeGender.copymanager.from_csv(
-            file,
-            drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-        )
+    model = RasterCellPopulationAgeGender
+    model_name = model._meta.object_name
+    n_rows = len(df_cellagegender)
+    logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
+    stepsize = 100000
+    for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
+        chunk = df_cellagegender.iloc[i:i + stepsize]
+        n_inserted = len(chunk)
+        write_template_df(chunk, model, logger, drop_constraints=drop_constraints)
+        logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
+
     return msg
 
 
@@ -192,13 +199,18 @@ def intersect_areas_with_raster(
             ['area_id', 'rastercellpop_id', 'share_area_of_cell', 'share_cell_of_area']]
 
     ac = AreaCell.objects.filter(area__in=areas, rastercellpop__popraster=pop_raster)
-    ac.delete()
+    delete_chunks(ac, logger)
 
-    with StringIO() as file:
-        df2.to_csv(file, index=False)
-        file.seek(0)
-        AreaCell.copymanager.from_csv(file,
-            drop_constraints=drop_constraints, drop_indexes=drop_constraints)
+    model = AreaCell
+    model_name = model._meta.object_name
+    n_rows = len(df2)
+    logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
+    stepsize = 100000
+    for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
+        chunk = df2.iloc[i:i + stepsize]
+        n_inserted = len(chunk)
+        write_template_df(chunk, model, logger, drop_constraints=drop_constraints)
+        logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
 
 
 def aggregate_many(area_levels, populations, drop_constraints=False):
@@ -272,15 +284,18 @@ def aggregate_population(area_level: AreaLevel, population: Population,
 
     ap_exist = AreaPopulationAgeGender.objects\
         .filter(population=population, area__area_level=area_level)
-    ap_exist.delete()
+    delete_chunks(ap_exist, logger)
 
-    with StringIO() as file:
-        df_areaagegender.to_csv(file, index=False)
-        file.seek(0)
-        AreaPopulationAgeGender.copymanager.from_csv(
-            file,
-            drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-        )
+    model = AreaPopulationAgeGender
+    model_name = model._meta.object_name
+    n_rows = len(df_areaagegender)
+    logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
+    stepsize = 100000
+    for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
+        chunk = df_areaagegender.iloc[i:i + stepsize]
+        n_inserted = len(chunk)
+        write_template_df(chunk, model, logger, drop_constraints=drop_constraints)
+        logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
 
     # validate_cache
     pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
