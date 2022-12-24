@@ -38,6 +38,11 @@ class Profile(DatentoolModelMixin, models.Model):
                     if hdlr in logger.handlers:
                         logger.removeHandler(hdlr)
 
+        # delete user of profile
+        user = self.user
+        if user:
+            user.delete()
+
         super().delete(using=using,
                        keep_parents=keep_parents,
                        use_protection=use_protection)

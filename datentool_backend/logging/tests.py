@@ -24,10 +24,7 @@ class TestLogAPI(LoginTestCase, APITestCase):
 
     @classmethod
     def tearDownClass(cls):
-        user = cls.profile2.user
-        user.delete()
         cls.profile2.delete()
-        del cls.profile2
         super().tearDownClass()
 
     @staticmethod

@@ -64,10 +64,7 @@ class LoginTestCase:
 
     @classmethod
     def tearDownClass(cls):
-        user = cls.profile.user
-        user.delete()
         cls.profile.delete()
-        del cls.profile
         super().tearDownClass()
 
 
