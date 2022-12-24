@@ -23,11 +23,20 @@ class Profile(DatentoolModelMixin, models.Model):
         return f'{self.__class__.__name__}: {self.user.username}'
 
     def delete(self, using=None, keep_parents=False, use_protection=False):
-        """remove profile from LogHandler before deleting it"""
-        for hdlr_ref in logging._handlerList:
+        """
+        remove profile from all LogHandlers that reference the user
+        and remove the handler from all loggers
+        before deleting the profile
+        """
+        loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+
+        for hdlr_ref in list(logging._handlerList):
             hdlr = hdlr_ref()
             if hasattr(hdlr, 'user') and hdlr.user == self:
                 del(hdlr.user)
+                for logger in loggers:
+                    if hdlr in logger.handlers:
+                        logger.removeHandler(hdlr)
 
         super().delete(using=using,
                        keep_parents=keep_parents,

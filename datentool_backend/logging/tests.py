@@ -24,7 +24,6 @@ class TestLogAPI(LoginTestCase, APITestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.remove_existing_handlers(cls.logger_names)
         user = cls.profile2.user
         user.delete()
         cls.profile2.delete()
