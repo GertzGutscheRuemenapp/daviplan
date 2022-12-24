@@ -1,4 +1,5 @@
 import logging
+from typing import List
 import pandas as pd
 
 from test_plus import APITestCase
@@ -15,11 +16,15 @@ class TestLogAPI(LoginTestCase, APITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.profile2 = ProfileFactory(can_edit_basedata=True, admin_access=False)
-        cls.remove_existing_handlers()
+        cls.room_not_registred = 'notRegistred'
+        cls.room_manually_registred = 'manuallyRegistred'
+        cls.logger_names = PersistLogHandler.loggers + [cls.room_not_registred,
+                                                        cls.room_manually_registred]
+        cls.remove_existing_handlers(cls.logger_names)
 
     @classmethod
     def tearDownClass(cls):
-        cls.remove_existing_handlers()
+        cls.remove_existing_handlers(cls.logger_names)
         user = cls.profile2.user
         user.delete()
         cls.profile2.delete()
@@ -100,23 +105,21 @@ class TestLogAPI(LoginTestCase, APITestCase):
         expected_data.append([p2, 'ERROR', room2, None])
 
         # for this logger, no LogEntry-Handler is registred
-        room_not_registred = 'notRegistred'
-        logger3 = logging.getLogger(room_not_registred)
+        logger3 = logging.getLogger(self.room_not_registred)
         logger3.warn('this message should not be saved as a LogEntry')
 
         # for this logger, manually register hdlr1
-        room_manually_registred = 'manuallyRegistred'
-        logger4 = logging.getLogger(room_manually_registred)
+        logger4 = logging.getLogger(self.room_manually_registred)
         logger4.addHandler(hdlr1)
         logger4.error('this message should shown at profile 1')
-        expected_data.append([p1, 'ERROR', room_manually_registred, None])
+        expected_data.append([p1, 'ERROR', self.room_manually_registred, None])
 
         res = self.get(url)
         self.assert_http_200_ok(res)
         self.assertContains(res, room1)
         self.assertContains(res, room2)
-        self.assertNotContains(res, room_not_registred)
-        self.assertContains(res, room_manually_registred)
+        self.assertNotContains(res, self.room_not_registred)
+        self.assertContains(res, self.room_manually_registred)
 
         df = pd.DataFrame(res.data)
         self.assertEqual(df['message'].iloc[0], 'Population Warn Message')
@@ -126,9 +129,9 @@ class TestLogAPI(LoginTestCase, APITestCase):
         pd.testing.assert_frame_equal(actual, expected)
 
     @staticmethod
-    def remove_existing_handlers():
+    def remove_existing_handlers(logger_names: List[str]):
         '''remove existing handlers for the PersisLogHandler-Loggers'''
-        for logger_name in PersistLogHandler.loggers:
+        for logger_name in logger_names:
             logger = logging.getLogger(logger_name)
             for hdlr in logger.handlers:
                 logger.removeHandler(hdlr)
