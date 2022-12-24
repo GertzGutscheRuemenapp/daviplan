@@ -31,6 +31,14 @@ class TestLogAPI(LoginTestCase, APITestCase):
         del cls.profile2
         super().tearDownClass()
 
+    @staticmethod
+    def remove_existing_handlers(logger_names: List[str]):
+        '''remove existing handlers for the PersisLogHandler-Loggers'''
+        for logger_name in logger_names:
+            logger = logging.getLogger(logger_name)
+            for hdlr in list(logger.handlers):
+                logger.removeHandler(hdlr)
+
     def test_logging(self):
         """test if a log entrance shows up in the logging api"""
         url = 'logs-list'
@@ -127,11 +135,3 @@ class TestLogAPI(LoginTestCase, APITestCase):
         expected = pd.DataFrame(data=expected_data, columns=actual.columns)
         pop_logger.info(str(actual))
         pd.testing.assert_frame_equal(actual, expected)
-
-    @staticmethod
-    def remove_existing_handlers(logger_names: List[str]):
-        '''remove existing handlers for the PersisLogHandler-Loggers'''
-        for logger_name in logger_names:
-            logger = logging.getLogger(logger_name)
-            for hdlr in logger.handlers:
-                logger.removeHandler(hdlr)

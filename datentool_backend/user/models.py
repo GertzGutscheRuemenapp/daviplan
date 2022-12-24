@@ -28,8 +28,6 @@ class Profile(DatentoolModelMixin, models.Model):
             hdlr = hdlr_ref()
             if hasattr(hdlr, 'user') and hdlr.user == self:
                 del(hdlr.user)
-            if hasattr(hdlr, 'profile') and hdlr.profile == self:
-                del(hdlr.profile)
 
         super().delete(using=using,
                        keep_parents=keep_parents,
