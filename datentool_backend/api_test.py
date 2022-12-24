@@ -650,7 +650,7 @@ class TestAPIMixin:
             cls.url_pk = dict(pk=cls.obj.pk)
 
 
-class TestPermissionsMixin():
+class TestPermissionsMixin:
     """ test users permissions"""
     def test_is_logged_in(self):
         self.client.logout()
