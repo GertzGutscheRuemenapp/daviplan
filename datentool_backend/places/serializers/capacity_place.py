@@ -136,11 +136,7 @@ class PlaceSerializer(serializers.ModelSerializer):
         access_variant = ModeVariant.objects.get(pk=get_default_access_variant())
         model_name = MatrixCellPlace._meta.object_name
 
-        # delete existing entries for the place in the CellPlace and PlaceStop-Matrix
-        qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
-        delete_chunks(qs_to_delete, logger)
-        qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
-        delete_chunks(qs_to_delete, logger)
+        self.delete_existing_martixentries_for_place(instance)
 
         # calcauats
         for variant in ModeVariant.objects.all():
@@ -161,6 +157,13 @@ class PlaceSerializer(serializers.ModelSerializer):
                 logger.warn(f'Routing für {variant.label} hat nicht funktioniert')
 
         logger.info(f'Routenberechnung erfolgreich')
+
+    def delete_existing_martixentries_for_place(self, instance: Place):
+        # delete existing entries for the place in the CellPlace and PlaceStop-Matrix
+        qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
+        delete_chunks(qs_to_delete, logger)
+        qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
+        delete_chunks(qs_to_delete, logger)
 
     def update(self, instance: Place, validated_data: dict) -> Place:
         geom = validated_data.get('geom')

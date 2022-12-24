@@ -242,6 +242,15 @@ class TestMatrixCreation(CreateTestdataMixin,
                                                           place=new_place).count()
         self.assertEqual(car_to_new_place, 8)
 
+        # delete new place
+        new_place_id = new_place.pk
+        self.assertTrue(MatrixCellPlace.objects.filter(place=new_place_id).exists())
+        self.assertTrue(MatrixPlaceStop.objects.filter(place=new_place_id).exists())
+        res = self.delete(url, pk=new_place_id, extra={'format': 'json',})
+        self.assert_http_204_no_content(res)
+        self.assertFalse(MatrixCellPlace.objects.filter(place=new_place_id).exists())
+        self.assertFalse(MatrixPlaceStop.objects.filter(place=new_place_id).exists())
+
     @classmethod
     def build_osrm(cls):
         pbf = os.path.join(os.path.dirname(__file__),
