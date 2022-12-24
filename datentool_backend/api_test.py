@@ -43,16 +43,13 @@ class CompareAbsURIMixin:
 
 class LoginTestCase:
 
-    user = 99
     permissions = Permission.objects.all()
     profile: Profile
 
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.profile = ProfileFactory(id=cls.user,
-                                    user__id=cls.user,
-                                    user__username='Anonymus User',
+        cls.profile = ProfileFactory(user__username='Anonymus User',
                                     can_create_process=False,
                                     admin_access=False,
                                     can_edit_basedata=False)
@@ -650,7 +647,7 @@ class TestAPIMixin:
             cls.url_pk = dict(pk=cls.obj.pk)
 
 
-class TestPermissionsMixin():
+class TestPermissionsMixin:
     """ test users permissions"""
     def test_is_logged_in(self):
         self.client.logout()

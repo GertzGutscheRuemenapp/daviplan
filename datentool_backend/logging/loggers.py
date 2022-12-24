@@ -6,10 +6,11 @@ class PersistLogHandler(logging.StreamHandler):
     loggers = ['areas', 'population', 'infrastructure', 'routing']
 
     @classmethod
-    def register(cls, user: 'Profile'=None):
-        handler = PersistLogHandler(user=user)
+    def register(cls, user: 'Profile'=None) -> 'PersistLogHandler':
+        handler = cls(user=user)
         for room in cls.loggers:
             logging.getLogger(room).addHandler(handler)
+        return handler
 
     def __init__(self, user: 'Profile'=None, **kwargs):
         super().__init__(**kwargs)
