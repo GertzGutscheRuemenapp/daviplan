@@ -15,9 +15,11 @@ class TestLogAPI(LoginTestCase, APITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.profile2 = ProfileFactory(can_edit_basedata=True, admin_access=False)
+        cls.remove_existing_handlers()
 
     @classmethod
     def tearDownClass(cls):
+        cls.remove_existing_handlers()
         user = cls.profile2.user
         user.delete()
         cls.profile2.delete()
@@ -46,16 +48,11 @@ class TestLogAPI(LoginTestCase, APITestCase):
         #  create handler for p1 and regsiter with the logger rooms population, routing ...
         room1 = 'population'
         pop_logger = logging.getLogger(room1)
-        # remove existing handlers
-        for hdlr in pop_logger.handlers:
-            pop_logger.removeHandler(hdlr)
         pop_logger.setLevel(logging.WARN)
 
         room2 = 'routing'
         routing_logger = logging.getLogger(room2)
-        # remove existing handlers
-        for hdlr in routing_logger.handlers:
-            routing_logger.removeHandler(hdlr)
+        routing_logger.setLevel(logging.DEBUG)
 
         hdlr1 = PersistLogHandler.register(user=self.profile)
 
@@ -96,7 +93,6 @@ class TestLogAPI(LoginTestCase, APITestCase):
 
         # the handlers should be registred with the routing-room
 
-        routing_logger.setLevel(logging.DEBUG)
         routing_logger.debug('Routing debug message')
         expected_data.append([p1, 'DEBUG', room2, None])
         routing_logger.error('Routing error message')
@@ -128,3 +124,11 @@ class TestLogAPI(LoginTestCase, APITestCase):
         expected = pd.DataFrame(data=expected_data, columns=actual.columns)
         pop_logger.info(str(actual))
         pd.testing.assert_frame_equal(actual, expected)
+
+    @staticmethod
+    def remove_existing_handlers():
+        '''remove existing handlers for the PersisLogHandler-Loggers'''
+        for logger_name in PersistLogHandler.loggers:
+            logger = logging.getLogger(logger_name)
+            for hdlr in logger.handlers:
+                logger.removeHandler(hdlr)
