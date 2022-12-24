@@ -45,54 +45,61 @@ class TestLogAPI(LoginTestCase, APITestCase):
 
         #  create handler for p1 and regsiter with the logger rooms population, routing ...
         room1 = 'population'
-        logger = logging.getLogger(room1)
-        logger.setLevel(logging.WARN)
+        pop_logger = logging.getLogger(room1)
+        # remove existing handlers
+        for hdlr in pop_logger.handlers:
+            pop_logger.removeHandler(hdlr)
+        pop_logger.setLevel(logging.WARN)
+
+        room2 = 'routing'
+        routing_logger = logging.getLogger(room2)
+        # remove existing handlers
+        for hdlr in routing_logger.handlers:
+            routing_logger.removeHandler(hdlr)
+
         hdlr1 = PersistLogHandler.register(user=self.profile)
 
         # log some messages to the population room
-        logger.debug('Population Debug Message')
-        logger.info('Population Info Message')
+        pop_logger.debug('Population Debug Message')
+        pop_logger.info('Population Info Message')
         # until here, only warn and messages should appear because log level = WARNING
 
-        logger.warn('Population Warn Message')
+        pop_logger.warn('Population Warn Message')
         expected_data.append([p1, 'WARNING', room1, None])
-        logger.error('Population Error Message')
+        pop_logger.error('Population Error Message')
         expected_data.append([p1, 'ERROR', room1, None])
 
-        logger.setLevel(logging.INFO)
+        pop_logger.setLevel(logging.INFO)
         # now also the info message should appera
-        logger.debug('Population Debug Message')
-        logger.info('Population Info Message')
+        pop_logger.debug('Population Debug Message')
+        pop_logger.info('Population Info Message')
         expected_data.append([p1, 'INFO', room1, None])
 
         # log an extra status message
-        logger.warn('Population warn Message with status', extra=dict(status='take care'))
+        pop_logger.warn('Population warn Message with status', extra=dict(status='take care'))
         expected_data.append([p1, 'WARNING', room1, 'take care'])
 
         # create handler for profile 2 with error level and register with logger rooms
         hdlr2 = PersistLogHandler.register(user=self.profile2)
         hdlr2.setLevel(logging.ERROR)
 
-        logger.warn('Warning to Profile 1')
+        pop_logger.warn('Warning to Profile 1')
         expected_data.append([p1, 'WARNING', room1, None])
-        logger.error('Error to Profile 1+2')
+        pop_logger.error('Error to Profile 1+2')
         expected_data.append([p1, 'ERROR', room1, None])
         expected_data.append([p2, 'ERROR', room1, None])
 
         # remove first handler
-        logger.removeHandler(hdlr1)
-        logger.error('Error to Profile 2')
+        pop_logger.removeHandler(hdlr1)
+        pop_logger.error('Error to Profile 2')
         expected_data.append([p2, 'ERROR', room1, None])
 
         # the handlers should be registred with the routing-room
-        room2 = 'routing'
-        logger2 = logging.getLogger(room2)
-        logger2.addHandler(hdlr1)
-        logger2.addHandler(hdlr2)
-        logger2.setLevel(logging.DEBUG)
-        logger2.debug('Routing debug message')
+
+        routing_logger.setLevel(logging.DEBUG)
+        routing_logger.debug('Routing debug message')
         expected_data.append([p1, 'DEBUG', room2, None])
-        logger2.error('Routing error message')
+        routing_logger.error('Routing error message')
         expected_data.append([p1, 'ERROR', room2, None])
         expected_data.append([p2, 'ERROR', room2, None])
 
@@ -119,5 +126,5 @@ class TestLogAPI(LoginTestCase, APITestCase):
         self.assertEqual(df['message'].iloc[0], 'Population Warn Message')
         actual = df[['user', 'level', 'room', 'status']]
         expected = pd.DataFrame(data=expected_data, columns=actual.columns)
-        logger.info(str(actual))
+        pop_logger.info(str(actual))
         pd.testing.assert_frame_equal(actual, expected)
