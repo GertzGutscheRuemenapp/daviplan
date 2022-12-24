@@ -100,7 +100,6 @@ class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         service = Service.objects.get(id=service)
         scenario = Scenario.objects.get(id=scenario)
         place = Place.objects.get(id=place)
-        # ToDo: check permission to edit scenario
 
         existing = Capacity.objects.filter(
             scenario=scenario, service=service, place=place)
