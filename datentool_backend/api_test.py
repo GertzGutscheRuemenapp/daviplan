@@ -43,16 +43,13 @@ class CompareAbsURIMixin:
 
 class LoginTestCase:
 
-    user = 99
     permissions = Permission.objects.all()
     profile: Profile
 
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.profile = ProfileFactory(id=cls.user,
-                                    user__id=cls.user,
-                                    user__username='Anonymus User',
+        cls.profile = ProfileFactory(user__username='Anonymus User',
                                     can_create_process=False,
                                     admin_access=False,
                                     can_edit_basedata=False)

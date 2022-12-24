@@ -25,7 +25,7 @@ class TestLogAPI(LoginTestCase, APITestCase):
         super().tearDownClass()
 
     def test_logging(self):
-        """test if a log entrace shows up in the logging api"""
+        """test if a log entrance shows up in the logging api"""
         url = 'logs-list'
 
         # standard profile has no admin_access or can_edit_basedata
@@ -119,4 +119,5 @@ class TestLogAPI(LoginTestCase, APITestCase):
         self.assertEqual(df['message'].iloc[0], 'Population Warn Message')
         actual = df[['user', 'level', 'room', 'status']]
         expected = pd.DataFrame(data=expected_data, columns=actual.columns)
+        logger.info(str(actual))
         pd.testing.assert_frame_equal(actual, expected)
