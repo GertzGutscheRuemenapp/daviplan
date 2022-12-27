@@ -1,4 +1,4 @@
-from abc import abstractstaticmethod
+from abc import abstractstaticmethod, abstractmethod
 from io import StringIO
 from distutils.util import strtobool
 from typing import Dict
@@ -85,19 +85,18 @@ class ExcelTemplateMixin(RunProcessMixin):
                                       drop_constraints=drop_constraints,
                                       **params)
 
+    @abstractstaticmethod
     def get_read_excel_params(self, request) -> Dict:
-        params = dict()
-        return params
+        """Read excel-params to a dict"""
 
     @abstractstaticmethod
     def process_excelfile(logger,
                           model,
                           drop_constraints=False,
                           **params):
-        # read excelfile
-        df = pd.DataFrame()
-        # write_df
-        write_template_df(df, model, logger, drop_constraints=drop_constraints)
+        """Process the Excelfile"""
+        # read excelfile -> df
+        # write_template_df(df, model, logger, drop_constraints=drop_constraints)
         # postprocess (optional)
 
 
