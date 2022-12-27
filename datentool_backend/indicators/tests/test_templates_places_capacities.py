@@ -1,6 +1,7 @@
 import os
 from io import BytesIO
 import warnings
+from unittest import skipIf
 
 import pandas as pd
 from openpyxl.reader.excel import load_workbook
@@ -9,14 +10,19 @@ from django.urls import reverse
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
+from datentool_backend.utils.test_utils import no_connection
+from datentool_backend.utils.bkg_geocoder import BASE_URL
+from datentool_backend.site.models import SiteSetting
+from datentool_backend.utils.crypto import encrypt
+
 from datentool_backend.infrastructure.factories import (InfrastructureFactory,
                                                         ServiceFactory,
                                                         )
 from datentool_backend.places.factories import (Place,
-                                                        CapacityFactory,
-                                                        PlaceFieldFactory,
-                                                        PlaceFactory,
-                                                        )
+                                                CapacityFactory,
+                                                PlaceFieldFactory,
+                                                PlaceFactory,
+                                                )
 from datentool_backend.area.models import FieldTypes
 from datentool_backend.area.factories import FClassFactory, FieldTypeFactory
 
@@ -30,6 +36,12 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         super().setUpTestData()
         cls.profile.can_edit_basedata = True
         cls.profile.save()
+
+        site_settings = SiteSetting.load()
+        bkg_key = os.environ.get('BKG_KEY', 'aaa-bbb-ccc')
+        site_settings.bkg_password = encrypt(bkg_key)
+        site_settings.save()
+
         cls.infra = InfrastructureFactory(id=1)
         cls.service1 = ServiceFactory(name='Schulen',
                                       has_capacity=False,
@@ -196,3 +208,47 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
                     col = f'Bietet Leistung {service.name} an'
                 value = place_row.loc[col]
                 self.assertAlmostEqual(capacity.capacity, value)
+
+
+    @skipIf(no_connection(BASE_URL), 'BKG Geocoding services not available')
+    def test_geocode_places(self):
+        # delete all existing places
+        Place.objects.all().delete()
+
+        # upload excel-file
+        file_name_places = 'Standorte_und_Kapazitäten_ohne_Koordinaten.xlsx'
+        file_path_places = os.path.join(os.path.dirname(__file__),
+                                        self.testdata_folder,
+                                        file_name_places)
+        file_content = open(file_path_places, 'rb')
+        data = {
+            'excel_file': file_content,
+            'infrastructure': self.infra.pk,
+        }
+
+        url = reverse('places-upload-template')
+        res = self.client.post(url, data,
+                               extra=dict(format='multipart/form-data'))
+
+
+        self.assert_http_202_accepted(res, msg=res.content)
+
+        # get the values and unpivot the data
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
+            df = pd.read_excel(file_path_places, sheet_name='Standorte und Kapazitäten',
+                               skiprows=[1]).set_index('place_id')
+
+        places = Place.objects.filter(infrastructure=self.infra).order_by('id')
+        place_names = places.values_list('name', flat=True)
+        # only Place1 and Place3 can be geocoded
+        self.assertQuerysetEqual(place_names, ['Place1', 'Place3'])
+        # the other rows should have been deleted/skipped, because the geocoding failed
+
+        df_places_with_valid_adresses = df.iloc[[0, 2]]
+
+        # check the geocoded adresses
+        for place_id, place_row in df_places_with_valid_adresses.iterrows():
+            place = Place.objects.get(infrastructure=self.infra, name=place_row['Name'])
+            coords = place.geom.transform(4326, clone=True).coords
+            self.assertAlmostEqual(coords, (10.567441041, 54.0114675))
