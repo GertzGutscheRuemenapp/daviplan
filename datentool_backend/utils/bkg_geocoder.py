@@ -5,7 +5,8 @@ from html.parser import HTMLParser
 from json.decoder import JSONDecodeError
 
 # default url to the BKG geocoding service, key has to be replaced
-URL = 'https://sg.geodatenzentrum.de/gdz_geokodierung_bund__{key}'
+BASE_URL = 'https://sg.geodatenzentrum.de'
+URL = BASE_URL + '/gdz_geokodierung_bund__{key}'
 
 # fields added to the input layer containing the properties of the results
 prefix = 'bkg'

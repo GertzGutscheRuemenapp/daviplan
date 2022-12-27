@@ -14,6 +14,6 @@ class SingletonModel(models.Model):
         pass
 
     @classmethod
-    def load(cls):
+    def load(cls) -> 'SingletonModel':
         obj, created = cls.objects.get_or_create(pk=1)
         return obj
