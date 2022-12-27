@@ -250,5 +250,6 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         # check the geocoded adresses
         for place_id, place_row in df_places_with_valid_adresses.iterrows():
             place = Place.objects.get(infrastructure=self.infra, name=place_row['Name'])
-            coords = place.geom.transform(4326, clone=True).coords
-            self.assertAlmostEqual(coords, (10.567441041, 54.0114675))
+            lon, lat = place.geom.transform(4326, clone=True).coords
+            self.assertAlmostEqual(lon, 10.567441041)
+            self.assertAlmostEqual(lat, 54.0114675)
