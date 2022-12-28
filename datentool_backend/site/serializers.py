@@ -11,7 +11,7 @@ from datentool_backend.utils.crypto import encrypt
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
 
-from datentool_backend.modes.models import Mode, ModeVariant
+from datentool_backend.modes.models import Mode, ModeVariant, ModeVariantStatistic
 from datentool_backend.site.models import Year
 from datentool_backend.demand.models import DemandRateSet
 from datentool_backend.population.models import Prognosis
@@ -211,6 +211,18 @@ class MatrixStatisticsSerializer(serializers.Serializer):
             return MatrixCellPlace.objects.distinct('cell_id').count()
 
     def get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
+        ret = {}
+        for variant in ModeVariant.objects.all():
+            cnt = variant.get_n_rels()
+            if created:
+                cnt = MatrixCellPlace.objects.filter(variant=variant).count()
+                variant_statistic.n_rels_place_cell = cnt
+                variant_statistic.save()
+            if cnt:
+                ret[variant.pk] = cnt
+        return ret
+
+    def _get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
             qs = MatrixCellPlace.objects\
                 .values('variant')\
                 .annotate(n_relations=Count('variant'))
@@ -223,6 +235,12 @@ class MatrixStatisticsSerializer(serializers.Serializer):
                 for var in qs}
 
     def get_n_rels_place_stop_modevariant(self, obj) -> Dict[int, int]:
+            qs = ModeVariantStatistic.objects\
+                .values('variant__id', 'n_rels_place_stop')
+            return {var['variant__id']: var['n_rels_place_stop']
+                    for var in qs}
+
+    def _get_n_rels_place_stop_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixPlaceStop.objects\
             .values('stop__variant')\
             .annotate(n_relations=Count('*'))
@@ -230,6 +248,12 @@ class MatrixStatisticsSerializer(serializers.Serializer):
                 for var in qs}
 
     def get_n_rels_stop_cell_modevariant(self, obj) -> Dict[int, int]:
+            qs = ModeVariantStatistic.objects\
+                .values('variant__id', 'n_rels_stop_cell')
+            return {var['variant__id']: var['n_rels_stop_cell']
+                    for var in qs}
+
+    def _get_n_rels_stop_cell_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixCellStop.objects\
             .values('stop__variant')\
             .annotate(n_relations=Count('*'))
@@ -237,6 +261,12 @@ class MatrixStatisticsSerializer(serializers.Serializer):
                 for var in qs}
 
     def get_n_rels_stop_stop_modevariant(self, obj) -> Dict[int, int]:
+            qs = ModeVariantStatistic.objects\
+                .values('variant__id', 'n_rels_stop_stop')
+            return {var['variant__id']: var['n_rels_stop_stop']
+                    for var in qs}
+
+    def _get_n_rels_stop_stop_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixStopStop.objects\
             .values('from_stop__variant')\
             .annotate(n_relations=Count('*'))

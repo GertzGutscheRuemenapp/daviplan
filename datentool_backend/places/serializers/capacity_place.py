@@ -151,6 +151,8 @@ class PlaceSerializer(serializers.ModelSerializer):
                     continue
                 logger.info(f'Routing für Modus {repr(variant)}: {n_inserted:n} Relationen gefunden')
                 MatrixCellPlaceRouter.save_df(df, MatrixCellPlace, False)
+                variant.n_rels_place_cell += n_inserted
+                variant.save()
                 logger.info(f'{n_inserted:n} {model_name}-Einträge geschrieben')
 
             except (ConnectionError, RoutingError):
@@ -160,10 +162,13 @@ class PlaceSerializer(serializers.ModelSerializer):
 
     def delete_existing_martixentries_for_place(self, instance: Place):
         # delete existing entries for the place in the CellPlace and PlaceStop-Matrix
-        qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
-        delete_chunks(qs_to_delete, logger)
-        qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
-        delete_chunks(qs_to_delete, logger)
+        for variant in ModeVariant.objects.all():
+            qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
+            if qs_to_delete.exists():
+                delete_chunks(qs_to_delete, logger, counter=variant.n_rels_place_cell)
+            qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
+            if qs_to_delete.exists():
+                delete_chunks(qs_to_delete, logger, counter=variant.n_rels_place_stop)
 
     def update(self, instance: Place, validated_data: dict) -> Place:
         geom = validated_data.get('geom')

@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 
 def delete_chunks(qs: QuerySet,
                   logger: logging.Logger,
+                  counter=None,
                   stepsize: int = 100000):
     """delete entries from queryset in chunks using raw-delete sql"""
     model = qs.model
@@ -19,4 +20,6 @@ def delete_chunks(qs: QuerySet,
         chunk = ids[i:i + stepsize]
         qs_chunk = model.objects.filter(id__in=chunk)
         n_deleted = qs_chunk._raw_delete(using=qs_chunk.db)
+        counter -= n_deleted
+        counter._parent.save()
         logger.info(f'{i + n_deleted:n}/{n_rows:n} {model_name}-Einträgen gelöscht')

@@ -125,6 +125,7 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                                        if m != self.mode]
                     network.save(modes2create=modes2create)
                 self.network = network
+
         super().save(*args, **kwargs)
 
     def delete(self, **kwargs):
@@ -138,6 +139,27 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                 new_default.is_default = True
                 new_default.save()
         return super().delete(**kwargs)
+
+    def get_n_rels(self, matname: str):
+        """get the number of relations for the specified matrix"""
+        rel = f'n_rels_{matname}'
+        variant_statistic, created = ModeVariantStatistic.objects\
+            .get_or_create(variant=variant)
+        cnt = getattr(variant_statistic, rel)
+        # if statistic does not exist yet, calculate it from the matrix
+        if created:
+            cnt=MatrixCellPlace.objects.filter(variant=variant).count()
+            setattr(variant_statistic, rel, cnt)
+            variant_statistic.save()
+        return cnt
+
+
+class ModeVariantStatistic(models.Model):
+    variant = models.OneToOneField(ModeVariant, on_delete=models.CASCADE)
+    n_rels_place_cell = models.IntegerField(null=True)
+    n_rels_place_stop = models.IntegerField(null=True)
+    n_rels_stop_cell = models.IntegerField(null=True)
+    n_rels_stop_stop = models.IntegerField(null=True)
 
 
 class CutOffTime(models.Model):
