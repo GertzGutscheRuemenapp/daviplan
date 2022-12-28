@@ -12,7 +12,7 @@ factory_boy
 coverage
 django-test-plus
 djangorestframework-gis
-pandas>=1.4
+pandas>=1.5
 xlsxwriter
 sqlalchemy
 django-vectortiles
