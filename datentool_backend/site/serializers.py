@@ -211,13 +211,12 @@ class MatrixStatisticsSerializer(serializers.Serializer):
             return MatrixCellPlace.objects.distinct('cell_id').count()
 
     def get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
+        self._get_n_rels(obj, matname='place_cell')
+
+    def _get_n_rels(self, obj, matname: str) -> Dict[int, int]:
         ret = {}
         for variant in ModeVariant.objects.all():
-            cnt = variant.get_n_rels()
-            if created:
-                cnt = MatrixCellPlace.objects.filter(variant=variant).count()
-                variant_statistic.n_rels_place_cell = cnt
-                variant_statistic.save()
+            cnt = variant.get_n_rels(matname)
             if cnt:
                 ret[variant.pk] = cnt
         return ret
