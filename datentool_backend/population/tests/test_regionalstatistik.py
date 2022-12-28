@@ -45,13 +45,6 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         cls.profile.save()
 
         settings.ENCRYPT_KEY = Fernet.generate_key().decode('utf-8')
-        site_settings: SiteSetting = SiteSetting.load()
-        site_settings.regionalstatistik_user = os.environ.get('REGIONALSTATISTIK_USER',
-                                                              'Testuser')
-
-        pwd = os.environ.get('REGIONALSTATISTIK_PWD', 'Testpasswd')
-        site_settings.regionalstatistik_password = encrypt(pwd)
-        site_settings.save()
 
         cls.years = [YearFactory(year=y) for y in range(2012, 2015)]
 
@@ -176,7 +169,7 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         res = self.post('populations-pull-regionalstatistik',
                         data={'drop_constraints': False, },
                         extra={'format': 'json'})
-
+        self.assert_http_202_accepted(res)
         popentries = pd.DataFrame(PopulationEntry.objects.values())
 
         actual = popentries.groupby(['area_id', 'population_id']).sum()['value']
@@ -188,6 +181,24 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
             'No Connection to Regionalstatistik API available')
     def test_unmocked(self):
         """Test the real Regionalstatistik-Api, if a connection is available"""
+
+        # check that without password login fails
+        site_settings: SiteSetting = SiteSetting.load()
+        site_settings.regionalstatistik_user = os.environ.get('REGIONALSTATISTIK_USER',
+                                                              'Testuser')
+        site_settings.save()
+        res = self.post('populations-pull-regionalstatistik',
+                        data={'drop_constraints': False, },
+                        extra={'format': 'json'})
+
+        msg = '''Ein Fehler ist aufgetreten. (Bitte prüfen und korrigieren Sie Ihren Nutzernamen \nbzw. das Passwort.)'''
+        self.assert_http_406_not_acceptable(res, msg=msg)
+
+        # set the password and try again
+        pwd = os.environ.get('REGIONALSTATISTIK_PWD', 'Testpasswd')
+        site_settings.regionalstatistik_password = encrypt(pwd)
+        site_settings.save()
+
         self.pull_and_compare_population()
         popstatentries = self.pull_and_compare_popstatistics()
         self.compare_popstatistics_for_arealevel(popstatentries)

@@ -734,7 +734,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                              name='capacity')
 
         actual = pd.DataFrame(res.data).set_index('from_year').capacity
-        pd.testing.assert_series_equal(actual, expected)
+        pd.testing.assert_series_equal(actual, expected, check_like=True)
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
