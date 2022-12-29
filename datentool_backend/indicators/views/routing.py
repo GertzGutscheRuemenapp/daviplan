@@ -138,6 +138,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         model = MatrixStopStop
         model_name = model._meta.object_name
         n_rows = len(df)
+        model.add_n_rels_for_variant(variant_id, n_rows)
         logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
         stepsize = 100000
         for i in np.arange(0, n_rows, stepsize, dtype=np.int64):

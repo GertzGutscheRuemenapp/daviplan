@@ -58,18 +58,15 @@ class TravelTimeRouterMixin:
              air_distance_routing: bool=False,
              ):
         variant_ids = variant_ids or ModeVariant.objects.values_list('id', flat=True)
-        variants = ModeVariant.objects.filter(id__in=variant_ids)
+        variants = ModeVariant.objects.filter(id__in=variant_ids).order_by('mode')
         dataframes = []
         try:
-            queryset = self.get_filtered_queryset(variant_ids=variant_ids,
-                                                  access_variant_id=access_variant_id,
-                                                  places=places)
             for variant in variants:
+                dataframes_variant = []
                 logger.info('Berechne Reisezeiten für Modus '
                             f'{Mode(variant.mode).name}')
                 max_distance_mode = float(max_distance or
                                           MODE_MAX_DISTANCE[variant.mode])
-
                 if variant.mode == Mode.TRANSIT:
                     #  access variant is WALK, if no other mode is requested
                     if access_variant_id:
@@ -92,6 +89,7 @@ class TravelTimeRouterMixin:
                         max_direct_walktime,
                     )
                     dataframes.append(df)
+                    dataframes_variant.append(df)
                 else:
 
                     if air_distance_routing:
@@ -102,6 +100,7 @@ class TravelTimeRouterMixin:
                             logger=logger,
                         )
                         dataframes.append(df)
+                        dataframes_variant.append(df)
                     else:
                         if not places:
                             places = Place.objects.values_list('id', flat=True)
@@ -114,18 +113,23 @@ class TravelTimeRouterMixin:
                                 logger=logger,
                                 places=place_part)
                             dataframes.append(df)
+                            dataframes_variant.append(df)
                             logger.info(f'{min((i+chunk_size), len(places)):n}/'
                                         f'{len(places):n} Orte berechnet')
+
+                if dataframes_variant:
+                    df = pd.concat(dataframes_variant)
+                    # null values in access_type: use nullable integer field
+                    if 'access_variant_id' in df.columns:
+                        df = df.astype(dtype={'access_variant_id': 'Int64' ,})
+                    queryset = self.get_filtered_queryset(variant_ids=[variant.pk],
+                                                          access_variant_id=access_variant_id,
+                                                          places=places)
+                    self.write_results_to_database(logger, queryset, df, drop_constraints)
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'
                 raise RoutingError(msg)
-            else:
-                df = pd.concat(dataframes)
-                # null values in access_type: use nullable integer field
-                if 'access_variant_id' in df.columns:
-                    df = df.astype(dtype={'access_variant_id': 'Int64' ,})
-                self.write_results_to_database(logger, queryset, df, drop_constraints)
 
         except RoutingError as err:
             msg = str(err)
@@ -139,7 +143,8 @@ class TravelTimeRouterMixin:
                                   queryset: QuerySet,
                                   df: pd.DataFrame,
                                   drop_constraints: bool,
-                                  stepsize: int = 100000):
+                                  stepsize: int = settings.STEPSIZE,
+                                  ignore_columns: List[str]=[]):
         """
         Write results of Dataframe to database in chunks
         """
@@ -153,6 +158,10 @@ class TravelTimeRouterMixin:
         logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
         for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
             chunk = df.iloc[i:i + stepsize]
+            model.add_n_rels(chunk)
+            # ignore columns that should not be saved to database
+            for ignore_column in ignore_columns:
+                del(chunk[ignore_column])
             self.save_df(chunk,
                          model,
                          drop_constraints=drop_constraints)
@@ -182,11 +191,13 @@ class TravelTimeRouterMixin:
             logger=logger,
         )
         df_ps.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
+        df_ps['transit_variant_id'] = variant.pk
         qs = matrix_place_stop.get_filtered_queryset(
             variant_ids=[variant.pk],
             access_variant_id=access_variant.pk,
             places=places)
-        self.write_results_to_database(logger, qs, df_ps, drop_constraints)
+        self.write_results_to_database(logger, qs, df_ps, drop_constraints,
+                                       ignore_columns=['transit_variant_id'])
 
         # calculate time from stop to cell
         matrix_cell_stop = MatrixCellStopRouter()
@@ -207,12 +218,14 @@ class TravelTimeRouterMixin:
             dataframes_cs.append(df_cs)
 
         df_cs = pd.concat(dataframes_cs)
+        df_cs['transit_variant_id'] = variant.pk
 
         qs = matrix_cell_stop.get_filtered_queryset(
             variant_ids=[variant.pk],
             access_variant_id=access_variant.pk,
         )
-        self.write_results_to_database(logger, qs, df_cs, drop_constraints)
+        self.write_results_to_database(logger, qs, df_cs, drop_constraints,
+                                       ignore_columns=['transit_variant_id'])
 
         df = self.calculate_transit_traveltime(
             access_variant=access_variant,
@@ -618,6 +631,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                     logger=logger,
                 )
                 df.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
+                df['transit_variant_id'] = transit_variant
                 dataframes.append(df)
             else:
                 if not places:
@@ -632,6 +646,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                         logger=logger,
                         places=place_part)
                     df.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
+                    df['transit_variant_id'] = transit_variant.pk
                     dataframes.append(df)
                     logger.info(f'{min((i+chunk_size), len(places)):n}/'
                                 f'{len(places):n} Orte berechnet')
@@ -641,7 +656,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                 raise RoutingError(msg)
             else:
                 df = pd.concat(dataframes)
-                self.write_results_to_database(logger, queryset, df, drop_constraints)
+                self.write_results_to_database(logger, queryset, df, drop_constraints,
+                                               ignore_columns=['transit_variant_id'])
 
         except RoutingError as err:
             msg = str(err)

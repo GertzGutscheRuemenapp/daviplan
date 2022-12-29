@@ -35,3 +35,6 @@ OSRM_ROUTING = {
         'routing_port': os.environ.get('MODE_WALK_ROUTING_PORT', 5006),
     },
 }
+
+
+STEPSIZE = 20

@@ -12,6 +12,7 @@ from datentool_backend.population.models import RasterCell
 from datentool_backend.modes.models import (ModeVariant,
                                             Mode,
                                             DEFAULT_MAX_DIRECT_WALKTIME,
+                                            MODE_MAX_DISTANCE,
                                             get_default_access_variant)
 from datentool_backend.indicators.models import MatrixCellPlace, MatrixPlaceStop
 from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
@@ -139,7 +140,7 @@ class PlaceSerializer(serializers.ModelSerializer):
         self.delete_existing_martixentries_for_place(instance)
 
         # calcauats
-        for variant in ModeVariant.objects.all():
+        for variant in ModeVariant.objects.order_by('mode'):
             try:
                 if variant.mode == Mode.TRANSIT:
                     df = self.get_transit_df(variant, access_variant, places)
@@ -150,9 +151,8 @@ class PlaceSerializer(serializers.ModelSerializer):
                 if not n_inserted:
                     continue
                 logger.info(f'Routing für Modus {repr(variant)}: {n_inserted:n} Relationen gefunden')
+                MatrixCellPlace.add_n_rels(df)
                 MatrixCellPlaceRouter.save_df(df, MatrixCellPlace, False)
-                variant.n_rels_place_cell += n_inserted
-                variant.save()
                 logger.info(f'{n_inserted:n} {model_name}-Einträge geschrieben')
 
             except (ConnectionError, RoutingError):
@@ -162,13 +162,12 @@ class PlaceSerializer(serializers.ModelSerializer):
 
     def delete_existing_martixentries_for_place(self, instance: Place):
         # delete existing entries for the place in the CellPlace and PlaceStop-Matrix
-        for variant in ModeVariant.objects.all():
-            qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
-            if qs_to_delete.exists():
-                delete_chunks(qs_to_delete, logger, counter=variant.n_rels_place_cell)
-            qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
-            if qs_to_delete.exists():
-                delete_chunks(qs_to_delete, logger, counter=variant.n_rels_place_stop)
+        qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
+        if qs_to_delete.exists():
+            delete_chunks(qs_to_delete, logger)
+        qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
+        if qs_to_delete.exists():
+            delete_chunks(qs_to_delete, logger)
 
     def update(self, instance: Place, validated_data: dict) -> Place:
         geom = validated_data.get('geom')
@@ -200,18 +199,21 @@ class PlaceSerializer(serializers.ModelSerializer):
             Stop.objects.filter(variant=variant), geom='geom')
         if not stops:
             return pd.DataFrame()
-
+        max_access_distance = float(MODE_MAX_DISTANCE[variant.mode])
         # calculate access time from the new place to the stops
         df_ps = MatrixPlaceStopRouter.route(
             variant=access_variant,
             sources=places,
             destinations=stops,
             logger=logger,
+            max_distance=max_access_distance,
             id_columns=MatrixPlaceStopRouter.columns)
 
         df_ps.rename(
             columns={'variant_id': 'access_variant_id', },
             inplace=True)
+        MatrixPlaceStop.add_n_rels_for_variant(variant.pk, len(df_ps))
+
         # add the access times to the database
         MatrixPlaceStopRouter.save_df(df_ps,
                                       MatrixPlaceStop,

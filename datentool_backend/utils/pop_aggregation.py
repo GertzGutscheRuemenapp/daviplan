@@ -1,11 +1,12 @@
+from typing import List
+
+
 import pandas as pd
 import numpy as np
-from io import StringIO
-from django.db import connection
+from django.db import connection, transaction
 from django.db.utils import ProgrammingError
-from typing import List
-from django.db import transaction
 from django.db.models import Max, Sum, F
+from django.conf import settings
 
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.population.models import (
@@ -112,7 +113,7 @@ def disaggregate_population(population: Population,
     model_name = model._meta.object_name
     n_rows = len(df_cellagegender)
     logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
-    stepsize = 100000
+    stepsize = settings.STEPSIZE
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = df_cellagegender.iloc[i:i + stepsize]
         n_inserted = len(chunk)
@@ -205,7 +206,7 @@ def intersect_areas_with_raster(
     model_name = model._meta.object_name
     n_rows = len(df2)
     logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
-    stepsize = 100000
+    stepsize = settings.STEPSIZE
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = df2.iloc[i:i + stepsize]
         n_inserted = len(chunk)
@@ -290,7 +291,7 @@ def aggregate_population(area_level: AreaLevel, population: Population,
     model_name = model._meta.object_name
     n_rows = len(df_areaagegender)
     logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
-    stepsize = 100000
+    stepsize = settings.STEPSIZE
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = df_areaagegender.iloc[i:i + stepsize]
         n_inserted = len(chunk)
