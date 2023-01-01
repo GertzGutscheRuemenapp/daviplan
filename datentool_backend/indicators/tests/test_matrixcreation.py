@@ -7,6 +7,7 @@ logger = logging.getLogger(name='test')
 
 import pandas as pd
 from test_plus import APITestCase
+from django.conf import settings
 from django.urls import reverse
 from django.contrib.gis.geos import Point
 
@@ -145,6 +146,24 @@ class TestMatrixCreation(CreateTestdataMixin,
         content = self.calc_cell_place_matrix(variants=[car.pk])
         logger.debug(content)
         logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
+
+    @skipIf(not OSRMRouter(Mode.CAR).service_is_up, 'osrm docker not running')
+    def test_create_routed_car_matrix_with_multileveldijkstra(self):
+        """Test to create an car matrix from routingmultilivel dijkstra"""
+        network = self.network
+        car = ModeVariantFactory(mode=Mode.CAR, network=network)
+
+        original_algorithm = settings.ROUTING_ALGORITHM
+
+        settings.ROUTING_ALGORITHM = 'mld'
+        try:
+            content = self.calc_cell_place_matrix(variants=[car.pk])
+        finally:
+            settings.ROUTING_ALGORITHM = original_algorithm
+        logger.debug(content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
+
+
 
     @skipIf(not OSRMRouter(Mode.WALK).service_is_up or
             not OSRMRouter(Mode.BIKE).service_is_up or
