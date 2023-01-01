@@ -34,3 +34,4 @@ django_q
 matplotlib
 pyproj
 protobuf==3.20.*
+polyline

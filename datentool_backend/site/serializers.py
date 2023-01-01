@@ -206,10 +206,10 @@ class MatrixStatisticsSerializer(serializers.Serializer):
                   )
 
     def get_n_places(self, obj) -> int:
-            return MatrixCellPlace.objects.distinct('place_id').count()
+        return MatrixCellPlace.objects.distinct('place_id').count()
 
     def get_n_cells(self, obj) -> int:
-            return MatrixCellPlace.objects.distinct('cell_id').count()
+        return MatrixCellPlace.objects.distinct('cell_id').count()
 
     def get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
         return self._get_n_rels(obj, matrix=MatrixCellPlace)
