@@ -383,3 +383,5 @@ ANGULAR_RESOURCES = load_stats_json() or {}
 LOCALE = 'de_DE'
 
 STEPSIZE = 100000
+
+ROUTING_ALGORITHM = 'mld'

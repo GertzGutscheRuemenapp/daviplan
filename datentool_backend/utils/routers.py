@@ -7,6 +7,7 @@ import polyline
 class OSRMRouter():
     def __init__(self, mode):
         self.mode = mode
+        self.algorithm = settings.ROUTING_ALGORITHM
 
     @property
     def settings(self):
@@ -41,7 +42,7 @@ class OSRMRouter():
         return requests.post(f'{self.service_url}/{cmd}/{alias}', **kwargs)
 
     def run(self):
-        res = self._post_service_cmd('run')
+        res = self._post_service_cmd('run', data={'algorithm': self.algorithm, })
         return res.status_code == 200
 
     def stop(self):
@@ -52,9 +53,10 @@ class OSRMRouter():
         res = self._post_service_cmd('remove')
         return res.status_code == 200
 
-    def build(self, pbf_path):
+    def build(self, pbf_path: str):
         files = {'file': open(pbf_path, 'rb')}
-        res = self._post_service_cmd('build', files=files)
+        data = {'algorithm': self.algorithm}
+        res = self._post_service_cmd('build', files=files, data=data)
         return res.status_code == 200
 
     def matrix_calculation(self, sources, destinations):
