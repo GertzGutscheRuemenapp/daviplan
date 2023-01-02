@@ -180,12 +180,21 @@ class PlaceSerializer(serializers.ModelSerializer):
                    variant: ModeVariant,
                    places: List[Place],
                    cells: List[RasterCell]) -> pd.DataFrame:
-        df = MatrixCellPlaceRouter.route(
-            variant,
-            sources=places,
-            destinations=cells,
-            logger=logger,
-            id_columns=MatrixCellPlaceRouter.columns)
+        chunk_size = 10000
+        max_distance = MODE_MAX_DISTANCE[variant.mode]
+        cell_ids = cells.values_list('id')
+        dataframes = []
+        for i in range(0, len(cells), chunk_size):
+            dest_part = cells.filter(
+                id__in=cell_ids[i:i + chunk_size])
+            df = MatrixCellPlaceRouter.route(variant,
+                                             sources=places,
+                                             destinations=dest_part,
+                                             logger=logger,
+                                             max_distance=max_distance,
+                                             id_columns=MatrixCellPlaceRouter.columns)
+            dataframes.append(df)
+        df = pd.concat(dataframes)
         return df
 
     def get_transit_df(self,
@@ -201,13 +210,22 @@ class PlaceSerializer(serializers.ModelSerializer):
             return pd.DataFrame()
         max_access_distance = float(MODE_MAX_DISTANCE[variant.mode])
         # calculate access time from the new place to the stops
-        df_ps = MatrixPlaceStopRouter.route(
-            variant=access_variant,
-            sources=places,
-            destinations=stops,
-            logger=logger,
-            max_distance=max_access_distance,
-            id_columns=MatrixPlaceStopRouter.columns)
+        chunk_size = 10000
+        dataframes = []
+        stops_ids = stops.values_list('id')
+        for i in range(0, len(stops), chunk_size):
+            dest_part = stops.filter(
+                id__in=stops_ids[i:i + chunk_size])
+            df = MatrixPlaceStopRouter.route(
+                variant=access_variant,
+                sources=places,
+                destinations=dest_part,
+                logger=logger,
+                max_distance=max_access_distance,
+                id_columns=MatrixPlaceStopRouter.columns)
+
+            dataframes.append(df)
+        df_ps = pd.concat(dataframes)
 
         df_ps.rename(
             columns={'variant_id': 'access_variant_id', },
