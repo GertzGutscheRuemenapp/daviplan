@@ -42,7 +42,8 @@ class OSRMRouter():
         return requests.post(f'{self.service_url}/{cmd}/{alias}', **kwargs)
 
     def run(self):
-        res = self._post_service_cmd('run', data={'algorithm': self.algorithm, })
+        res = self._post_service_cmd('run', data={'algorithm': 'ch', })
+        res = self._post_service_cmd('run', data={'algorithm': 'mld', })
         return res.status_code == 200
 
     def stop(self):
@@ -55,8 +56,7 @@ class OSRMRouter():
 
     def build(self, pbf_path: str):
         files = {'file': open(pbf_path, 'rb')}
-        data = {'algorithm': self.algorithm}
-        res = self._post_service_cmd('build', files=files, data=data)
+        res = self._post_service_cmd('build', files=files)
         return res.status_code == 200
 
     def matrix_calculation(self, sources, destinations):
