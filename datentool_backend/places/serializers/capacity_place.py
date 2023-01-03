@@ -194,7 +194,11 @@ class PlaceSerializer(serializers.ModelSerializer):
                                              max_distance=max_distance,
                                              id_columns=MatrixCellPlaceRouter.columns)
             dataframes.append(df)
-        df = pd.concat(dataframes)
+        if dataframes:
+            df = pd.concat(dataframes)
+        else:
+            df = pd.DataFrame(columns=['place_id', 'cell_id', 'minutes',
+                                       'access_variant_id', 'variant_id'])
         return df
 
     def get_transit_df(self,
