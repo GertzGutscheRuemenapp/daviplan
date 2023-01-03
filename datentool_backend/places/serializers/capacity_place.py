@@ -12,6 +12,7 @@ from datentool_backend.population.models import RasterCell
 from datentool_backend.modes.models import (ModeVariant,
                                             Mode,
                                             DEFAULT_MAX_DIRECT_WALKTIME,
+                                            MODE_MAX_DISTANCE,
                                             get_default_access_variant)
 from datentool_backend.indicators.models import MatrixCellPlace, MatrixPlaceStop
 from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
@@ -139,7 +140,7 @@ class PlaceSerializer(serializers.ModelSerializer):
         self.delete_existing_martixentries_for_place(instance)
 
         # calcauats
-        for variant in ModeVariant.objects.all():
+        for variant in ModeVariant.objects.order_by('mode'):
             try:
                 if variant.mode == Mode.TRANSIT:
                     df = self.get_transit_df(variant, access_variant, places)
@@ -150,6 +151,7 @@ class PlaceSerializer(serializers.ModelSerializer):
                 if not n_inserted:
                     continue
                 logger.info(f'Routing für Modus {repr(variant)}: {n_inserted:n} Relationen gefunden')
+                MatrixCellPlace.add_n_rels(df)
                 MatrixCellPlaceRouter.save_df(df, MatrixCellPlace, False)
                 logger.info(f'{n_inserted:n} {model_name}-Einträge geschrieben')
 
@@ -161,9 +163,11 @@ class PlaceSerializer(serializers.ModelSerializer):
     def delete_existing_martixentries_for_place(self, instance: Place):
         # delete existing entries for the place in the CellPlace and PlaceStop-Matrix
         qs_to_delete = MatrixCellPlace.objects.filter(place=instance)
-        delete_chunks(qs_to_delete, logger)
+        if qs_to_delete.exists():
+            delete_chunks(qs_to_delete, logger)
         qs_to_delete = MatrixPlaceStop.objects.filter(place=instance)
-        delete_chunks(qs_to_delete, logger)
+        if qs_to_delete.exists():
+            delete_chunks(qs_to_delete, logger)
 
     def update(self, instance: Place, validated_data: dict) -> Place:
         geom = validated_data.get('geom')
@@ -176,12 +180,25 @@ class PlaceSerializer(serializers.ModelSerializer):
                    variant: ModeVariant,
                    places: List[Place],
                    cells: List[RasterCell]) -> pd.DataFrame:
-        df = MatrixCellPlaceRouter.route(
-            variant,
-            sources=places,
-            destinations=cells,
-            logger=logger,
-            id_columns=MatrixCellPlaceRouter.columns)
+        chunk_size = 10000
+        max_distance = MODE_MAX_DISTANCE[variant.mode]
+        cell_ids = cells.values_list('id')
+        dataframes = []
+        for i in range(0, len(cells), chunk_size):
+            dest_part = cells.filter(
+                id__in=cell_ids[i:i + chunk_size])
+            df = MatrixCellPlaceRouter.route(variant,
+                                             sources=places,
+                                             destinations=dest_part,
+                                             logger=logger,
+                                             max_distance=max_distance,
+                                             id_columns=MatrixCellPlaceRouter.columns)
+            dataframes.append(df)
+        if dataframes:
+            df = pd.concat(dataframes)
+        else:
+            df = pd.DataFrame(columns=['place_id', 'cell_id', 'minutes',
+                                       'access_variant_id', 'variant_id'])
         return df
 
     def get_transit_df(self,
@@ -195,18 +212,30 @@ class PlaceSerializer(serializers.ModelSerializer):
             Stop.objects.filter(variant=variant), geom='geom')
         if not stops:
             return pd.DataFrame()
-
+        max_access_distance = float(MODE_MAX_DISTANCE[variant.mode])
         # calculate access time from the new place to the stops
-        df_ps = MatrixPlaceStopRouter.route(
-            variant=access_variant,
-            sources=places,
-            destinations=stops,
-            logger=logger,
-            id_columns=MatrixPlaceStopRouter.columns)
+        chunk_size = 10000
+        dataframes = []
+        stops_ids = stops.values_list('id')
+        for i in range(0, len(stops), chunk_size):
+            dest_part = stops.filter(
+                id__in=stops_ids[i:i + chunk_size])
+            df = MatrixPlaceStopRouter.route(
+                variant=access_variant,
+                sources=places,
+                destinations=dest_part,
+                logger=logger,
+                max_distance=max_access_distance,
+                id_columns=MatrixPlaceStopRouter.columns)
+
+            dataframes.append(df)
+        df_ps = pd.concat(dataframes)
 
         df_ps.rename(
             columns={'variant_id': 'access_variant_id', },
             inplace=True)
+        MatrixPlaceStop.add_n_rels_for_variant(variant.pk, len(df_ps))
+
         # add the access times to the database
         MatrixPlaceStopRouter.save_df(df_ps,
                                       MatrixPlaceStop,

@@ -11,13 +11,14 @@ from datentool_backend.utils.crypto import encrypt
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
 
-from datentool_backend.modes.models import Mode, ModeVariant
+from datentool_backend.modes.models import Mode, ModeVariant, ModeVariantStatistic
 from datentool_backend.site.models import Year
 from datentool_backend.demand.models import DemandRateSet
 from datentool_backend.population.models import Prognosis
 from datentool_backend.area.models import AreaLevel
 
-from datentool_backend.indicators.models import (MatrixCellPlace,
+from datentool_backend.indicators.models import (MatrixMixin,
+                                                 MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
                                                  MatrixStopStop,
@@ -205,17 +206,21 @@ class MatrixStatisticsSerializer(serializers.Serializer):
                   )
 
     def get_n_places(self, obj) -> int:
-            return MatrixCellPlace.objects.distinct('place_id').count()
+        return MatrixCellPlace.objects.distinct('place_id').count()
 
     def get_n_cells(self, obj) -> int:
-            return MatrixCellPlace.objects.distinct('cell_id').count()
+        return MatrixCellPlace.objects.distinct('cell_id').count()
 
     def get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
-            qs = MatrixCellPlace.objects\
-                .values('variant')\
-                .annotate(n_relations=Count('variant'))
-            return {var['variant']: var['n_relations']
-                    for var in qs}
+        return self._get_n_rels(obj, matrix=MatrixCellPlace)
+
+    def _get_n_rels(self, obj, matrix: MatrixMixin) -> Dict[int, int]:
+        ret = {}
+        for variant in ModeVariant.objects.all():
+            cnt = matrix.get_n_rels(variant)
+            if cnt:
+                ret[variant.pk] = cnt
+        return ret
 
     def get_n_stops(self, obj) -> int:
         qs = Stop.objects.values('variant').annotate(n_stops=Count('id'))
@@ -223,23 +228,10 @@ class MatrixStatisticsSerializer(serializers.Serializer):
                 for var in qs}
 
     def get_n_rels_place_stop_modevariant(self, obj) -> Dict[int, int]:
-        qs = MatrixPlaceStop.objects\
-            .values('stop__variant')\
-            .annotate(n_relations=Count('*'))
-        return {var['stop__variant']: var['n_relations']
-                for var in qs}
+        return self._get_n_rels(obj, matrix=MatrixPlaceStop)
 
     def get_n_rels_stop_cell_modevariant(self, obj) -> Dict[int, int]:
-        qs = MatrixCellStop.objects\
-            .values('stop__variant')\
-            .annotate(n_relations=Count('*'))
-        return {var['stop__variant']: var['n_relations']
-                for var in qs}
+        return self._get_n_rels(obj, matrix=MatrixCellStop)
 
     def get_n_rels_stop_stop_modevariant(self, obj) -> Dict[int, int]:
-        qs = MatrixStopStop.objects\
-            .values('from_stop__variant')\
-            .annotate(n_relations=Count('*'))
-        return {var['from_stop__variant']: var['n_relations']
-                for var in qs}
-
+        return self._get_n_rels(obj, matrix=MatrixStopStop)

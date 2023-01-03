@@ -1,11 +1,13 @@
 import logging
 import numpy as np
+
+from django.conf import settings
 from django.db.models import QuerySet
 
 
 def delete_chunks(qs: QuerySet,
                   logger: logging.Logger,
-                  stepsize: int = 100000):
+                  stepsize: int = settings.STEPSIZE):
     """delete entries from queryset in chunks using raw-delete sql"""
     model = qs.model
     model_name = model._meta.object_name
@@ -14,6 +16,8 @@ def delete_chunks(qs: QuerySet,
     n_rows = ids.shape[0]
     if not n_rows:
         return
+    if hasattr(model, 'remove_n_rels'):
+        model.remove_n_rels(qs)
     logger.info(f'Lösche insgesamt {n_rows:n} {model_name}-Einträge')
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = ids[i:i + stepsize]

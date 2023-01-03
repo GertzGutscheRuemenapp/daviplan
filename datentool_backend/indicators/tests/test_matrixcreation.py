@@ -7,6 +7,7 @@ logger = logging.getLogger(name='test')
 
 import pandas as pd
 from test_plus import APITestCase
+from django.conf import settings
 from django.urls import reverse
 from django.contrib.gis.geos import Point
 
@@ -146,6 +147,24 @@ class TestMatrixCreation(CreateTestdataMixin,
         logger.debug(content)
         logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
 
+    @skipIf(not OSRMRouter(Mode.CAR).service_is_up, 'osrm docker not running')
+    def test_create_routed_car_matrix_with_multileveldijkstra(self):
+        """Test to create an car matrix from routingmultilivel dijkstra"""
+        network = self.network
+        car = ModeVariantFactory(mode=Mode.CAR, network=network)
+
+        original_algorithm = settings.ROUTING_ALGORITHM
+
+        settings.ROUTING_ALGORITHM = 'mld'
+        try:
+            content = self.calc_cell_place_matrix(variants=[car.pk])
+        finally:
+            settings.ROUTING_ALGORITHM = original_algorithm
+        logger.debug(content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
+
+
+
     @skipIf(not OSRMRouter(Mode.WALK).service_is_up or
             not OSRMRouter(Mode.BIKE).service_is_up or
             not OSRMRouter(Mode.CAR).service_is_up,
@@ -169,9 +188,27 @@ class TestMatrixCreation(CreateTestdataMixin,
         walk_rows_before = MatrixCellPlace.objects.filter(variant=walk.pk).count()
         self.assertEqual(walk_rows_before, 40)
         transit1_rows_before = MatrixCellPlace.objects.filter(variant=transit1.pk).count()
-        self.assertEqual(transit1_rows_before, 12)
+        self.assertEqual(transit1_rows_before, 40)
         transit2_rows_before = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
-        self.assertEqual(transit2_rows_before, 12)
+        self.assertEqual(transit2_rows_before, 40)
+
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 5)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 40,
+                              bike.pk: 40,
+                              car.pk: 40,
+                              transit1.pk: 40,
+                              transit2.pk: 40,
+                              })
+        self.assertDictEqual(data['n_rels_place_stop_modevariant'],
+                             {transit1.pk: 3,
+                              transit2.pk: 3,
+                              })
 
         # add new places in a scenario
         scenario = ScenarioFactory()
@@ -194,10 +231,27 @@ class TestMatrixCreation(CreateTestdataMixin,
                                                            place=new_place).count()
         self.assertEqual(bike_to_new_place, 8)
         transit1_rows_after = MatrixCellPlace.objects.filter(variant=transit1.pk).count()
-        self.assertEqual(transit1_rows_after, 20)
+        self.assertEqual(transit1_rows_after, 48)
         transit2_rows_after = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
-        self.assertEqual(transit2_rows_after, 20)
+        self.assertEqual(transit2_rows_after, 48)
 
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 6)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 48,
+                              bike.pk: 48,
+                              car.pk: 48,
+                              transit1.pk: 48,
+                              transit2.pk: 48,
+                              })
+        self.assertDictEqual(data['n_rels_place_stop_modevariant'],
+                             {transit1.pk: 4,
+                              transit2.pk: 4,
+                              })
 
         url = 'places-detail'
         df_before = pd.DataFrame(
@@ -214,13 +268,14 @@ class TestMatrixCreation(CreateTestdataMixin,
         pd.testing.assert_frame_equal(df_before, df_after_patch_name)
 
         # change geometry of existing point
-        geom_before = self.place2.geom.wkt
+        geom_before = self.place2.geom.ewkt
 
         x, y = 1000320, 6500036
         patch_data = {'geom': Point(x=x, y=y, srid=3857).ewkt, }
         res = self.patch(url, pk=self.place2.pk, data=patch_data, extra={'format': 'json'})
+        self.assert_http_200_ok(res)
         self.place2.refresh_from_db()
-        geom_after = self.place2.geom.wkt
+        geom_after = self.place2.geom.ewkt
         # test if geometry changed
         self.assertAlmostEqual(self.place2.geom.x, x)
         self.assertAlmostEqual(self.place2.geom.y, y)
@@ -250,6 +305,42 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.assert_http_204_no_content(res)
         self.assertFalse(MatrixCellPlace.objects.filter(place=new_place_id).exists())
         self.assertFalse(MatrixPlaceStop.objects.filter(place=new_place_id).exists())
+
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 5)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 40,
+                              bike.pk: 40,
+                              car.pk: 40,
+                              transit1.pk: 40,
+                              transit2.pk: 40,
+                              })
+        self.assertDictEqual(data['n_rels_place_stop_modevariant'],
+                             {transit1.pk: 3,
+                              transit2.pk: 3,
+                              })
+
+        # reset the geometry should reduce the number of PlaceStop to 12 again
+        url = 'places-detail'
+        patch_data = {'geom': geom_before}
+        res = self.patch(url, pk=self.place2.pk, data=patch_data, extra={'format': 'json'})
+        self.assert_http_200_ok(res)
+        self.place2.refresh_from_db()
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 40,
+                              bike.pk: 40,
+                              car.pk: 40,
+                              transit1.pk: 40,
+                              transit2.pk: 40,
+                              })
 
     @classmethod
     def build_osrm(cls):

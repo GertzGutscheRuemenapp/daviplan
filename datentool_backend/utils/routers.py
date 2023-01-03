@@ -1,11 +1,13 @@
 import requests
 from django.conf import settings
 from routingpy import OSRM
+import polyline
 
 
 class OSRMRouter():
     def __init__(self, mode):
         self.mode = mode
+        self.algorithm = settings.ROUTING_ALGORITHM
 
     @property
     def settings(self):
@@ -40,7 +42,8 @@ class OSRMRouter():
         return requests.post(f'{self.service_url}/{cmd}/{alias}', **kwargs)
 
     def run(self):
-        res = self._post_service_cmd('run')
+        res = self._post_service_cmd('run', data={'algorithm': 'ch', })
+        res = self._post_service_cmd('run', data={'algorithm': 'mld', })
         return res.status_code == 200
 
     def stop(self):
@@ -51,7 +54,7 @@ class OSRMRouter():
         res = self._post_service_cmd('remove')
         return res.status_code == 200
 
-    def build(self, pbf_path):
+    def build(self, pbf_path: str):
         files = {'file': open(pbf_path, 'rb')}
         res = self._post_service_cmd('build', files=files)
         return res.status_code == 200
@@ -61,13 +64,40 @@ class OSRMRouter():
         sources: list of tuples (lon, lat)
         destinations: list of tuples (lon, lat)
         '''
-        client = OSRM(base_url=self.routing_url, timeout=3600)
+        client = OSRMPolyline(base_url=self.routing_url, timeout=3600)
         coords = sources + destinations
-        #radiuses = [30000 for i in range(len(coords))]
 
         matrix = client.matrix(locations=coords,
-                               # radiuses=radiuses,
-                               sources=range(len(sources)),
-                               destinations=range(len(sources), len(coords)),
+                               sources=list(range(len(sources))),
+                               destinations=list(range(len(sources), len(coords))),
                                profile='driving')
         return matrix
+
+
+class OSRMPolyline(OSRM):
+    def matrix(
+        self,
+        locations,
+        profile="driving",
+        radiuses=None,
+        bearings=None,
+        sources=None,
+        destinations=None,
+        dry_run=None,
+        annotations=("duration", "distance"),
+        **matrix_kwargs,
+    ):
+        """
+        Gets travel distance and time for a matrix of origins and destinations.
+        pass the coordinates as polylines
+        """
+        poly = polyline.encode(locations, geojson=True)
+        coords = f'polyline({poly})'
+
+        params = self.get_matrix_params(
+            locations, profile, radiuses, bearings, sources, destinations, annotations, **matrix_kwargs
+        )
+
+        return self.parse_matrix_json(
+            self.client._request(f"/table/v1/{profile}/{coords}", get_params=params, dry_run=dry_run)
+        )
