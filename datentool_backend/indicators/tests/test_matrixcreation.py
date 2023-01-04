@@ -5,23 +5,27 @@ from typing import List
 import logging
 logger = logging.getLogger(name='test')
 
+import pandas as pd
 from test_plus import APITestCase
+from django.conf import settings
 from django.urls import reverse
 from django.contrib.gis.geos import Point
 
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
+from datentool_backend.places.models import Place
+from datentool_backend.places.factories import ScenarioFactory
 from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
-                                                 Place,
                                                  )
 
-from datentool_backend.modes.factories import (Mode,
-                                               ModeVariant,
+from datentool_backend.modes.models import (Mode,
+                                            Network,
+                                            )
+from datentool_backend.modes.factories import (ModeVariant,
                                                ModeVariantFactory,
-                                               NetworkFactory,
                                                )
 
 
@@ -73,8 +77,7 @@ class TestMatrixCreation(CreateTestdataMixin,
 
         data = {'variants': [walk.pk, car.pk, bike.pk],
                 'drop_constraints': False,
-                'air_distance_routing': True,
-                'sync': True,}
+                'air_distance_routing': True}
 
         res= self.post('matrixcellplaces-precalculate-traveltime', data=data,
                        extra={'format': 'json'})
@@ -99,7 +102,6 @@ class TestMatrixCreation(CreateTestdataMixin,
                 'drop_constraints': False,
                 'places': places,
                 'air_distance_routing': air_distance_routing,
-                'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
@@ -145,20 +147,37 @@ class TestMatrixCreation(CreateTestdataMixin,
         logger.debug(content)
         logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
 
+    @skipIf(not OSRMRouter(Mode.CAR).service_is_up, 'osrm docker not running')
+    def test_create_routed_car_matrix_with_multileveldijkstra(self):
+        """Test to create an car matrix from routingmultilivel dijkstra"""
+        network = self.network
+        car = ModeVariantFactory(mode=Mode.CAR, network=network)
+
+        original_algorithm = settings.ROUTING_ALGORITHM
+
+        settings.ROUTING_ALGORITHM = 'mld'
+        try:
+            content = self.calc_cell_place_matrix(variants=[car.pk])
+        finally:
+            settings.ROUTING_ALGORITHM = original_algorithm
+        logger.debug(content)
+        logger.debug(MatrixCellPlace.objects.filter(variant=car.pk).count())
+
+
+
     @skipIf(not OSRMRouter(Mode.WALK).service_is_up or
             not OSRMRouter(Mode.BIKE).service_is_up or
             not OSRMRouter(Mode.CAR).service_is_up,
             'osrm docker not running')
     def test_create_routed_matrix_for_new_places(self):
         """Test to create an walk matrix from routing"""
-
+        self.client.force_login(self.profile.user)
         # setup modevariants
-        network = self.network
-        walk = ModeVariantFactory(mode=Mode.WALK, network=network)
-        bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
-        car = ModeVariantFactory(mode=Mode.CAR, network=network)
-        transit1 = ModeVariantFactory(mode=Mode.TRANSIT, network=network)
-        transit2 = ModeVariantFactory(mode=Mode.TRANSIT, network=network)
+        walk = ModeVariant.objects.get(mode=Mode.WALK, is_default=True)
+        bike = ModeVariant.objects.get(mode=Mode.BIKE, is_default=True)
+        car = ModeVariant.objects.get(mode=Mode.CAR, is_default=True)
+        transit1 = ModeVariantFactory(mode=Mode.TRANSIT, network=None, label='T1')
+        transit2 = ModeVariantFactory(mode=Mode.TRANSIT, network=None, label='T2')
         self.create_stops(transit_variant_id=transit1.pk)
         self.create_stops(transit_variant_id=transit2.pk)
         variants = [walk.pk, bike.pk, car.pk, transit1.pk, transit2.pk]
@@ -169,31 +188,106 @@ class TestMatrixCreation(CreateTestdataMixin,
         walk_rows_before = MatrixCellPlace.objects.filter(variant=walk.pk).count()
         self.assertEqual(walk_rows_before, 40)
         transit1_rows_before = MatrixCellPlace.objects.filter(variant=transit1.pk).count()
-        self.assertEqual(transit1_rows_before, 12)
+        self.assertEqual(transit1_rows_before, 40)
         transit2_rows_before = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
-        self.assertEqual(transit2_rows_before, 12)
+        self.assertEqual(transit2_rows_before, 40)
 
-        # add new infrastructure
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 5)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 40,
+                              bike.pk: 40,
+                              car.pk: 40,
+                              transit1.pk: 40,
+                              transit2.pk: 40,
+                              })
+        self.assertDictEqual(data['n_rels_place_stop_modevariant'],
+                             {transit1.pk: 3,
+                              transit2.pk: 3,
+                              })
+
+        # add new places in a scenario
+        scenario = ScenarioFactory()
         infrastructure = self.place1.infrastructure
-        new_place = Place.objects.create(name='NewPlace',
-                                         infrastructure=infrastructure,
-                                         geom=Point(x=1000010, y=6500026))
+        url = 'places-list'
+        data = dict(name='NewPlace',
+                    infrastructure=infrastructure.pk,
+                    geom=Point(x=1000010, y=6500026, srid=3857).ewkt,
+                    attributes={},
+                    scenario=scenario.pk,
+                    )
+        res = self.post(url, data=data, extra={'format': 'json'})
+        self.assert_http_201_created(res)
+        new_place = Place.objects.get(pk=res.data['id'])
 
         # recalculate one place, add one new
-        places = [self.place2.pk, new_place.pk]
-        content = self.calc_cell_place_matrix(variants=variants,
-                                              access_variant=walk.pk,
-                                              places=places)
         walk_rows_after = MatrixCellPlace.objects.filter(variant=walk.pk).count()
         self.assertEqual(walk_rows_after, 48)
         bike_to_new_place = MatrixCellPlace.objects.filter(variant=bike.pk,
                                                            place=new_place).count()
         self.assertEqual(bike_to_new_place, 8)
         transit1_rows_after = MatrixCellPlace.objects.filter(variant=transit1.pk).count()
-        self.assertEqual(transit1_rows_after, 20)
+        self.assertEqual(transit1_rows_after, 48)
         transit2_rows_after = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
-        self.assertEqual(transit2_rows_after, 20)
+        self.assertEqual(transit2_rows_after, 48)
 
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 6)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 48,
+                              bike.pk: 48,
+                              car.pk: 48,
+                              transit1.pk: 48,
+                              transit2.pk: 48,
+                              })
+        self.assertDictEqual(data['n_rels_place_stop_modevariant'],
+                             {transit1.pk: 4,
+                              transit2.pk: 4,
+                              })
+
+        url = 'places-detail'
+        df_before = pd.DataFrame(
+            MatrixCellPlace.objects.filter(place=self.place2).values())
+        # change name of existing point
+        patch_data = {'name': 'New Name', }
+        res = self.patch(url, pk=self.place2.pk, data=patch_data, extra={'format': 'json'})
+        self.assert_http_200_ok(res)
+        self.place2.refresh_from_db()
+        self.assertEqual(self.place2.name, patch_data['name'])
+        df_after_patch_name = pd.DataFrame(
+            MatrixCellPlace.objects.filter(place=self.place2).values())
+        # changing name should not change the travel times
+        pd.testing.assert_frame_equal(df_before, df_after_patch_name)
+
+        # change geometry of existing point
+        geom_before = self.place2.geom.ewkt
+
+        x, y = 1000320, 6500036
+        patch_data = {'geom': Point(x=x, y=y, srid=3857).ewkt, }
+        res = self.patch(url, pk=self.place2.pk, data=patch_data, extra={'format': 'json'})
+        self.assert_http_200_ok(res)
+        self.place2.refresh_from_db()
+        geom_after = self.place2.geom.ewkt
+        # test if geometry changed
+        self.assertAlmostEqual(self.place2.geom.x, x)
+        self.assertAlmostEqual(self.place2.geom.y, y)
+
+        df_after_patch_geom = pd.DataFrame(
+            MatrixCellPlace.objects.filter(place=self.place2).values())
+
+        # the travel times should have changed, if not, the exception would not be raised
+        with self.assertRaises(AssertionError) as e:
+            pd.testing.assert_frame_equal(df_after_patch_geom, df_before)
+
+        places = [self.place2.pk, new_place.pk]
         content = self.calc_cell_place_matrix(variants=variants,
                                               access_variant=walk.pk,
                                               places=places,
@@ -203,13 +297,58 @@ class TestMatrixCreation(CreateTestdataMixin,
                                                           place=new_place).count()
         self.assertEqual(car_to_new_place, 8)
 
+        # delete new place
+        new_place_id = new_place.pk
+        self.assertTrue(MatrixCellPlace.objects.filter(place=new_place_id).exists())
+        self.assertTrue(MatrixPlaceStop.objects.filter(place=new_place_id).exists())
+        res = self.delete(url, pk=new_place_id, extra={'format': 'json',})
+        self.assert_http_204_no_content(res)
+        self.assertFalse(MatrixCellPlace.objects.filter(place=new_place_id).exists())
+        self.assertFalse(MatrixPlaceStop.objects.filter(place=new_place_id).exists())
+
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 5)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 40,
+                              bike.pk: 40,
+                              car.pk: 40,
+                              transit1.pk: 40,
+                              transit2.pk: 40,
+                              })
+        self.assertDictEqual(data['n_rels_place_stop_modevariant'],
+                             {transit1.pk: 3,
+                              transit2.pk: 3,
+                              })
+
+        # reset the geometry should reduce the number of PlaceStop to 12 again
+        url = 'places-detail'
+        patch_data = {'geom': geom_before}
+        res = self.patch(url, pk=self.place2.pk, data=patch_data, extra={'format': 'json'})
+        self.assert_http_200_ok(res)
+        self.place2.refresh_from_db()
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 40,
+                              bike.pk: 40,
+                              car.pk: 40,
+                              transit1.pk: 40,
+                              transit2.pk: 40,
+                              })
+
     @classmethod
     def build_osrm(cls):
         pbf = os.path.join(os.path.dirname(__file__),
                            'testdata', 'projectarea.pbf')
         # ToDo: use own route to run and build to test
         for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-            router = OSRMRouter(mode, contract=True)
+            router = OSRMRouter(mode)
             if not router.service_is_up:
                 return
             router.build(pbf)
@@ -218,7 +357,7 @@ class TestMatrixCreation(CreateTestdataMixin,
     @classmethod
     def create_network(cls):
         """create network"""
-        cls.network = NetworkFactory()
+        cls.network, created = Network.objects.get_or_create(is_default=True)
 
     def create_stops(self, transit_variant_id: int=None):
         """upload stops from excel-template"""
@@ -239,7 +378,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {
             'excel_file': file_content,
             'variant': self.transit.pk,
-            'sync': True,
         }
 
         url = reverse('stops-upload-template')
@@ -254,7 +392,6 @@ class TestMatrixCreation(CreateTestdataMixin,
             'excel_or_visum_file': file_content,
             'variant': self.transit.pk,
             'drop_constraints': False,
-            'sync': True,
         }
 
         url = reverse('matrixstopstops-upload-template')
@@ -291,7 +428,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'transit_variant': transit_variant.pk,
                 'access_variant': access_variant.pk,
                 'drop_constraints': False,
-                'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
@@ -323,7 +459,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'transit_variant': transit_variant.pk,
                 'access_variant': access_variant.pk,
                 'drop_constraints': False,
-                'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
@@ -355,7 +490,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'variants': [self.transit.pk],
                 'drop_constraints': False,
                 'access_variant': walk.pk,
-                'sync': True,
                 }
 
         #  use default access distance to stops
@@ -382,10 +516,10 @@ class TestMatrixCreation(CreateTestdataMixin,
                              {walk.pk: 36,
                               self.transit.pk: 40,})
 
-        self.assertEqual(data['n_stops'], 383)
+        self.assertEqual(data['n_stops'], {self.transit.pk: 383})
         self.assertDictEqual(data['n_rels_place_stop_modevariant'],
-                             {self.transit.pk: 27,})
+                             {self.transit.pk: 27, })
         self.assertDictEqual(data['n_rels_stop_cell_modevariant'],
-                             {self.transit.pk: 34,})
+                             {self.transit.pk: 34, })
         self.assertDictEqual(data['n_rels_stop_stop_modevariant'],
-                             {self.transit.pk: 88412,})
+                             {self.transit.pk: 88412, })

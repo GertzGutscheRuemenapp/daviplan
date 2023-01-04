@@ -89,7 +89,7 @@ class FClassFactory(DjangoModelFactory):
 
     ftype = factory.SubFactory(FieldTypeFactory, ftype=FieldTypes.CLASSIFICATION)
     order = factory.Sequence(lambda n: faker.unique.pyint(max_value=100))
-    value = faker.unique.word()
+    value = factory.Sequence(lambda n: faker.unique.word())
 
 
 class AreaFieldFactory(DjangoModelFactory):

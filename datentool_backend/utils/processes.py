@@ -1,4 +1,6 @@
 import logging
+import sys
+import traceback
 
 from django_q.tasks import async_task
 from django.conf import settings
@@ -36,7 +38,8 @@ class RunProcessMixin:
             try:
                 ppm.run(func, **params)
             except Exception as e:
-                msg = str(e)
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                msg = repr(e) + repr(traceback.format_tb(exc_traceback))
                 ppm.logger.error(msg)
                 return Response({'Fehler': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -47,7 +50,6 @@ class RunProcessMixin:
             ppm.run(func, **params)
             return Response({'message': message_async},
                             status=status.HTTP_202_ACCEPTED)
-
 
 
 class ProtectedProcessManager:

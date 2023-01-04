@@ -1,5 +1,7 @@
 from typing import Dict
 import warnings
+import os
+from tempfile import mktemp
 import pandas as pd
 
 from openpyxl.reader.excel import load_workbook
@@ -20,6 +22,8 @@ from datentool_backend.utils.permissions import (
 from datentool_backend.utils.pop_aggregation import (
     aggregate_many,
     disaggregate_population)
+from datentool_backend.utils.raw_delete import delete_chunks
+
 from datentool_backend.population.models import (
     Population,
     Gender,
@@ -89,35 +93,44 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
 
     def get_read_excel_params(self, request) -> Dict:
         params = dict()
-        params['excel_file'] = request.FILES['excel_file']
+        logger.info('Lese Eingangsdatei')
+        io_file = request.FILES['excel_file']
+        ext = os.path.splitext(io_file.name)[-1]
+        fp = mktemp(suffix=ext)
+        with open(fp, 'wb') as f:
+            f.write(io_file.file.read())
+        params['excel_filepath'] = fp
         params['prognosis_id'] = request.data.get('prognosis')
         return params
 
     @staticmethod
-    def process_excelfile(queryset,
-                          logger,
-                          excel_file,
+    def process_excelfile(logger,
+                          excel_filepath,
                           prognosis_id,
                           drop_constraints=False,
-                   ):
+                          ):
         # read excelfile
         logger.info('Lese Excel-Datei')
-        df = read_excel_file(excel_file, prognosis_id)
+        df = read_excel_file(excel_filepath, prognosis_id)
+        os.remove(excel_filepath)
+
+        queryset = PopulationEntry.objects.filter(population__prognosis=prognosis_id)
+        delete_chunks(queryset, logger)
 
         # write_df
-        write_template_df(df, queryset, logger, drop_constraints=drop_constraints)
+        write_template_df(df, PopulationEntry, logger, drop_constraints=drop_constraints)
         # postprocess (optional)
         post_processing(dataframe=df, drop_constraints=drop_constraints, logger=logger)
 
 
-def read_excel_file(excel_file, prognosis_id) -> pd.DataFrame:
+def read_excel_file(excel_filepath, prognosis_id) -> pd.DataFrame:
     """read excelfile and return a dataframe"""
 
     columns = ['population_id', 'area_id', 'gender_id',
                'age_group_id', 'value']
     df = pd.DataFrame(columns=columns)
 
-    wb = load_workbook(excel_file.file)
+    wb = load_workbook(excel_filepath)
     meta = wb['meta']
     area_level = AreaLevel.objects.get(is_default_pop_level=True)
 
@@ -151,10 +164,10 @@ def read_excel_file(excel_file, prognosis_id) -> pd.DataFrame:
             # get the values and unpivot the data
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=UserWarning)
-                df_pop = pd.read_excel(excel_file.file,
+                df_pop = pd.read_excel(excel_filepath,
                                        sheet_name=str(y),
                                        header=[1, 2, 3, 4],
-                                       dtype={key_attr: object,},
+                                       dtype={key_attr: object, },
                                        index_col=[0, 1])
             df_pop = df_pop\
                 .stack(level=[0, 1, 2, 3])\
@@ -183,7 +196,7 @@ def post_processing(dataframe, drop_constraints=False,
     for i, population in enumerate(populations):
         disaggregate_population(population, use_intersected_data=True,
                                 drop_constraints=drop_constraints)
-        logger.info(f'{i + 1}/{len(populations)}')
+        logger.info(f'{i + 1:n}/{len(populations):n}')
     logger.info('Aggregiere Bevölkerungsdaten')
     aggregate_many(AreaLevel.objects.all(), populations,
                    drop_constraints=drop_constraints)

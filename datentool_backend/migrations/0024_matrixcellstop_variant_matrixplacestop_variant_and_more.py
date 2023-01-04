@@ -15,12 +15,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='matrixcellstop',
             name='variant',
-            field=models.ForeignKey(default=datentool_backend.indicators.models.get_default_transit_variant, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
+            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_transit_variant, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
         ),
         migrations.AddField(
             model_name='matrixplacestop',
             name='variant',
-            field=models.ForeignKey(default=datentool_backend.indicators.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
+            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
         ),
         migrations.AlterUniqueTogether(
             name='matrixcellstop',

@@ -4,6 +4,7 @@ import requests
 import os
 import json
 
+from django.db.models import Q
 from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -17,7 +18,15 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata)
 from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
+from datentool_backend.utils.raw_delete import delete_chunks
+
 from datentool_backend.site.models import ProjectSetting
+from datentool_backend.indicators.models import (MatrixCellStop,
+                                                 MatrixStopStop,
+                                                 MatrixPlaceStop,
+                                                 MatrixCellPlace,
+                                                 Stop,
+                                                 )
 
 from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
@@ -28,10 +37,61 @@ logger = logging.getLogger('routing')
 
 _l_i = 0
 
-class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class ModeVariantViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = ModeVariant.objects.all()
     serializer_class = ModeVariantSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        msg_start = f'Löschen der Variante {instance.label} gestartet'
+        msg_end = f'Löschen der Variante {instance.label} beendet'
+        response = self.run_sync_or_async(func=delete_depending_matrices,
+                                          user=request.user,
+                                          scope=ProcessScope.ROUTING,
+                                          message_async=msg_start,
+                                          message_sync=msg_end,
+                                          ret_status=status.HTTP_204_NO_CONTENT,
+                                          variant=instance)
+        instance.delete()
+        return response
+
+
+def delete_depending_matrices(variant: ModeVariant,
+                              logger: logging.Logger,
+                              only_with_stops: bool = False):
+    """
+    Delete the depending objects in the matrices
+    in the database first to improve performance
+    """
+
+    qs = MatrixCellStop.objects\
+        .select_related('stop')\
+        .filter(stop__variant=variant)
+    delete_chunks(qs, logger)
+
+    qs = MatrixPlaceStop.objects\
+        .select_related('stop')\
+        .filter(Q(stop__variant=variant)
+                | Q(access_variant=variant))
+    delete_chunks(qs, logger)
+
+    if not only_with_stops:
+        qs = MatrixCellPlace.objects\
+            .filter(Q(variant=variant)
+                    | Q(access_variant=variant))
+        delete_chunks(qs, logger)
+
+    qs = MatrixStopStop.objects\
+        .select_related('from_stop')\
+        .select_related('to_stop')\
+        .filter(Q(from_stop__variant=variant) |
+                Q(to_stop__variant=variant))
+    delete_chunks(qs, logger)
+
+    qs = Stop.objects\
+        .filter(variant=variant)
+    delete_chunks(qs, logger)
 
 
 class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -169,7 +229,7 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
 
         def build(mode):
             logger.info(f'Baue Router {mode.name}')
-            router = OSRMRouter(mode, contract=True)
+            router = OSRMRouter(mode)
             try:
                 success = router.build(fp_target_pbf)
             except requests.exceptions.ConnectionError:
@@ -198,7 +258,7 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     @action(methods=['POST'], detail=False)
     def run_routers(self, request, **kwargs):
         for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
-            success = OSRMRouter(mode, contract=True).run()
+            success = OSRMRouter(mode).run()
             if not success:
                 return Response(
                     {'message': f'Failed to run router for mode {mode}'},

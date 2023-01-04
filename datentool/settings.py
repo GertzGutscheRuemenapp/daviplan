@@ -42,13 +42,13 @@ OSRM_ROUTING = {
     'BIKE': {
         'alias': 'bicycle',
         'host': os.environ.get('MODE_BIKE_HOST', 'localhost'),
-        'service_port': os.environ.get('MODE_BIKE_SERVICE_PORT', 8002),
+        'service_port': os.environ.get('MODE_BIKE_SERVICE_PORT', 8001),
         'routing_port': os.environ.get('MODE_BIKE_ROUTING_PORT', 5002),
     },
     'WALK': {
         'alias': 'foot',
         'host': os.environ.get('MODE_WALK_HOST', 'localhost'),
-        'service_port': os.environ.get('MODE_WALK_SERVICE_PORT', 8003),
+        'service_port': os.environ.get('MODE_WALK_SERVICE_PORT', 8001),
         'routing_port': os.environ.get('MODE_WALK_ROUTING_PORT', 5003),
     },
 }
@@ -93,6 +93,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -378,3 +379,9 @@ def load_stats_json():
         return chunk_paths
 
 ANGULAR_RESOURCES = load_stats_json() or {}
+
+LOCALE = 'de_DE'
+
+STEPSIZE = 100000
+
+ROUTING_ALGORITHM = 'ch'

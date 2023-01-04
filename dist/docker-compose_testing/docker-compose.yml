@@ -1,0 +1,16 @@
+version: '3.1'
+
+services:
+
+  # OSRM Routers are running in one containers
+
+  router-all-modes:
+    image: gertzgutscheruemenapp/osrm-flask:5.27.1
+    restart: unless-stopped
+    ports:
+      - "8011:8001"
+      - "5011:5001"
+      - "5012:5002"
+      - "5013:5003"
+    volumes:
+      - ./routing_data:/app/data

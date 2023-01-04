@@ -1,8 +1,10 @@
 from typing import Dict, Tuple
 from io import StringIO
+import os
 import logging
 logger = logging.getLogger('infrastructure')
 import warnings
+from tempfile import mktemp
 
 import pandas as pd
 
@@ -77,8 +79,13 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
     def update(self, request, *args, **kwargs):
         attributes = request.data.get('attributes')
-        request.data['attributes'] = camelize(attributes)
+        request.data['attributes'] = camelize(attributes) or {}
         return super().update(request, *args, **kwargs)
+
+    def perform_destroy(self, instance):
+        serializer: PlaceSerializer = self.get_serializer()
+        serializer.delete_existing_martixentries_for_place(instance)
+        instance.delete()
 
     def get_queryset(self):
         try:
@@ -160,14 +167,19 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
     def get_read_excel_params(self, request) -> Dict:
         params = dict()
-        params['excel_file'] = request.FILES['excel_file']
+        logger.info('Lese Eingangsdatei')
+        io_file = request.FILES['excel_file']
+        ext = os.path.splitext(io_file.name)[-1]
+        fp = mktemp(suffix=ext)
+        with open(fp, 'wb') as f:
+            f.write(io_file.file.read())
+        params['excel_filepath'] = fp
         params['infrastructure_id'] = request.data.get('infrastructure')
         return params
 
     @staticmethod
-    def process_excelfile(queryset,
-                          logger,
-                          excel_file,
+    def process_excelfile(logger,
+                          excel_filepath,
                           infrastructure_id,
                           drop_constraints=False,
                           ):
@@ -175,12 +187,13 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
         assert infrastructure_id is not None, 'Die ID der Infrastruktur muss im Formular mit übergeben werden.'
 
         logger.info('Lese Excel-Datei')
-        read_excel_file(excel_file, infrastructure_id)
+        read_excel_file(excel_filepath, infrastructure_id)
+        os.remove(excel_filepath)
 
         # write_df is skipped, because data is uploaded directly
 
 
-def read_excel_file(excel_file, infrastructure_id: int):
+def read_excel_file(excel_filepath, infrastructure_id: int):
     """read excelfile and return a dataframe"""
     infra = Infrastructure.objects.get(pk=infrastructure_id)
 
@@ -210,7 +223,7 @@ def read_excel_file(excel_file, infrastructure_id: int):
     # read the excel-file
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
-        df_places = pd.read_excel(excel_file.file,
+        df_places = pd.read_excel(excel_filepath,
                            sheet_name='Standorte und Kapazitäten',
                            skiprows=[1])\
             .set_index('place_id')
@@ -221,7 +234,7 @@ def read_excel_file(excel_file, infrastructure_id: int):
         .exclude(id__in=place_ids_in_excelfile)
     n_elems_deleted, elems_deleted = places_to_delete.delete()
     n_places_deleted = elems_deleted.get('datentool_backend.Place')
-    logger.info(f'{n_places_deleted or 0} bestehende Standorte gelöscht')
+    logger.info(f'{n_places_deleted or 0:n} bestehende Standorte gelöscht')
 
     # get BKG-Geocoding-Key
     site_settings = SiteSetting.load()
@@ -355,9 +368,9 @@ def read_excel_file(excel_file, infrastructure_id: int):
                 file,
                 drop_constraints=False, drop_indexes=False,
             )
-    logger.info(f'{len(df_places)} Einträge bearbeitet')
+    logger.info(f'{len(df_places):n} Einträge bearbeitet')
     if n_new > 0:
-        logger.info(f'davon {n_new} als neue Orte hinzugefügt')
+        logger.info(f'davon {n_new}:n als neue Orte hinzugefügt')
         logger.info('ACHTUNG: Für die neuen Orte muss die '
                          'Erreichbarkeit neu berechnet werden!')
 

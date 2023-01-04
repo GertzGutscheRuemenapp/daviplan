@@ -75,6 +75,7 @@ class GenesisAPI():
 
 class Regionalstatistik(GenesisAPI):
     URL = f'https://www.regionalstatistik.de/genesisws/rest/2020'
+    TEST_URL = f'https://www.regionalstatistik.de/genesisws/rest/'
     POP_CODE = '12411-02-03-5'
     MIGRATION_CODE = '12711-91-01-5'
     BIRTHS_CODE = '12612-91-01-5'
