@@ -216,7 +216,7 @@ class TravelTimeRouterMixin:
         if max_distance is None:
             max_distance = MODE_MAX_DISTANCE[variant.mode]
 
-        router = OSRMRouter(mode)
+        router = OSRMRouter(mode, contract=True)
 
         if not router.is_running:
             router.run()

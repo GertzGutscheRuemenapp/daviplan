@@ -191,7 +191,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
         error_msg = None
 
         for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-            router = OSRMRouter(mode)
+            router = OSRMRouter(mode, contract=True)
             if not router.service_is_up:
                 error_msg = ('Der Router-Service reagiert nicht. '
                              'Bitte kontaktieren Sie den Administrator.')

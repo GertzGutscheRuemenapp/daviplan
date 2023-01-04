@@ -209,7 +209,7 @@ class TestMatrixCreation(CreateTestdataMixin,
                            'testdata', 'projectarea.pbf')
         # ToDo: use own route to run and build to test
         for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-            router = OSRMRouter(mode)
+            router = OSRMRouter(mode, contract=True)
             if not router.service_is_up:
                 return
             router.build(pbf)

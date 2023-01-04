@@ -167,11 +167,9 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
         network.network_file = fp_target_pbf
         network.save()
 
-        o_success = True
-
         def build(mode):
             logger.info(f'Baue Router {mode.name}')
-            router = OSRMRouter(mode)
+            router = OSRMRouter(mode, contract=True)
             try:
                 success = router.build(fp_target_pbf)
             except requests.exceptions.ConnectionError:
@@ -179,19 +177,15 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
             if not success:
                 msg = (f'Berechnung fehlgeschlagen. Der Router {mode.name} '
                        'konnte nicht gebaut werden.')
-                logger.error(msg)
-                global o_success
-                o_success = False
+                raise Exception(msg)
             else:
-                msg = (f'Router {mode.name} erfolgreich gebaut. Starte Router')
+                msg = (f'Router {mode.name} erfolgreich gebaut.')
                 logger.info(msg)
                 router.run()
 
-        modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
+        modes = [Mode.WALK, Mode.BIKE, Mode.CAR]
         for mode in modes:
             build(mode)
-        if not o_success:
-            raise Exception('')
 
     @extend_schema(
         description=('start routers for modes bike, car and foot'),
@@ -204,7 +198,7 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     @action(methods=['POST'], detail=False)
     def run_routers(self, request, **kwargs):
         for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
-            success = OSRMRouter(mode).run()
+            success = OSRMRouter(mode, contract=True).run()
             if not success:
                 return Response(
                     {'message': f'Failed to run router for mode {mode}'},

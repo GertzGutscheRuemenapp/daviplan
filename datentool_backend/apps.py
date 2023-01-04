@@ -19,6 +19,6 @@ class BackendConfig(AppConfig):
         from datentool_backend.modes.models import Mode
         # run all routers on start
         for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-            router = OSRMRouter(mode)
+            router = OSRMRouter(mode, contract=True)
             if router.service_is_up and not router.is_running:
                 router.run()

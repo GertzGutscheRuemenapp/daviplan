@@ -4,8 +4,9 @@ from routingpy import OSRM
 
 
 class OSRMRouter():
-    def __init__(self, mode):
+    def __init__(self, mode, contract=False):
         self.mode = mode
+        self.do_contract = contract
 
     @property
     def settings(self):
@@ -35,12 +36,14 @@ class OSRMRouter():
             return False
         return True
 
-    def _post_service_cmd(self, cmd, **kwargs):
+    def _post_service_cmd(self, cmd, data={}, **kwargs):
         alias = self.settings['alias']
-        return requests.post(f'{self.service_url}/{cmd}/{alias}', **kwargs)
+        return requests.post(f'{self.service_url}/{cmd}/{alias}', data=data,
+                             **kwargs)
 
     def run(self):
-        res = self._post_service_cmd('run')
+        res = self._post_service_cmd(
+            'run', data={'contract': self.do_contract})
         return res.status_code == 200
 
     def stop(self):
@@ -53,7 +56,8 @@ class OSRMRouter():
 
     def build(self, pbf_path):
         files = {'file': open(pbf_path, 'rb')}
-        res = self._post_service_cmd('build', files=files)
+        res = self._post_service_cmd(
+            'build', data={'contract': self.do_contract}, files=files)
         return res.status_code == 200
 
     def matrix_calculation(self, sources, destinations):
