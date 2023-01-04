@@ -3,7 +3,7 @@ version: '3.1'
 services:
 
   router-car:
-    image: gertzgutscheruemenapp/osrm-flask:algo
+    image: gertzgutscheruemenapp/osrm-flask
     environment:
       - PYTHONUNBUFFERED=1
     ports:
@@ -14,7 +14,7 @@ services:
       - ./data:/app/data
 
   router-bike:
-    image: gertzgutscheruemenapp/osrm-flask:algo
+    image: gertzgutscheruemenapp/osrm-flask
     environment:
       - PYTHONUNBUFFERED=1
     ports:
@@ -25,7 +25,7 @@ services:
       - ./data:/app/data
 
   router-walk:
-    image: gertzgutscheruemenapp/osrm-flask:algo
+    image: gertzgutscheruemenapp/osrm-flask
     environment:
       - PYTHONUNBUFFERED=1
     ports:
