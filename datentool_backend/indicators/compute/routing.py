@@ -67,7 +67,7 @@ class TravelTimeRouterMixin:
                     if access_variant_id:
                         access_variant = ModeVariant.objects.get(id=access_variant_id)
                     else:
-                        access_variant = get_default_access_variant()
+                        access_variant = ModeVariant.objects.get(id=get_default_access_variant())
 
                     max_access_distance = float(max_access_distance or
                                                 MODE_MAX_DISTANCE[variant.mode])

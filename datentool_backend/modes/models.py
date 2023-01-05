@@ -170,7 +170,7 @@ class CutOffTime(models.Model):
 
 def get_default_access_variant():
     variant, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
-                                                is_default=True)
+                                                         is_default=True)
     return variant.pk
 
 
