@@ -380,7 +380,7 @@ def load_stats_json():
 
 ANGULAR_RESOURCES = load_stats_json() or {}
 
-LOCALE = 'de_DE'
+LOCALE = 'de_DE.utf8'
 
 STEPSIZE = 100000
 
