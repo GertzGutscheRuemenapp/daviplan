@@ -209,7 +209,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
         closeOnConfirm: false,
         message: visum? 'Fahrzeitenliste im VISUM-Format hochladen': 'Befülltes Excel-Template mit der Fahrzeitenliste hochladen',
         context: {
-          accept: visum? '.mtx': '.xlsx,.xls'
+          accept: visum? '*': '.xlsx,.xls'
         }
       }
     });

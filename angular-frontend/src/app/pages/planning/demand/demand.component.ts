@@ -101,7 +101,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
         const formattedValue = value? value.toLocaleString(): value;
         area.properties.description = `<b>${area.properties.label}</b>
                 <br>Nachfrage nach Leistung "${this.planningService.activeService?.name}"
-                <br>${formattedValue} ${this.planningService.activeService?.demandPluralUnit} im Jahr ${this.year}
+                <br>${formattedValue} ${(value === 1)? this.planningService.activeService?.demandSingularUnit: this.planningService.activeService?.demandPluralUnit} im Jahr ${this.year}
                 <br>im Szenario "${this.planningService.activeScenario?.name}"`
       })
       const desc = `<b>${this.planningService.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b><br>

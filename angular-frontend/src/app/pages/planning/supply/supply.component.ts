@@ -148,8 +148,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.layerGroup?.clear();
       let mapPlaces: any[] = [];
       this.places?.forEach(place => {
-        const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
-          [this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
+        const tooltip = `<b>${place.name}</b><br>
+                         ${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'} im Jahr ${this.year}<br>
+                         im Szenario "${this.planningService.activeScenario?.name}"`
         const doCompare = (place.capacity !== undefined) && (place.baseCapacity !== undefined);
         if (this.ignoreCapacities || place.capacity || place.scenario) {
           mapPlaces.push({

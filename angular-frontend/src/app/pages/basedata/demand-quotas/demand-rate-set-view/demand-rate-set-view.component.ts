@@ -54,6 +54,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   yearDemandRates: DemandRate[] = [];
   rows: Row[] = [];
   genderColors: string[] = [];
+  DemandTypes = DemandTypes;
 
 
   @Input() set years(years: number[]) {
@@ -314,6 +315,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     this.yearChart.title = `${this.demandTypeLabel} nach Altersgruppen`;
     this.yearChart.subtitle = `${this._service?.name} im Jahr ${this.year}`;
     this.yearChart.labels = this._genders.map(g => g.name);
+    this.yearChart.strokeWidths = this._genders.map((g, i)=> i * 2 + 2).reverse();
     this.yearChart.draw(data);
   }
 
@@ -341,6 +343,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     this.ageGroupChart.colors = this.genderColors;
     this.ageGroupChart.subtitle = `${this._service?.name}, ${this.selectedAgeGroup.label}` ;
     this.ageGroupChart.labels = this._genders.map(g => g.name);
+    this.ageGroupChart.strokeWidths = this._genders.map((g, i)=> i * 2 + 2).reverse();
     this.ageGroupChart.draw(data);
   }
 }
