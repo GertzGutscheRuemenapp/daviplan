@@ -42,13 +42,13 @@ OSRM_ROUTING = {
     'BIKE': {
         'alias': 'bicycle',
         'host': os.environ.get('MODE_BIKE_HOST', 'localhost'),
-        'service_port': os.environ.get('MODE_BIKE_SERVICE_PORT', 8001),
+        'service_port': os.environ.get('MODE_BIKE_SERVICE_PORT', 8002),
         'routing_port': os.environ.get('MODE_BIKE_ROUTING_PORT', 5002),
     },
     'WALK': {
         'alias': 'foot',
         'host': os.environ.get('MODE_WALK_HOST', 'localhost'),
-        'service_port': os.environ.get('MODE_WALK_SERVICE_PORT', 8001),
+        'service_port': os.environ.get('MODE_WALK_SERVICE_PORT', 8003),
         'routing_port': os.environ.get('MODE_WALK_ROUTING_PORT', 5003),
     },
 }

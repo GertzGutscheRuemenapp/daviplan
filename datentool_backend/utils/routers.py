@@ -43,8 +43,7 @@ class OSRMRouter():
                              **kwargs)
 
     def run(self):
-        res = self._post_service_cmd('run', data={'algorithm': 'ch', })
-        res = self._post_service_cmd('run', data={'algorithm': 'mld', })
+        res = self._post_service_cmd('run', data={'algorithm': self.algorithm })
         return res.status_code == 200
 
     def stop(self):
@@ -57,8 +56,7 @@ class OSRMRouter():
 
     def build(self, pbf_path: str):
         files = {'file': open(pbf_path, 'rb')}
-        res = self._post_service_cmd(
-            'build', data={'contract': self.do_contract}, files=files)
+        res = self._post_service_cmd('build', files=files)
         return res.status_code == 200
 
     def matrix_calculation(self, sources, destinations):
@@ -97,9 +95,11 @@ class OSRMPolyline(OSRM):
         coords = f'polyline({poly})'
 
         params = self.get_matrix_params(
-            locations, profile, radiuses, bearings, sources, destinations, annotations, **matrix_kwargs
+            locations, profile, radiuses, bearings, sources, destinations,
+            annotations, **matrix_kwargs
         )
 
         return self.parse_matrix_json(
-            self.client._request(f"/table/v1/{profile}/{coords}", get_params=params, dry_run=dry_run)
+            self.client._request(f"/table/v1/{profile}/{coords}",
+                                 get_params=params, dry_run=dry_run)
         )
