@@ -142,6 +142,6 @@ def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
                 manager.restore_indexes()
 
     if (len(df)):
-        msg = f'{len(df)} Einträge geschrieben'
+        msg = f'{len(df):n} Einträge geschrieben'
         logger.info(msg)
 

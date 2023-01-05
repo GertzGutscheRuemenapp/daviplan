@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 from django.db.utils import DatabaseError
+import locale
 
 
 class BackendConfig(AppConfig):
@@ -22,3 +23,7 @@ class BackendConfig(AppConfig):
             router = OSRMRouter(mode)
             if router.service_is_up and not router.is_running:
                 router.run()
+
+        # set locale to local style defined in settings
+        from django.conf import settings
+        locale.setlocale(locale.LC_ALL, settings.LOCALE)

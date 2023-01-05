@@ -34,11 +34,6 @@ from datentool_backend.modes.models import (ModeVariant,
                                             get_default_access_variant,
                                             )
 
-
-# set locale to local style defined in settings
-locale.setlocale(locale.LC_ALL, settings.LOCALE)
-
-
 class RoutingError(Exception):
     """A Routing Error"""
 
