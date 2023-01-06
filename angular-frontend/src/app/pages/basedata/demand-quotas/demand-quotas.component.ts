@@ -55,7 +55,10 @@ export class DemandQuotasComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.isLoading$.next(true);
-    this.restService.getYears().subscribe(years => this.years = years);
+    this.restService.getYears().subscribe(years => {
+      this.years = years;
+      this.year = years[0];
+    });
     this.restService.getGenders().subscribe(genders => this.genders = genders);
     this.restService.getAgeGroups().subscribe(ageGroups => this.ageGroups = ageGroups);
     this.restService.getInfrastructures().subscribe(infrastructures => {
@@ -94,6 +97,7 @@ export class DemandQuotasComponent implements OnInit, AfterViewInit {
       this.http.patch<Service>(`${this.rest.URLS.services}${this.activeService?.id}/`, attributes
       ).subscribe(service => {
         Object.assign(this.activeService!, service);
+        this.demandRateSetPreview!.service = this.activeService;
         this.demandTypeCard?.closeDialog(true);
       },(error) => {
         showAPIError(error, this.dialog);

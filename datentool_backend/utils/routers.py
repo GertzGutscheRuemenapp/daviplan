@@ -5,9 +5,9 @@ import polyline
 
 
 class OSRMRouter():
-    def __init__(self, mode):
+    def __init__(self, mode, algorithm=settings.ROUTING_ALGORITHM):
         self.mode = mode
-        self.algorithm = settings.ROUTING_ALGORITHM
+        self.algorithm = algorithm or 'ch'
 
     @property
     def settings(self):
@@ -37,13 +37,13 @@ class OSRMRouter():
             return False
         return True
 
-    def _post_service_cmd(self, cmd, **kwargs):
+    def _post_service_cmd(self, cmd, data={}, **kwargs):
         alias = self.settings['alias']
-        return requests.post(f'{self.service_url}/{cmd}/{alias}', **kwargs)
+        return requests.post(f'{self.service_url}/{cmd}/{alias}', data=data,
+                             **kwargs)
 
     def run(self):
-        res = self._post_service_cmd('run', data={'algorithm': 'ch', })
-        res = self._post_service_cmd('run', data={'algorithm': 'mld', })
+        res = self._post_service_cmd('run', data={'algorithm': self.algorithm })
         return res.status_code == 200
 
     def stop(self):
@@ -95,9 +95,11 @@ class OSRMPolyline(OSRM):
         coords = f'polyline({poly})'
 
         params = self.get_matrix_params(
-            locations, profile, radiuses, bearings, sources, destinations, annotations, **matrix_kwargs
+            locations, profile, radiuses, bearings, sources, destinations,
+            annotations, **matrix_kwargs
         )
 
         return self.parse_matrix_json(
-            self.client._request(f"/table/v1/{profile}/{coords}", get_params=params, dry_run=dry_run)
+            self.client._request(f"/table/v1/{profile}/{coords}",
+                                 get_params=params, dry_run=dry_run)
         )
