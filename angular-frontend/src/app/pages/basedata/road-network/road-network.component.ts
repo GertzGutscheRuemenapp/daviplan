@@ -38,7 +38,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     this.settings.fetchBaseDataSettings();
     this.isLoading$.next(true);
     this.restService.getModeVariants().subscribe(modeVariants => {
-      this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT);
+      this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT && m.isDefault);
       this.isLoading$.next(false);
       this.getStatistics();
     })
