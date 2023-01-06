@@ -258,7 +258,10 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     @action(methods=['POST'], detail=False)
     def run_routers(self, request, **kwargs):
         for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
-            success = OSRMRouter(mode).run()
+            router = OSRMRouter(mode)
+            if router.is_running:
+                continue
+            success = router.run()
             if not success:
                 return Response(
                     {'message': f'Failed to run router for mode {mode}'},
