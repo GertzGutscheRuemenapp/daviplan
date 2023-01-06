@@ -66,7 +66,7 @@ services:
       - router-walk:router-walk
       - redis:redis
     # migrate and then run service and a django_q cluster to process background tasks
-    command: bash -c "python /datentool/manage.py migrate --run-syncdb && (python /datentool/manage.py qcluster &) && python /datentool/manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python /datentool/manage.py migrate --run-syncdb &&  python manage.py collectstatic --no-input && (python /datentool/manage.py qcluster &) && python /datentool/manage.py runserver 0.0.0.0:8000"
     # the port mapped to outside the container
     ports:
       - "${EXT_PORT}:8000"
