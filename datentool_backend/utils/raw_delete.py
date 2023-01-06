@@ -12,14 +12,14 @@ def delete_chunks(qs: QuerySet,
     """delete entries from queryset in chunks using raw-delete sql"""
     model = qs.model
     model_name = model._meta.object_name
-    logger.log(log_level, f'Suche zu löschende {model_name}-Einträge')
+    logger.debug(f'Suche zu löschende {model_name}-Einträge')
     ids = np.fromiter(qs.values_list('id', flat=True), np.dtype(np.int64))
     n_rows = ids.shape[0]
     if not n_rows:
         return
     if hasattr(model, 'remove_n_rels'):
         model.remove_n_rels(qs)
-    logger.log(log_level, f'Lösche insgesamt {n_rows:n} {model_name}-Einträge')
+    logger.debug(f'Lösche insgesamt {n_rows:n} {model_name}-Einträge')
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = ids[i:i + stepsize]
         qs_chunk = model.objects.filter(id__in=chunk)
