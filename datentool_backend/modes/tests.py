@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.conf import settings
 from test_plus import APITestCase
 from django.contrib.gis.geos import MultiPolygon
+from time import sleep
 
 from datentool_backend.site.models import ProjectSetting
 
@@ -128,6 +129,7 @@ class TestNetworkAPI(WriteOnlyWithCanEditBaseDataTest,
         res = self.post(url)
         self.assert_http_202_accepted(res)
 
+        sleep(1)
         # run routers
         url = 'networks-run-routers'
         res = self.post(url)
