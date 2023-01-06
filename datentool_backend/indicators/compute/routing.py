@@ -150,7 +150,7 @@ class TravelTimeRouterMixin:
         model_name = model._meta.object_name
 
         n_rows = len(df)
-        logger.info(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
+        logger.debug(f'Schreibe insgesamt {n_rows:n} {model_name}-Einträge')
         for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
             chunk = df.iloc[i:i + stepsize]
             model.add_n_rels(chunk)
@@ -163,8 +163,7 @@ class TravelTimeRouterMixin:
             n_inserted = len(chunk)
             logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}'
                         '-Einträgen geschrieben')
-        msg = (f'Routenberechnung erfolgreich - {n_rows:n} {model_name}'
-               '-Einträge geschrieben')
+        msg = (f'{n_rows:n} {model_name}-Einträge geschrieben')
         logger.info(msg)
 
     def prepare_and_calc_transit_traveltimes(self,
@@ -196,11 +195,13 @@ class TravelTimeRouterMixin:
 
         # calculate time from stop to cell
         matrix_cell_stop = MatrixCellStopRouter()
+        logger.info(f'Berechne Wegezeiten zwischen Siedlungszellen und den '
+                    f'Haltestellen mit Modus {Mode(access_variant.mode).name}')
         stops = Stop.objects.filter(variant=variant).values_list('id', flat=True)
         chunk_size = 100
         dataframes_cs = []
 
-        for i in range(0,  len(stops),  chunk_size):
+        for i in range(0, len(stops), chunk_size):
             stops_part = stops[i:i + chunk_size]
             df_cs = matrix_cell_stop.calc_routed_traveltimes(
                 variant=access_variant,
@@ -209,8 +210,11 @@ class TravelTimeRouterMixin:
                 stops=stops_part,
                 logger=logger,
             )
-            df_cs.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
+            df_cs.rename(columns={'variant_id': 'access_variant_id',},
+                         inplace=True)
             dataframes_cs.append(df_cs)
+            logger.info(f'{min((i+chunk_size), len(stops)):n}/'
+                        f'{len(stops):n} Haltestellen berechnet')
 
         df_cs = pd.concat(dataframes_cs)
         df_cs['transit_variant_id'] = variant.pk
@@ -222,6 +226,7 @@ class TravelTimeRouterMixin:
         self.write_results_to_database(logger, qs, df_cs, drop_constraints,
                                        ignore_columns=['transit_variant_id'])
 
+        logger.info('Berechne Gesamtreisezeiten')
         df = self.calculate_transit_traveltime(
             access_variant=access_variant,
             transit_variant=variant,

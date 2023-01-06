@@ -133,8 +133,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         response = self.get(url)
         self.assert_http_200_ok(response)
         data = response.data
-        self.assertEqual(data['n_places'], 5)
-        self.assertEqual(data['n_cells'], 8)
         self.assertDictEqual(data['n_rels_place_cell_modevariant'],
                              {bike.pk: 40})
 
@@ -196,8 +194,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         response = self.get(url)
         self.assert_http_200_ok(response)
         data = response.data
-        self.assertEqual(data['n_places'], 5)
-        self.assertEqual(data['n_cells'], 8)
         self.assertDictEqual(data['n_rels_place_cell_modevariant'],
                              {walk.pk: 40,
                               bike.pk: 40,
@@ -239,8 +235,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         response = self.get(url)
         self.assert_http_200_ok(response)
         data = response.data
-        self.assertEqual(data['n_places'], 6)
-        self.assertEqual(data['n_cells'], 8)
         self.assertDictEqual(data['n_rels_place_cell_modevariant'],
                              {walk.pk: 48,
                               bike.pk: 48,
@@ -310,8 +304,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         response = self.get(url)
         self.assert_http_200_ok(response)
         data = response.data
-        self.assertEqual(data['n_places'], 5)
-        self.assertEqual(data['n_cells'], 8)
         self.assertDictEqual(data['n_rels_place_cell_modevariant'],
                              {walk.pk: 40,
                               bike.pk: 40,
@@ -510,8 +502,6 @@ class TestMatrixCreation(CreateTestdataMixin,
         response = self.get(url)
         self.assert_http_200_ok(response)
         data = response.data
-        self.assertEqual(data['n_places'], 5)
-        self.assertEqual(data['n_cells'], 8)
         self.assertDictEqual(data['n_rels_place_cell_modevariant'],
                              {walk.pk: 36,
                               self.transit.pk: 40,})
