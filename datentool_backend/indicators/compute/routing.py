@@ -68,7 +68,8 @@ class TravelTimeRouterMixin:
                         access_variant = ModeVariant.objects.get(id=access_variant_id)
                     else:
                         access_variant = ModeVariant.objects.get(id=get_default_access_variant())
-
+                    av_id = access_variant.id
+                        
                     max_access_distance = float(max_access_distance or
                                                 MODE_MAX_DISTANCE[variant.mode])
                     max_direct_walktime = float(max_direct_walktime or
@@ -86,7 +87,7 @@ class TravelTimeRouterMixin:
                     dataframes.append(df)
                     dataframes_variant.append(df)
                 else:
-
+                    av_id = None
                     if air_distance_routing:
                         df = self.calculate_airdistance_traveltimes(
                             variant,
@@ -118,7 +119,7 @@ class TravelTimeRouterMixin:
                     if 'access_variant_id' in df.columns:
                         df = df.astype(dtype={'access_variant_id': 'Int64' ,})
                     queryset = self.get_filtered_queryset(variant_ids=[variant.pk],
-                                                          access_variant_id=access_variant_id,
+                                                          access_variant_id=av_id,
                                                           places=places)
                     self.write_results_to_database(logger, queryset, df, drop_constraints)
 
