@@ -56,7 +56,7 @@ class SourceFactory(DjangoModelFactory):
 class AreaLevelFactory(DjangoModelFactory):
     class Meta:
         model = AreaLevel
-    name = faker.word()
+    name = factory.Sequence(lambda n: faker.unique.word())
     order = faker.unique.pyint(max_value=10)
     symbol = factory.SubFactory(MapSymbolFactory)
     source = factory.SubFactory(SourceFactory)
