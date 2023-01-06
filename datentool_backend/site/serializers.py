@@ -184,32 +184,11 @@ class SiteSettingSerializer(serializers.ModelSerializer):
 
 
 class MatrixStatisticsSerializer(serializers.Serializer):
-    n_places = serializers.SerializerMethodField(read_only=True)
-    n_cells = serializers.SerializerMethodField(read_only=True)
     n_rels_place_cell_modevariant = serializers.SerializerMethodField(read_only=True)
     n_stops = serializers.SerializerMethodField(read_only=True)
     n_rels_place_stop_modevariant = serializers.SerializerMethodField(read_only=True)
     n_rels_stop_cell_modevariant = serializers.SerializerMethodField(read_only=True)
     n_rels_stop_stop_modevariant = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        fields = ('n_places',
-                  'n_cells',
-                  'n_rels_place_cell_walk',
-                  'n_rels_place_cell_bike',
-                  'n_rels_place_cell_car',
-                  'n_rels_place_cell_transit',
-                  'n_stops',
-                  'n_rels_place_stop_transit',
-                  'n_rels_stop_cell_transit',
-                  'n_rels_stop_stop_transit',
-                  )
-
-    def get_n_places(self, obj) -> int:
-        return MatrixCellPlace.objects.distinct('place_id').count()
-
-    def get_n_cells(self, obj) -> int:
-        return MatrixCellPlace.objects.distinct('cell_id').count()
 
     def get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
         return self._get_n_rels(obj, matrix=MatrixCellPlace)

@@ -5,6 +5,7 @@ from typing import Dict
 import sys
 import traceback
 import pandas as pd
+import logging
 
 from django.http import HttpResponse
 from django.db import transaction
@@ -100,7 +101,8 @@ class ExcelTemplateMixin(RunProcessMixin):
         # postprocess (optional)
 
 
-def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
+def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False,
+                      log_level=logging.INFO):
     manager = model.copymanager
     with transaction.atomic():
         if drop_constraints:
@@ -108,7 +110,7 @@ def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
             manager.drop_indexes()
         try:
             if len(df):
-                logger.info('Schreibe Daten in Datenbank')
+                logger.log(log_level, 'Schreibe Daten in Datenbank')
                 with StringIO() as file:
                     df.to_csv(file, index=False)
                     file.seek(0)
@@ -143,5 +145,5 @@ def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
 
     if (len(df)):
         msg = f'{len(df):n} Einträge geschrieben'
-        logger.info(msg)
+        logger.log(log_level, msg)
 
