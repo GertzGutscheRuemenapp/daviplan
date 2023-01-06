@@ -110,7 +110,7 @@ def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False,
             manager.drop_indexes()
         try:
             if len(df):
-                logger.log(log_level, 'Schreibe Daten in Datenbank')
+                logger.debug('Schreibe Daten in Datenbank')
                 with StringIO() as file:
                     df.to_csv(file, index=False)
                     file.seek(0)

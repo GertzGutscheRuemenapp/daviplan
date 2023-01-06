@@ -370,7 +370,7 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
             )
     logger.info(f'{len(df_places):n} Einträge bearbeitet')
     if n_new > 0:
-        logger.info(f'davon {n_new}:n als neue Orte hinzugefügt')
+        logger.info(f'davon {n_new:n} als neue Orte hinzugefügt')
         logger.info('ACHTUNG: Für die neuen Orte muss die '
                          'Erreichbarkeit neu berechnet werden!')
 
