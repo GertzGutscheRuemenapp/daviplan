@@ -1,0 +1,32 @@
+version: '3.1'
+
+services:
+
+  # OSRM Routers are running in seperate containers
+
+  router-car:
+    image: gertzgutscheruemenapp/osrm-flask:5.27.1
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+      - "5001:5001"
+    volumes:
+      - ./routing_data:/app/data
+
+  router-bike:
+    image: gertzgutscheruemenapp/osrm-flask:5.27.1
+    restart: unless-stopped
+    ports:
+      - "8002:8001"
+      - "5002:5002"
+    volumes:
+      - ./routing_data:/app/data
+
+  router-walk:
+    image: gertzgutscheruemenapp/osrm-flask:5.27.1
+    restart: unless-stopped
+    ports:
+      - "8003:8001"
+      - "5003:5003"
+    volumes:
+      - ./routing_data:/app/data

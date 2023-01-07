@@ -1,0 +1,28 @@
+services:
+  router-bike:
+    image: gertzgutscheruemenapp/osrm-flask:5.27.1
+    ports:
+    - 8002:8001
+    - 5002:5002
+    restart: unless-stopped
+    volumes:
+    - ./routing_data:/app/data
+  router-car:
+    image: gertzgutscheruemenapp/osrm-flask:5.27.1
+    ports:
+    - 8001:8001
+    - 5001:5001
+    restart: unless-stopped
+    volumes:
+    - ./routing_data:/app/data
+  router-walk:
+    environment: {}
+    image: gertzgutscheruemenapp/osrm-flask:5.27.1
+    ports:
+    - 8003:8001
+    - 5003:5003
+    restart: unless-stopped
+    volumes:
+    - ./routing_data:/app/data
+    - C:\Program Files (x86)\Wing Pro 8:/wingpro8
+version: '3.1'
