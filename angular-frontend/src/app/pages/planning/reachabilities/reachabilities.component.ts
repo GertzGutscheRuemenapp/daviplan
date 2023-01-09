@@ -139,12 +139,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             }
           },
           select: {
-            enabled: this.indicator === 'place',
+            enabled: true,
             style: { fillColor: 'yellow' },
             multi: false
           },
           labelOffset: { y: 15 }
         });
+        this.placesLayer?.setSelectable(this.indicator === 'place');
         this.placesLayer?.addFeatures(places.map(place => {
           return { id: place.id, geometry: place.geom, properties: { name: place.name } }
         }));
@@ -196,7 +197,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         id: 'reachability',
         visible: true,
         order: 0,
-        description: `Erreichbarkeit des gewählten Standorts (${place?.name}) ${modes[this.activeMode]}`,
+        description: `Erreichbarkeit des gewählten Standorts "${place?.name}" ${modes[this.activeMode]}`,
         style: {
           fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
@@ -245,7 +246,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           visible: true,
           order: 0,
           zIndex: 99999,
-          description: this.activeInfrastructure!.name,
+          description: `Erreichbarkeit der Angebote vom gesetzten Wohnstandort aus (${modes[this.activeMode]})`,
           radius: 7,
           style: {
             fillColor: 'green',
@@ -300,7 +301,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         id: 'reachability',
         visible: true,
         order: 0,
-        description: 'Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot',
+        description: `Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot (${modes[this.activeMode]})`,
         style: {
           fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
