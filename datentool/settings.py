@@ -349,7 +349,7 @@ LOGGING = {
 
 Q_CLUSTER = {
     'name': 'datentool',
-    'workers': 8,
+    'workers': 2,
     'recycle': 500,
     'timeout': 848000,
     'retry': 848001,
@@ -357,6 +357,9 @@ Q_CLUSTER = {
     'save_limit': 250,
     'queue_limit': 500,
     'cpu_affinity': 1,
+    'ack_failures': True,
+    'max_attempts': 1,
+    'attempt_count': 1,
     'label': 'Django Q',
     'redis': {
         'host': REDIS_HOST,
