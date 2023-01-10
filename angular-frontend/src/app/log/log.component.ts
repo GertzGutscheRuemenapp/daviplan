@@ -76,7 +76,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
 
   scrollToBottom(forced= true): void {
     // if not forced: scroll automatically to bottom if already close to bottom, do not if manually scrolled up
-    if (forced || this.logEl.nativeElement.scrollHeight - this.logEl.nativeElement.scrollTop < 1000)
+    if (forced || Math.abs(this.logEl.nativeElement.scrollHeight - this.logEl.nativeElement.scrollTop) < 500)
       this.logEl.nativeElement.scrollTop = this.logEl.nativeElement.scrollHeight;
   }
 
