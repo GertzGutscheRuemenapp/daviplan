@@ -96,7 +96,7 @@
             <td><i>{{place.attributes[field.name] || '-'}}</i></td>
           </tr>
         </table>
-        <button *ngIf="place.scenario !== null || !processEditable"
+        <button *ngIf="place.scenario !== null && processEditable"
                 mat-button class="mat-button-dv"
                 (click)="showEditPlace(place)"
                 color="primary">
@@ -120,7 +120,7 @@
           </tr>
         </table>
       </div>
-      <button *ngIf="!activeScenario?.isBase || !processEditable"
+      <button *ngIf="!activeScenario?.isBase && processEditable"
               mat-button class="mat-button-dv"
               (click)="showEditCapacities(place)"
               color="primary">
