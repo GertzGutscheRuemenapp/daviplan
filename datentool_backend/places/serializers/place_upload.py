@@ -56,8 +56,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         sn_classifications = 'Klassifizierungen'
 
-        columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet. '\
-                   'Jeder Standort muss einen Namen haben, den kein anderer Standort trägt.'}
+        columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet.'}
 
         columns.update(ADDRESS_FIELDS)
         columns.update({'Lon': 'Längengrad, in WGS84',
