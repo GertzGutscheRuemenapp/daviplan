@@ -112,7 +112,7 @@ def disaggregate_population(population: Population,
     model = RasterCellPopulationAgeGender
     model_name = model._meta.object_name
     n_rows = len(df_cellagegender)
-    logger.info(f'Schreibe {n_rows:n} Einträge')
+    logger.debug(f'Schreibe {n_rows:n} Einträge')
     stepsize = settings.STEPSIZE
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = df_cellagegender.iloc[i:i + stepsize]
@@ -120,7 +120,7 @@ def disaggregate_population(population: Population,
         write_template_df(chunk, model, logger,
                           drop_constraints=drop_constraints,
                           log_level=logging.DEBUG)
-        logger.debug(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
+        logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
 
     return msg
 
@@ -207,7 +207,7 @@ def intersect_areas_with_raster(
     model = AreaCell
     model_name = model._meta.object_name
     n_rows = len(df2)
-    logger.info(f'Schreibe insgesamt {n_rows:n} Einträge')
+    logger.debug(f'Schreibe insgesamt {n_rows:n} Einträge')
     stepsize = settings.STEPSIZE
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = df2.iloc[i:i + stepsize]
@@ -215,7 +215,7 @@ def intersect_areas_with_raster(
         write_template_df(chunk, model, logger,
                           drop_constraints=drop_constraints,
                           log_level=logging.DEBUG)
-        logger.debug(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
+        logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
 
 
 def aggregate_many(area_levels, populations, drop_constraints=False):
@@ -294,7 +294,7 @@ def aggregate_population(area_level: AreaLevel, population: Population,
     model = AreaPopulationAgeGender
     model_name = model._meta.object_name
     n_rows = len(df_areaagegender)
-    logger.info(f'Schreibe insgesamt {n_rows:n} Einträge')
+    logger.debug(f'Schreibe insgesamt {n_rows:n} Einträge')
     stepsize = settings.STEPSIZE
     for i in np.arange(0, n_rows, stepsize, dtype=np.int64):
         chunk = df_areaagegender.iloc[i:i + stepsize]

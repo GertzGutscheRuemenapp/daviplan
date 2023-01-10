@@ -287,7 +287,7 @@ export class MapControl {
       this.getServiceLayerGroups({ internal: true, external: true });
     })
     this.markerLayer = new VectorLayer('marker-layer', {
-      zIndex: 100000
+      zIndex: 100000, visible: true
     });
     this.markerLayer.addToMap(this.map);
   }

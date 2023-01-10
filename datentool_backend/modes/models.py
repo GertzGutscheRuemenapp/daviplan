@@ -40,6 +40,12 @@ class Network(DatentoolModelMixin, NamedModel, models.Model):
     is_default = models.BooleanField(default=False)
     network_file = models.FileField(null=True)
 
+    def __str__(self) -> str:
+        s = f'Network {self.name}'
+        if self.is_default:
+            s += ' (default)'
+        return s
+
     def save(self, *args, modes2create=[Mode.WALK, Mode.BIKE, Mode.CAR], **kwargs):
         self._set_as_default()
         # create the modes for this network
@@ -83,8 +89,11 @@ class ModeVariant(DatentoolModelMixin, models.Model):
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
     is_default = models.BooleanField(default=False)
 
-    def __repr__(self) -> str:
-        return f'{Mode(self.mode).name} - {self.label}'
+    def __str__(self) -> str:
+        s = f'ModeVariant {Mode(self.mode).name} - {self.label}'
+        if self.is_default:
+            s += ' (default)'
+        return s
 
     def save(self, *args, **kwargs):
 

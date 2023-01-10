@@ -15,9 +15,10 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import * as fileSaver from "file-saver";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { environment } from "../../../../environments/environment";
 import { showAPIError } from "../../../helpers/utils";
+import { SettingsService } from "../../../settings.service";
 
 @Component({
   selector: 'app-transit-matrix',
@@ -26,7 +27,6 @@ import { showAPIError } from "../../../helpers/utils";
 })
 export class TransitMatrixComponent implements OnInit, OnDestroy {
   backend: string = environment.backend;
-  mapControl?: MapControl;
   variants: ModeVariant[] = [];
   selectedVariant?: ModeVariant;
   variantForm: FormGroup;
@@ -34,10 +34,11 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
   statistics?: ModeStatistics;
   isLoading$ = new BehaviorSubject<boolean>(false);
   isProcessing$ = new BehaviorSubject<boolean>(false);
+  subscriptions: Subscription[] = [];
   @ViewChild('editVariant') editVariantTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
 
-  constructor(private dialog: MatDialog, private restService: RestCacheService,
+  constructor(private dialog: MatDialog, private restService: RestCacheService, private settings: SettingsService,
               private http: HttpClient, private rest: RestAPI, private formBuilder: FormBuilder) {
     // make sure data requested here is up-to-date
     this.restService.reset();
@@ -48,6 +49,9 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.fetchVariants();
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
+      this.isProcessing$.next(bs.processes?.routing || false);
+    }));
   }
 
   fetchVariants(options?: { reset?: boolean }): void {
@@ -271,6 +275,6 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }
