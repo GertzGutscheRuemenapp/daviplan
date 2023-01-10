@@ -69,7 +69,7 @@ class TravelTimeRouterMixin:
                     else:
                         access_variant = ModeVariant.objects.get(id=get_default_access_variant())
                     av_id = access_variant.id
-                        
+
                     max_access_distance = float(max_access_distance or
                                                 MODE_MAX_DISTANCE[variant.mode])
                     max_direct_walktime = float(max_direct_walktime or
@@ -227,15 +227,26 @@ class TravelTimeRouterMixin:
         self.write_results_to_database(logger, qs, df_cs, drop_constraints,
                                        ignore_columns=['transit_variant_id'])
 
-        logger.info('Berechne Gesamtreisezeiten')
-        df = self.calculate_transit_traveltime(
-            access_variant=access_variant,
-            transit_variant=variant,
-            places=places,
-            max_direct_walktime=max_direct_walktime,
-            id_columns=['place_id', 'cell_id'],
-        )
-        return df
+        logger.info('Berechne Gesamtreisezeiten...')
+
+        if not places:
+            places = Place.objects.all()
+        chunk_size = 100
+        dataframes = []
+        for i in range(0, len(places), chunk_size):
+            places_part = places[i:i + chunk_size]
+            df = self.calculate_transit_traveltime(
+                access_variant=access_variant,
+                transit_variant=variant,
+                places=places_part,
+                max_direct_walktime=max_direct_walktime,
+                id_columns=['place_id', 'cell_id'],
+            )
+            dataframes.append(df)
+            logger.info(f'Gesamtreisezeiten zu {min((i+chunk_size), len(places)):n}/'
+                        f'{len(places):n} Orten berechnet')
+        df_res = pd.concat(dataframes)
+        return df_res
 
     @staticmethod
     def annotate_coords(queryset: QuerySet, geom='geom'):
