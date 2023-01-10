@@ -6,7 +6,7 @@ import {
   Input,
   AfterViewChecked,
   OnDestroy,
-  Output, EventEmitter
+  Output, EventEmitter, ChangeDetectorRef
 } from '@angular/core';
 import { environment } from "../../environments/environment";
 import { LogEntry } from "../rest-interfaces";
@@ -29,7 +29,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
 
   entries: LogEntry[] = [];
 
-  constructor(private restService: RestCacheService) {
+  constructor(private restService: RestCacheService, private cdref: ChangeDetectorRef) {
     const host = environment.production? window.location.hostname: environment.backend.replace('http://', '');
     this.wsURL = `${(environment.production && host.indexOf('localhost') === -1)? 'wss:': 'ws:'}//${host}/ws/log/`;
   }
@@ -38,6 +38,8 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
     if (this.fetchOldLogs)
       this.restService.getLogs({ room: this.room, reset: true }).subscribe(entries => {
         entries.forEach(entry => this.addLogEntry(entry));
+        this.cdref.detectChanges();
+        this.scrollToBottom(true);
         this.connect();
       });
     else
@@ -45,7 +47,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
   }
 
   ngAfterViewChecked() {
-    this.scrollToBottom();
+    this.scrollToBottom(false);
   }
 
   connect(): void {
@@ -70,10 +72,11 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
       // cut off milliseconds
       entry.timestamp = entry.timestamp.split(',')[0];
     this.entries.push(entry);
-    this.scrollToBottom();
   }
 
-  private scrollToBottom(): void {
+  scrollToBottom(forced= true): void {
+    // if not forced: scroll automatically to bottom if already close to bottom, do not if manually scrolled up
+    if (forced || this.logEl.nativeElement.scrollHeight - this.logEl.nativeElement.scrollTop < 1000)
       this.logEl.nativeElement.scrollTop = this.logEl.nativeElement.scrollHeight;
   }
 

@@ -78,7 +78,7 @@ export class LocationsComponent implements OnInit, AfterViewInit, OnDestroy {
       })
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
-      this.isProcessing$.next(bs.processes?.routing || false);
+      this.isProcessing$.next(bs.processes?.infrastructure || false);
     }));
   }
 
