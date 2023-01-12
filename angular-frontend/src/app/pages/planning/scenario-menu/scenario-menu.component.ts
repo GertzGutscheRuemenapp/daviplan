@@ -79,7 +79,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     })
     this.planningService.scenarioChanged.subscribe(scenario => {
       if (this.domain==="supply") {
-        this.updateTotalCapacities({scenario: scenario, reset:true});
+        this.updateTotalCapacities({scenario: scenario, reset: true});
       }
     })
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
@@ -132,7 +132,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     if (!options?.scenario)
       this.totalCapacities = {};
     if (!this.service || !this.year) return;
-    this.planningService.getTotalCapactities(this.year, this.service,{scenario:options?.scenario, planningProcess:this.planningService.activeProcess, reset:options?.reset}).subscribe(cap => {
+    this.planningService.getTotalCapactities(this.year, this.service,{scenario:options?.scenario, planningProcess: this.planningService.activeProcess, reset:options?.reset}).subscribe(cap => {
       const baseCap = cap.find(scen => scen.scenarioId===0) || this.totalCapacities[0];
       if (!baseCap) return;
       cap.forEach(scen => {
