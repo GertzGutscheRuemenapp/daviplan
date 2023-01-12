@@ -32,6 +32,8 @@ function getIndicatorLegendClasses(mode: TransportMode): IndicatorLegendClass[]{
   });
 }
 
+type IndicatorType = 'place' | 'cell' | 'next';
+
 @Component({
   selector: 'app-reachabilities',
   templateUrl: './reachabilities.component.html',
@@ -41,7 +43,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   rasterCells: RasterCell[] = [];
   activeMode: TransportMode = TransportMode.WALK;
-  indicator: 'place' | 'cell' | 'next' = 'next';
+  indicator: IndicatorType = 'next';
   infrastructures: Infrastructure[] = [];
   places: Place[] = [];
   activeInfrastructure?: Infrastructure;
@@ -75,15 +77,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
-      this.updatePlaces().subscribe(() => this.onIndicatorChange());
+      this.updatePlaces().subscribe(() => this.renderReachability());
     }))
     this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
       this.activeService = service;
-      this.updatePlaces().subscribe(() => this.onIndicatorChange());
+      this.updatePlaces().subscribe(() => this.renderReachability());
     }))
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
-      this.updatePlaces().subscribe(() => this.onIndicatorChange());
+      this.updatePlaces().subscribe(() => this.renderReachability());
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
@@ -98,6 +100,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.activeMode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     // @ts-ignore
     this.indicator = this.cookies.get('planning-reach-indicator', 'string') || 'place';
+    this.onIndicatorChange();
   }
 
   updatePlaces(): Observable<boolean> {
@@ -172,6 +175,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   showPlaceReachability(): void {
     if (this.selectedPlaceId === undefined || !this.activeScenario) return;
     this.updateMapDescription('zur ausgewählten Einrichtung');
+
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode, { scenario: this.activeScenario }).subscribe(cellResults => {
       this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};
@@ -189,6 +193,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         style.fillColor = {
           bins: getIndicatorLegendClasses(this.activeMode)
         };
+      }
+      if (this.placesLayer && this.selectedPlaceId !== undefined) {
+        this.placesLayer.selectFeatures([this.selectedPlaceId],{silent: true});
       }
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
@@ -225,6 +232,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
       this.mapControl?.removeMarker();
       this.mapControl?.addMarker(cell.geom as Geometry);
+      if (!this.activeScenario) return;
       this.planningService.getCellReachability(cell.cellcode, this.activeMode, { scenario: this.activeScenario }).subscribe(placeResults => {
         this.reachLayerGroup?.clear();
         const valueBins = modeBins[this.activeMode];
@@ -328,8 +336,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.setCursor(placeSelectMode? 'search': cellSelectMode? 'marker': 'default');
     // this.mapControl?.setCursor(cellSelectMode? 'marker': 'default');
     this.mapControl?.removeMarker();
-    if (this.placesLayer)
-      this.placesLayer?.clearSelection();
     this.reachLayerGroup?.clear();
     this.mapControl?.setDescription('');
     if (this.indicator === 'next')
@@ -356,6 +362,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   changeMode(mode: TransportMode): void {
     this.activeMode = mode;
     this.cookies.set('planning-mode', mode);
+    this.renderReachability();
+  }
+
+  renderReachability(): void {
     switch (this.indicator) {
       case 'place':
         this.showPlaceReachability();
