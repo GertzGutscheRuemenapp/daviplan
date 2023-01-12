@@ -72,7 +72,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     @classmethod
     def create_traveltime_matrix(cls):
         """create traveltime matrix between all cells and places"""
-        variant = ModeVariantFactory(mode=Mode.WALK)
+        variant = ModeVariantFactory(mode=Mode.WALK, is_default=True)
         mcs = MatrixCellPlaceRouter()
         logger = logging.getLogger('routing')
         df = mcs.calculate_airdistance_traveltimes(variant=variant,

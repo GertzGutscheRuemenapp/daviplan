@@ -12,6 +12,17 @@ class ModeVariantMixin:
     def get_mode_variant(self, mode: Mode, scenario_id: int = None) -> ModeVariant:
         """get the mode variant"""
 
+        def get_default_variant():
+            try:
+                variant = ModeVariant.objects.get(mode=mode,
+                                                  is_default=True)
+            except ModeVariant.DoesNotExist:
+                variant = ModeVariant.objects.filter(mode=mode)[0]
+            return variant
+
+        if scenario_id is None:
+            return get_default_variant()
+
         scenario_modevariant = ScenarioMode.objects.filter(scenario=scenario_id,
                                                            variant__mode=mode)
         if not scenario_modevariant:
@@ -20,11 +31,7 @@ class ModeVariantMixin:
         if scenario_modevariant:
             variant = scenario_modevariant.first().variant
         else:
-            try:
-                variant = ModeVariant.objects.get(mode=mode,
-                                                  is_default=True)
-            except ModeVariant.DoesNotExist:
-                variant = ModeVariant.objects.filter(mode=mode)[0]
+            variant = get_default_variant()
         return variant
 
 reachability_bins_by_mode = {
