@@ -122,7 +122,7 @@ class ProtectedProcessManager:
                 return ProcessState.objects.create(scope=scope.value)
         return
 
-    def start_calculation(self):
+    def init_calculation(self):
         blocking_scope = None
         for scope in self.blocked_by:
             if self.is_running(scope):
@@ -163,7 +163,7 @@ class ProtectedProcessManager:
         state.save()
 
     def run(self, func, *args, **kwargs):
-        self.start_calculation()
+        self.init_calculation()
         if self._run_sync:
             try:
                 func(*args, logger=self.logger, **kwargs)

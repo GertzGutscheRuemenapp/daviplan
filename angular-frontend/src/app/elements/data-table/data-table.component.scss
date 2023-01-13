@@ -2,10 +2,12 @@ table {
   border-spacing: 0;
   overflow: auto;
   display: block;
+  //display: flex;
+  //flex-direction: column;
   .header {
     position: sticky;
-    position: -webkit-sticky;
-    top: -1px;
+    //position: -webkit-sticky;
+    top: 0px;
     z-index: 1;
     background-color: white;
   }

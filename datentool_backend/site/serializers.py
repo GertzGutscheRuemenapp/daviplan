@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min, Count
 from django.conf import settings
+from datetime import datetime
 import logging
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -120,16 +121,20 @@ class BaseDataSettingSerializer(serializers.Serializer):
             return
 
     def get_routing(self, obj):
-        base_net_existing = os.path.exists(
-            os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF))
-        project_area_net_existing = os.path.exists(
-            os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
+        base_net_file = os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF)
+        base_net_existing = os.path.exists(base_net_file)
+        base_net_date = datetime.fromtimestamp(
+            os.path.getmtime(base_net_file)).strftime('%d.%m.%Y %H:%M:%S')\
+            if base_net_existing else ''
+        project_net_date = ProjectSetting.load().project_net_date
+        if project_net_date:
+            project_net_date = project_net_date.strftime('%d.%m.%Y %H:%M:%S')
         #running = {}
         #for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
             #running[mode.name] = OSRMRouter(mode).is_running
         return {
-            'base_net': base_net_existing,
-            'project_area_net': project_area_net_existing,
+            'base_net_date': base_net_date,
+            'project_net_date': project_net_date,
             #'running': running,
         }
 
@@ -140,7 +145,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
 
 
 class SiteSettingSerializer(serializers.ModelSerializer):
-    #''''''
+    ''''''
     #url = serializers.HyperlinkedIdentityField(
         #view_name='settings-detail', read_only=True)
     bkg_password_is_set = serializers.SerializerMethodField()

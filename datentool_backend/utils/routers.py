@@ -2,6 +2,25 @@ import requests
 from django.conf import settings
 from routingpy import OSRM
 import polyline
+from datentool_backend.models import Mode
+
+
+def assert_routers_are_running(check_service_only=False) -> str:
+    '''run all routers on start'''
+    error_msg = None
+
+    for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+        router = OSRMRouter(mode)
+        if not router.service_is_up:
+            error_msg = ('Der Router-Service reagiert nicht. '
+                         'Bitte kontaktieren Sie den Administrator.')
+            break
+        if not check_service_only and not router.is_running:
+            router.run()
+            error_msg = ('Der Router läuft gerade nicht. Er wird versucht '
+                         'zu starten. Bitte warten Sie ein paar Minuten '
+                         'und versuchen Sie es dann erneut')
+    return error_msg
 
 
 class OSRMRouter():

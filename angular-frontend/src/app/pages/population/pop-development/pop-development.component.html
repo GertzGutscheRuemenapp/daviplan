@@ -105,7 +105,10 @@
       </div>
       Vergleichsdarstellung
       <app-help-button title="Vergleichsdarstellung" position="right">
-        <p></p>
+        <p>Sie können sich die Entwicklung zwischen zwei Jahren anzeigen lassen. Klappen Sie hierzu den Menübereich
+          „Vergleichsdarstellung“ aus und aktivieren Sie das dortige Häkchen. Anschließend können Sie ein Vergleichsjahr auswählen.
+          Die Karte zeigt nun die Veränderung der Zahl der Einwohner:innen zwischen dem Jahr des Zeitschiebers und diesem Vergleichsjahr.
+          Von Ihnen ggf. eingestellte Filter nach Geschlecht und Altersgruppe werden dabei berücksichtigt.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -120,12 +123,12 @@
                 [(ngModel)]="comparedYear"
                 [disabled]="!compareYears"
                 (selectionChange)="onUpdateCompare()">
-      <mat-optgroup>
+      <mat-optgroup class="group-label-hidden">
         <mat-option *ngFor="let year of realYears" [value]="year">
           {{year}}
         </mat-option>
       </mat-optgroup>
-      <mat-optgroup label="Prognosejahre">
+      <mat-optgroup *ngIf="prognosisYears.length > 0" label="Prognosejahre">
         <mat-option *ngFor="let year of prognosisYears" [value]="year">
           {{year}}
         </mat-option>
