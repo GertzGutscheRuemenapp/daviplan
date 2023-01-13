@@ -255,7 +255,9 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
 
     # iterate over all places
     n_new = 0
+    n_failed = 0
     for place_id, place_row in df_places.iterrows():
+        created = False
         if pd.isna(place_id):
             place_id = None
         # check if place_id exists, otherwise create it
@@ -263,7 +265,7 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
             place = Place.objects.get(pk=place_id)
         except Place.DoesNotExist:
             place = Place()
-            n_new += 1
+            created = True
 
         place_name = place_row['Name']
         if pd.isna(place_name):
@@ -274,15 +276,27 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
         lat = place_row['Lat']
         if pd.isna(lon) or pd.isna(lat):
             if geocoder:
-                # ToDo: handle auth errors ...
-                logger.info('Geokodiere Adressen')
+                logger.info(f'Geokodiere Adresse für "{place_row.Name}"')
                 res = geocode(geocoder, place_row)
                 if res:
-                    lon, lat = res
+                    (lon, lat), typ = res
+                    if typ.lower() not in ['haus', 'strasse']:
+                        logger.error(
+                            f'Ermittelte Koordinaten für "{place_row.Name}" '
+                            f'sind nicht genau genug. Gefundene Ebene: {typ}. '
+                            'Benötigte Genauigkeit: Haus oder Straße')
+                        n_failed += 1
+                        continue
                     geom = Point(lon, lat, srid=3857)
                 else:
-                    logger.error(f'''Konnte Adresse für {place_row.Name} mit folgender Adresse nicht finden:
-                    Ort: {place_row.Ort}, PLZ: {place_row.PLZ}, strasse: {place_row.Straße}, Haus: {place_row.Hausnummer}''')
+                    logger.error(
+                        f'Konnte Koordinaten für "{place_row.Name}" mit '
+                        'folgender Adresse nicht finden: '
+                        f'Ort: { "-" if pd.isna(place_row.Ort) else place_row.Ort}, '
+                        f'PLZ: {"-" if pd.isna(place_row.PLZ) else place_row.PLZ}, '
+                        f'strasse: {"-" if pd.isna(place_row.Straße) else place_row.Straße}, '
+                        f'Haus: {"-" if pd.isna(place_row.Hausnummer) else place_row.Hausnummer}')
+                    n_failed += 1
                     continue
             else:
                 from django.core.exceptions import ValidationError
@@ -297,6 +311,8 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
         place.name = place_name
         place.geom = geom
         place.save()
+        if created:
+            n_new += 1
         place_ids.append(place.id)
 
         # collect the place_attributes
@@ -369,22 +385,37 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
                 drop_constraints=False, drop_indexes=False,
             )
     logger.info(f'{len(df_places):n} Einträge bearbeitet')
+    if n_failed > 0:
+        logger.info(f'{n_failed:n} Einträge wurden übersprungen, da ihre '
+                    'Geokodierung fehlgeschlagen ist.')
+    n_updated = len(df_places) - n_failed - n_new
+    if n_updated > 0:
+        logger.info(f'{n_updated:n} bestehende Orte aktualisiert')
     if n_new > 0:
-        logger.info(f'davon {n_new:n} als neue Orte hinzugefügt')
+        logger.info(f'{n_new:n} Einträge als neue Orte hinzugefügt')
         logger.info('ACHTUNG: Für die neuen Orte muss die '
-                         'Erreichbarkeit neu berechnet werden!')
+                    'Erreichbarkeit neu berechnet werden!')
 
-def geocode(geocoder: BKGGeocoder, place_row: dict) -> Tuple[float, float]:
-    kwargs = {
-        'ort': place_row.Ort,
-        'plz': place_row.PLZ,
-        'strasse': place_row.Straße,
-        'haus': place_row.Hausnummer,
-    }
+def geocode(geocoder: BKGGeocoder, place_row: dict) -> Tuple[Tuple[float, float], str]:
+    kwargs = {}
+
+    for key, value in [('ort', place_row.Ort),
+                       ('plz', place_row.PLZ),
+                       ('strasse', place_row.Straße),
+                       ('haus', place_row.Hausnummer)]:
+        if value and not pd.isna(value):
+            kwargs[key] = value
+
+    if len(kwargs) == 0:
+        return
+
     res = geocoder.query(max_retries=2, **kwargs)
     if res.status_code != 200:
         return
     features = res.json()['features']
     if not features:
         return
-    return features[0]['geometry']['coordinates']
+    feature = features[0]
+    coords = feature['geometry']['coordinates']
+    typ = feature['properties']['typ']
+    return coords, typ

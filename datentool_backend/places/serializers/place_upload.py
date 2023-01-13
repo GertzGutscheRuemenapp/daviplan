@@ -76,9 +76,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
         dv_float.title = 'Ungültige Zahlen-Werte'
 
         dv_pos_float = DataValidation(type="decimal",
-                                operator="greaterThanOrEqual",
-                                formula1=0,
-                                allow_blank=True)
+                                      operator="greaterThanOrEqual",
+                                      formula1=0,
+                                      allow_blank=True)
         dv_pos_float.error = 'Nur Zahlen >= 0 erlaubt'
         dv_pos_float.title = 'Ungültige positive Zahlen-Werte'
 
