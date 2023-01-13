@@ -255,13 +255,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
             dv.errorTitle = 'Ungültige Koordinaten'
             dv.add('G3:H999999')
 
-            dv_unique_name = DataValidation(type='custom',
-                                            formula1='=COUNTIF(B$3:B$99999,B3)<2',
-                                            allow_blank=True)
-            dv_unique_name.error ='Name muss eindeutig sein'
-            dv_unique_name.errorTitle = 'Name nicht eindeutig'
-            dv_unique_name.add('B3:B999999')
-
             dv_plz = DataValidation(type='textLength',
                                     operator='equal',
                                     formula1=5,
@@ -271,7 +264,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
             dv_plz.add('E3:E999999')
 
             ws.add_data_validation(dv)
-            ws.add_data_validation(dv_unique_name)
             ws.add_data_validation(dv_01)
             ws.add_data_validation(dv_float)
             ws.add_data_validation(dv_pos_float)

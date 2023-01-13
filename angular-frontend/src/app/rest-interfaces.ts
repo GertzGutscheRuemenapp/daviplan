@@ -13,8 +13,8 @@ export interface BasedataSettings {
   defaultDemandRateSets: { service: number, demandrateset: number }[];
   defaultPrognosis: number;
   routing?: {
-    baseNet: boolean,
-    projectAreaNet: boolean,
+    baseNetDate?: string,
+    projectNetDate?: string,
     running?: Record<string, boolean>
   };
   processes?: Record<string, boolean>

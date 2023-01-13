@@ -23,6 +23,8 @@ class Year(DatentoolModelMixin, models.Model):
 
 class ProjectSetting(SingletonModel):
     project_area = MultiPolygonField(null=True, srid=3857)
+    # date when osm network was last intersected with project area
+    project_net_date = models.DateTimeField(null=True)
 
 
 class SiteSetting(SingletonModel):
