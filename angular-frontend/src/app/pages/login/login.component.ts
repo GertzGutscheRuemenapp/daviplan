@@ -7,6 +7,7 @@ import { SettingsService, SiteSettings } from "../../settings.service";
 import { environment } from "../../../environments/environment";
 import { User } from "../../rest-interfaces";
 import { Subscription } from "rxjs";
+import { RestCacheService } from "../../rest-cache.service";
 
 @Component({
   selector: 'app-login',
@@ -26,7 +27,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   private sub?: Subscription;
 
   constructor(private settingsService: SettingsService, private formBuilder: FormBuilder, public auth: AuthService,
-              private router: Router, private route: ActivatedRoute) {
+              private router: Router, private route: ActivatedRoute,
+              private rest: RestCacheService) {
     this.loginForm = this.formBuilder.group({
       userName: '',
       password: ''
@@ -53,6 +55,8 @@ export class LoginComponent implements OnInit, OnDestroy {
           }).subscribe(token => {
             // fetch global settings after logged in
             this.settingsService.refresh();
+            // reset rest caches
+            this.rest.reset();
             this.router.navigate([this.next || '/']);
           }, (error) => {
             const msg = (error.status === 0)? 'Server antwortet nicht': $localize`Keine Übereinstimmung von Nutzer und Passwort`;

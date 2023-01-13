@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Output, TemplateRef } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Inject, Output, TemplateRef } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { BehaviorSubject } from "rxjs";
 
@@ -21,9 +21,10 @@ interface DialogData {
   templateUrl: './simple-dialog.component.html',
   styleUrls: ['./simple-dialog.component.scss']
 })
-export class SimpleDialogComponent {
+export class SimpleDialogComponent implements AfterViewInit {
   @Output() confirmed = new EventEmitter<boolean>();
   isLoading$ = new BehaviorSubject<boolean>(false);
+  initReady = false;
 
   constructor(public dialogRef: MatDialogRef<SimpleDialogComponent>,
               @Inject(MAT_DIALOG_DATA) public data: DialogData) {
@@ -52,5 +53,10 @@ export class SimpleDialogComponent {
     if (options?.loading)
       dialogRef.componentInstance.isLoading$.next(true);
     return dialogRef;
+  }
+
+  ngAfterViewInit() {
+    // workaround for disabling closing-animation of help panel in dialog
+    setTimeout(() => this.initReady = true);
   }
 }
