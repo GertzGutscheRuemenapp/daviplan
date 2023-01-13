@@ -1327,3 +1327,7 @@ mat-checkbox.reverse {
     color: $warning;
   }
 }
+
+mat-optgroup.group-label-hidden .mat-optgroup-label {
+  display: none;
+}
