@@ -79,11 +79,10 @@
         </tr>
       </table>
     </app-input-card>
-    <app-input-card [title]="'Ergänzte/Korrigierte Einwohnerdaten hochladen'"
+    <app-input-card [title]="'Ergänzte/korrigierte Einwohnerdaten hochladen'"
                     [disabled]="(isProcessing$ | async) || years.length === 0 || realYears.length === 0 || !popLevel || popLevel?.areaCount === 0"
-
                     infoText="<p>Sollten Sie Lücken in den Daten finden, einzelne Werte korrigieren wollen oder keine Daten online abrufen können oder wollen, können Sie Einwohnerdaten auch händisch eingeben.</p>
-                    <p>Laden Sie sich hierzu über die Schaltfläche „Vorlage herunterladen“ eine Excel-Vorlage herunter. Diese enthält alle bereits per Online-Abruf oder frühere Eintragungen bereits in daviplan verfügbaren Einwohnerdaten.</p>
+                    <p>Laden Sie sich hierzu über die Schaltfläche „Vorlage herunterladen“ eine Excel-Vorlage herunter. Diese enthält alle bereits per Online-Abruf oder frühere Eintragungen bereits in daviplan verfügbaren Einwohnerdaten. Um eine Vorlage zu erzeugen, muss die Liste „Jahre mit Vergangenheitsdaten” mindestens ein Jahr beinhalten.“</p>
                     <p>Öffnen Sie die heruntergeladene Vorlage in Excel und nehmen Sie dort Ihre Eintragungen vor. Laden Sie anschließend immer diese gesamte Vorlage inkl. Ihrer Änderungen hoch.</p>
                     <p>Um der Vorlage ein weiteres Jahr hinzufügen, für das Ihnen bereits Vergangenheitsdaten vorliegen (aber die ggf. noch nicht im online-Abruf verfügbar ist), klicken Sie bitte auf die Schaltfläche „Editieren“ in der Eingabebox „Jahre“, wählen dort das betreffende Jahr aus und laden anschließend hier die Vorlage – ggf. erneut – herunter.</p>">
       <span *ngIf="realYears.length === 0" style="margin-bottom: 10px;">
