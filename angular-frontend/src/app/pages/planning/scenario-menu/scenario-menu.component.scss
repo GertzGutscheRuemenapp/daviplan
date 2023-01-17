@@ -27,7 +27,7 @@
 
 .scenario-card {
   height: 100%;
-  width: 200px;
+  min-width: 200px;
   border: 1px solid #cbe6f8;
   .scenario-card-header {
     height: 50px;
