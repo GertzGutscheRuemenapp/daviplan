@@ -8,7 +8,7 @@
 }
 
 #project-area-select-map {
-  height: 600px;
+  height: 500px;
   position: relative;
   width: 100%;
   background-color: white;
@@ -40,7 +40,7 @@
 }
 
 #selected-area-list {
-  max-height: 240px;
+  max-height: 210px;
 
   li {
     font-weight: bold;
@@ -52,7 +52,7 @@
 }
 
 #available-area-list {
-  max-height: 300px;
+  max-height: 230px;
 
   li {
     color: grey;

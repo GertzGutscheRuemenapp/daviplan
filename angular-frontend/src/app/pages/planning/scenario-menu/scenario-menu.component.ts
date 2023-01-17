@@ -62,7 +62,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
   prognoses: Prognosis[] = [];
   year?: number;
   totalCapacities: Record<number, LabelledTotalCapacity> = {};
-  service?:Service;
+  service?: Service;
   subscriptions: Subscription[] = [];
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,

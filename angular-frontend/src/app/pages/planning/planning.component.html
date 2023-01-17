@@ -11,7 +11,7 @@
       <mat-select #processSelect disableOptionCentering disableRipple
                   [ngbPopover]="activeProcessPopover"
                   [popoverTitle]="activeProcess?.name"
-                  placement="auto"
+                  placement="right-top"
                   container="body"
                   triggers="mouseenter:mouseleave"
                   panelClass="custom-option-panel"
@@ -29,8 +29,7 @@
           </span>
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
-        <mat-optgroup *ngIf="user?.profile?.canCreateProcess || myProcesses.length > 0"
-                      label="Meine Planungsprozesse">
+        <mat-optgroup label="Meine Planungsprozesse">
           <button *ngIf="user?.profile?.canCreateProcess || user?.isSuperuser"
                   title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"

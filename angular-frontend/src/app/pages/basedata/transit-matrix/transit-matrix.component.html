@@ -88,7 +88,7 @@
       <table>
         <tr>
           <td i18n>Anzahl Haltestellen: </td>
-          <td>{{(this.statistics?.nStops && this.selectedVariant)? (this.statistics!.nStops![this.selectedVariant.id]?.toLocaleString() || '-'): '-'}}</td>
+          <td>{{(this.statistics?.nStops && this.selectedVariant)? (this.statistics!.nStops![this.selectedVariant.id]?.toLocaleString() || 'keine'): 'keine'}}</td>
         </tr>
       </table>
       <div style="display: flex; margin-top: 10px;">
@@ -115,7 +115,7 @@
       <table>
         <tr>
           <td i18n>Anzahl Relationen: </td>
-          <td>{{(this.statistics?.nRelsStopStopModevariant && this.selectedVariant)? (this.statistics!.nRelsStopStopModevariant![this.selectedVariant.id]?.toLocaleString() || '-'): '-'}}</td>
+          <td>{{(this.statistics?.nRelsStopStopModevariant && this.selectedVariant)? (this.statistics!.nRelsStopStopModevariant![this.selectedVariant.id]?.toLocaleString() || 'keine'): 'keine'}}</td>
         </tr>
       </table>
       <div style="display: flex; margin-top: 10px;">
@@ -169,7 +169,7 @@
       <table>
         <tr>
           <td i18n>Anzahl Relationen: </td>
-          <td>{{(this.statistics?.nRelsPlaceCellModevariant && this.selectedVariant)? (this.statistics!.nRelsPlaceCellModevariant![this.selectedVariant.id]?.toLocaleString() || '-'): '-'}}</td>
+          <td>{{(this.statistics?.nRelsPlaceCellModevariant && this.selectedVariant)? (this.statistics!.nRelsPlaceCellModevariant![this.selectedVariant.id]?.toLocaleString() || 'keine'): 'keine'}}</td>
         </tr>
       </table>
       <button style="margin-top: 10px;"
