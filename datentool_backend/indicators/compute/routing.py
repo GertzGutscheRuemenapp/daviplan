@@ -111,7 +111,7 @@ class TravelTimeRouterMixin:
                             dataframes.append(df)
                             dataframes_variant.append(df)
                             logger.info(f'{min((i+chunk_size), len(places)):n}/'
-                                        f'{len(places):n} Orte berechnet')
+                                        f'{len(places):n} Orten berechnet')
 
                 if dataframes_variant:
                     df = pd.concat(dataframes_variant)
@@ -231,20 +231,20 @@ class TravelTimeRouterMixin:
 
         if not places:
             places = Place.objects.all()
-        chunk_size = 100
         dataframes = []
-        for i in range(0, len(places), chunk_size):
-            places_part = places[i:i + chunk_size]
+        for i, place in enumerate(places):
             df = self.calculate_transit_traveltime(
                 access_variant=access_variant,
                 transit_variant=variant,
-                places=places_part,
+                places=[place],
                 max_direct_walktime=max_direct_walktime,
                 id_columns=['place_id', 'cell_id'],
             )
             dataframes.append(df)
-            logger.info(f'Gesamtreisezeiten zu {min((i+chunk_size), len(places)):n}/'
-                        f'{len(places):n} Orten berechnet')
+            c = i + 1
+            if not c % 100 or c == len(places):
+                logger.info(f'Gesamtreisezeiten zu {c:n}/'
+                            f'{len(places):n} Orten berechnet')
         df_res = pd.concat(dataframes)
         return df_res
 
@@ -661,7 +661,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                     df['transit_variant_id'] = transit_variant.pk
                     dataframes.append(df)
                     logger.info(f'{min((i+chunk_size), len(places)):n}/'
-                                f'{len(places):n} Orte berechnet')
+                                f'{len(places):n} Orten berechnet')
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'
