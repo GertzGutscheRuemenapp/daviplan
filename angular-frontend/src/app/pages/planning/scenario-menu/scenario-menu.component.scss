@@ -33,31 +33,21 @@
     height: 50px;
     text-align: center;
     padding: 5px;
-    //pointer-events: none;
+    display: flex;
     cursor: pointer;
-    //display: flex;
     //justify-content: center;
   }
   .scenario-card-body {
-    //pointer-events: none;
     background-color: #f4f4f4;
     min-height: 85px;
     font-size: 12px;
-    //text-align: center;
     padding: 10px;
     mat-form-field {
       width: 100%;
     }
     .scenario-row {
-      //position: relative;
       display: flex;
-/*      mat-form-field {
-        width: 145px;
-      }*/
       mat-icon {
-        //position: absolute;
-        //top: 18px;
-        //right: -5px;
         cursor: pointer;
         align-self: end;
         margin-right: 5px;
@@ -108,10 +98,14 @@
   border-left: 6px solid #2196f3;
   padding-left: 6px;
   display: flex;
+  position: absolute;
+  right: -50px;
+  top: 70px;
   //align-items: center;
 
   button {
-    margin: 8px 0;
+    outline: #2196F3 1px solid;
+    box-shadow: 0px 1px 5px 1px #a7a7a7;
   }
 }
 

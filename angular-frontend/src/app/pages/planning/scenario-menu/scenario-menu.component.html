@@ -24,7 +24,28 @@
            class="scenario-card">
         <div class="scenario-card-header"
              (click)="setScenario(scenario)">
-          {{ scenario.name }}
+          <div [style.width]="(!scenario.isBase && processEditable)? 'calc(100% - 30px)': '100%'">{{ scenario.name }}</div>
+          <ng-container *ngIf="!scenario.isBase && processEditable">
+            <button mat-icon-button color="primary"
+                    class="small"
+                    style="width: 30px; margin-top: -2px;"
+                    [matMenuTriggerFor]="editMenu"
+                    [ngClass]="{'inverted': scenario.id === activeScenario?.id}"
+                    title="Szenariomenü (Editieren/Entfernen)"
+                    (click)="$event.stopPropagation()">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #editMenu>
+              <button mat-menu-item (click)="editScenario(scenario);">
+                <mat-icon>edit</mat-icon>
+                <span>Szenario editieren</span>
+              </button>
+              <button mat-menu-item (click)="deleteScenario(scenario);">
+                <mat-icon>delete</mat-icon>
+                <span>Szenario entfernen</span>
+              </button>
+            </mat-menu>
+          </ng-container>
         </div>
         <div class="scenario-card-body">
           <ng-container *ngIf="domain==='demand'">
@@ -49,21 +70,9 @@
     <div id="scenario-controls" *ngIf="processEditable">
       <div>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined || activeScenario.id === baseScenario?.id"
-                (click)="onEditScenario()"
-                title="ausgewähltes Szenario editieren">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button color="primary" class="small"
                 (click)="onCreateScenario()"
                 title="Szenario erstellen">
           <mat-icon>add</mat-icon>
-        </button>
-        <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined || activeScenario.id === baseScenario?.id"
-                (click)="onDeleteScenario()"
-                title="ausgewähltes Szenario entfernen">
-          <mat-icon>close</mat-icon>
         </button>
       </div>
     </div>
@@ -76,7 +85,7 @@
   </div>
 </div>
 
-<ng-template #editScenario>
+<ng-template #editScenarioTemplate>
   <form [formGroup]="editScenarioForm">
     <div fxLayout="column">
       <mat-form-field appearance="fill">

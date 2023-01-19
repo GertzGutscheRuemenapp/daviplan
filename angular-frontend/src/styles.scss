@@ -569,15 +569,15 @@ button.mat-icon-button {
     color: white;
   }
 }
-.mini-fab-icon.inverted.primary {
-  background-color: $primary;
-}
 .mat-icon-button.inverted{
   color: white;
   background-color: $accent;
 }
-.mat-icon-button.inverted[color="primary"] {
+.mat-icon-button.inverted[color="primary"], .mini-fab-icon.inverted.primary {
   background-color: $primary;
+}
+.mat-icon-button.inverted[color="primary"]:hover, .mat-mini-fab[color="primary"]:hover {
+  background-color: #4baefc;
 }
 .mat-icon-button.inverted[color="warning"] {
   background-color: $warning;
@@ -1330,4 +1330,9 @@ mat-checkbox.reverse {
 
 mat-optgroup.group-label-hidden .mat-optgroup-label {
   display: none;
+}
+
+.mat-menu-content .mat-focus-indicator {
+  border: none !important;
+  outline: none;
 }
