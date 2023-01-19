@@ -43,6 +43,7 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
             # set default prognosis
             try:
                 self.prognosis = Prognosis.objects.get(is_default=True)
+                self.save()
             except Prognosis.DoesNotExist:
                 pass
 

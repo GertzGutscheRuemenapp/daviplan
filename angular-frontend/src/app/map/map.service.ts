@@ -638,8 +638,12 @@ export class MapControl {
   }
 
   exportTitleToClipboard(): void {
-    // current value of map description with <br> replaced with line break HTML, removed other HTML tags and replaced multiple spaces with single spaces
-    const description = this.mapDescription$.value.replace('<br>', '\n').replace(/<[^>]+>/g, '').replace(/  +/g, ' ');
+    // remove existing line breaks
+    let description = this.mapDescription$.value.split('\n').join('');
+    // replace <br> with line breaks
+    description = description.split('<br>').join('\n');
+    // remove other HTML tags and replace multiple spaces with single spaces
+    description = description.replace(/<[^>]+>/g, '').replace(/  +/g, ' ');
     navigator.clipboard.writeText(description);
   }
 

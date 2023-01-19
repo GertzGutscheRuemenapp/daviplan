@@ -377,15 +377,18 @@ export class PrognosisDataComponent implements OnInit, AfterViewInit, OnDestroy 
         value: this.activePrognosis.name
       }
     });
+    this.isLoading$.next(true);
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/`
+        this.http.delete(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/?force=true`
         ).subscribe(() => {
           this.activePrognosis = undefined;
+          this.isLoading$.next(false);
           // other prognosis might change on deletion of the default one
           this.popService.fetchPrognoses().subscribe(prognoses => this.prognoses = prognoses);
         },(error) => {
           showAPIError(error, this.dialog);
+          this.isLoading$.next(false);
         });
       }
     });

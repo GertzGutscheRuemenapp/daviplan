@@ -7,6 +7,7 @@
   pointer-events: none;
   padding-top: 1px;
   float: left;
+  position: relative;
 }
 
 #scenario-cards-wrapper {
@@ -14,7 +15,8 @@
   //border: 1px solid #cbe6f8;
   border-left: 2px solid $primary;
   border-top: 6px solid $primary;
-  box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  //box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  box-shadow: 0px 1px 5px 1px #a7a7a7;
   float: right;
   display: flex;
 }
@@ -30,34 +32,25 @@
   min-width: 200px;
   border: 1px solid #cbe6f8;
   .scenario-card-header {
-    height: 50px;
+    height: 54px;
     text-align: center;
     padding: 5px;
-    //pointer-events: none;
+    display: flex;
     cursor: pointer;
-    //display: flex;
+    align-items: center;
     //justify-content: center;
   }
   .scenario-card-body {
-    //pointer-events: none;
     background-color: #f4f4f4;
     min-height: 85px;
     font-size: 12px;
-    //text-align: center;
     padding: 10px;
     mat-form-field {
       width: 100%;
     }
     .scenario-row {
-      //position: relative;
       display: flex;
-/*      mat-form-field {
-        width: 145px;
-      }*/
       mat-icon {
-        //position: absolute;
-        //top: 18px;
-        //right: -5px;
         cursor: pointer;
         align-self: end;
         margin-right: 5px;
@@ -103,15 +96,27 @@
   }
 }
 
-#scenario-controls {
-  width: 50px;
-  border-left: 6px solid #2196f3;
-  padding-left: 6px;
-  display: flex;
-  //align-items: center;
+.side-toggle-indicator {
+  transform: translateX(50px);
+}
 
+#scenario-controls {
+  height: 60px;
+  border-left: 6px solid #2196f3;
+  padding-left: 5px;
+  display: flex;
+  position: absolute;
+  margin-top: -6px;
+  right: -50px;
+  width: 50px;
+  //top: 70px;
+  background-color: $primary;
+  align-items: center;
+  box-shadow: 0px 1px 2px #a7a7a7, 0px -1px 2px #a7a7a7;
   button {
     margin: 8px 0;
+/*    outline: #2196F3 1px solid;
+    box-shadow: 0px 1px 5px 1px #a7a7a7;*/
   }
 }
 

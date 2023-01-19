@@ -47,6 +47,9 @@ export function showAPIError(error: any, dialog: MatDialog) {
     if (error.error.message)
       // style injection via innerHTML is not trusted, using class to color it red instead
       message = `<span class="red">${error.error.message}</span>`
+    else if (typeof(error.error) === 'string'){
+      message = error.error;
+    }
     else {
       // Rest API responds to malformed requests with a list of fields and the corresponding error
       Object.keys(error.error).forEach(key => {
