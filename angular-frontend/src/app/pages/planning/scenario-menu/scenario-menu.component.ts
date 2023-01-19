@@ -31,9 +31,9 @@ import { showAPIError } from "../../../helpers/utils";
 import { AuthService } from "../../../auth.service";
 import { Subscription } from "rxjs";
 
-interface LabelledTotalCapacity extends TotalCapacityInScenario{
-  labelPlaces: string;
-  labelCapacity: string;
+interface DiffCapacity extends TotalCapacityInScenario{
+  diffCapacity: number,
+  diffPlaces: number
 }
 
 @Component({
@@ -61,7 +61,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
   transitVariants: ModeVariant[] = [];
   prognoses: Prognosis[] = [];
   year?: number;
-  totalCapacities: Record<number, LabelledTotalCapacity> = {};
+  totalCapacities: Record<number, DiffCapacity> = {};
   service?: Service;
   subscriptions: Subscription[] = [];
 
@@ -133,38 +133,15 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
       this.totalCapacities = {};
     if (!this.service || !this.year) return;
     this.planningService.getTotalCapactities(this.year, this.service,{scenario:options?.scenario, planningProcess: this.planningService.activeProcess, reset:options?.reset}).subscribe(cap => {
-      const baseCap = cap.find(scen => scen.scenarioId===0) || this.totalCapacities[0];
+      const baseCap = cap.find(scen => scen.scenarioId === 0) || this.totalCapacities[0];
       if (!baseCap) return;
       cap.forEach(scen => {
-        if (scen.scenarioId === 0){
-          this.totalCapacities[scen.scenarioId]= {
-            labelPlaces: (scen.nPlaces || 0).toLocaleString(),
-            labelCapacity: (scen.totalCapacity || 0).toLocaleString(),
-            scenarioId: scen.scenarioId,
-            totalCapacity: scen.totalCapacity || 0,
-            nPlaces: scen.nPlaces|| 0 }
-        }
-        else {
-          const totalCapacity = (scen.totalCapacity || 0) - (baseCap.totalCapacity || 0);
-          const nPlaces = (scen.nPlaces || 0) - (baseCap.nPlaces || 0);
-
-          function diffLabel(diff: number, reference: number): string {
-            if (diff > 0)
-              return reference.toLocaleString() + " (+ " + diff.toLocaleString()+")";
-            else if (diff === 0)
-              return reference.toLocaleString() + " (unverändert)";
-            else if (diff < 0)
-              return reference.toLocaleString() + " (" + diff.toLocaleString() + ")";
-            return '';
-          }
-
-          this.totalCapacities[scen.scenarioId] = {
-            scenarioId: scen.scenarioId,
-            totalCapacity: totalCapacity,
-            nPlaces: nPlaces,
-            labelCapacity: diffLabel(totalCapacity, scen.totalCapacity || 0),
-            labelPlaces: diffLabel(nPlaces, scen.nPlaces || 0)
-          }
+        this.totalCapacities[scen.scenarioId] = {
+          scenarioId: scen.scenarioId,
+          totalCapacity: scen.totalCapacity,
+          nPlaces: scen.nPlaces,
+          diffCapacity: (scen.totalCapacity || 0) - (baseCap.totalCapacity || 0),
+          diffPlaces: (scen.nPlaces || 0) - (baseCap.nPlaces || 0)
         }
       });
     });
