@@ -37,11 +37,11 @@
             </button>
             <mat-menu #editMenu>
               <button mat-menu-item (click)="editScenario(scenario);">
-                <mat-icon>edit</mat-icon>
+                <mat-icon class="material-icons-outlined">edit</mat-icon>
                 <span>Szenario editieren</span>
               </button>
               <button mat-menu-item (click)="deleteScenario(scenario);">
-                <mat-icon>delete</mat-icon>
+                <mat-icon class="material-icons-outlined">delete_forever</mat-icon>
                 <span>Szenario entfernen</span>
               </button>
             </mat-menu>
@@ -99,8 +99,8 @@
 <ng-template #demandTemplate let-scenario="scenario">
   <div class="scenario-row" *ngIf="planningService.activeService && planningService.activeService.demandType !== 3">
     <mat-form-field appearance="standard" class="small"
-                    style="width: 145px;"
                     floatLabel="always"
+                    [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
                     title="Nachfragequoten-Set ({{planningService.activeService.name}})">
       <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
       <mat-select disableOptionCentering disableRipple
@@ -115,7 +115,7 @@
     </mat-form-field>
     <button mat-icon-button *ngIf="getDemandRateSet(scenario)"
             class="outlined small" color="primary"
-            style="margin-top: 10px;"
+            style="margin-top: 10px; width: 30px;"
             title="aktuell eingestellte Nachfragequoten anzeigen"
             (click)="onShowDemandQuotaSet()">
 <!--      <mat-icon>show_chart</mat-icon>-->
@@ -129,11 +129,11 @@
       info
     </mat-icon>-->
     <mat-form-field appearance="standard" class="small"
-                    style="width: 145px;"
                     floatLabel="always">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [value]="scenario.prognosis"
+                  [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
                   [disabled]="scenario.isBase || !processEditable"
                   [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Prognosen definiert'"
                   (selectionChange)="onPrognosisChange(scenario, $event.value)">
@@ -148,7 +148,6 @@
 <ng-template #reachabilitiesTemplate let-scenario="scenario">
   <div class="scenario-row">
     <mat-form-field appearance="standard" class="small"
-                    style="width: 145px;"
                     floatLabel="always">
       <mat-label>ÖPNV-Netz</mat-label>
       <mat-select disableOptionCentering disableRipple
