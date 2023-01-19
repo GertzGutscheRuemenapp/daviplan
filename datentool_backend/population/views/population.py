@@ -379,7 +379,7 @@ class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
         for i, population in enumerate(populations):
             disaggregate_population(population, use_intersected_data=True,
                                     drop_constraints=drop_constraints)
-            logger.info(f'{i + 1:n}/{len(populations):n} Populationen bearbeitet')
+            logger.info(f'{i + 1:n}/{len(populations):n} Jahren bearbeitet')
         logger.info('Aggregiere Bevölkerungsdaten')
         aggregate_many(AreaLevel.objects.all(), populations,
                        drop_constraints=drop_constraints)
