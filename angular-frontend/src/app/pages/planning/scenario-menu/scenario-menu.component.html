@@ -36,12 +36,12 @@
               <mat-icon>more_vert</mat-icon>
             </button>
             <mat-menu #editMenu>
-              <button mat-menu-item (click)="editScenario(scenario);">
-                <mat-icon class="material-icons-outlined">edit</mat-icon>
-                <span>Szenario editieren</span>
+              <button mat-menu-item (click)="editScenario(scenario);" title='Szenario "{{scenario.name}}" umbenennen'>
+                <mat-icon>edit</mat-icon>
+                <span>Szenario umbenennen</span>
               </button>
-              <button mat-menu-item (click)="deleteScenario(scenario);">
-                <mat-icon class="material-icons-outlined">delete_forever</mat-icon>
+              <button mat-menu-item (click)="deleteScenario(scenario);" title='Szenario "{{scenario.name}}" entfernen'>
+                <mat-icon>delete_forever</mat-icon>
                 <span>Szenario entfernen</span>
               </button>
             </mat-menu>
@@ -171,19 +171,39 @@
 </ng-template>
 
 <ng-template #supplyScenario let-scenario="scenario">
-  <div class="supply-capacity"
-       *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
-    <div title='{{planningService.activeService?.name || "-"}}'> Angebot für Leistung <br> <b>{{planningService.activeService?.name || "-"}}</b> <br>
-      im Jahr <b>{{planningService.activeYear}} </b>
+  <ng-container *ngIf="planningService.activeService">
+    <div class="supply-capacity"
+         *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
+      <div title='{{planningService.activeService.name || "-"}}'> Angebot für Leistung ({{planningService.activeYear}})</div>
+      <div style="margin-top: -5px;">{{planningService.activeService.name}}</div>
+      <table>
+        <tr title="{{capInScenario?.nPlaces}} {{planningService.activeService.facilityPluralUnit}}">
+          <td style="width: 1%;">
+            {{planningService.activeService.facilityPluralUnit}}:
+          </td>
+          <td [style.font-weight]="(capInScenario?.diffPlaces !== 0)? 'bold': 'regular'">
+            {{capInScenario?.nPlaces.toLocaleString()}}
+            <ng-container *ngIf="capInScenario?.diffPlaces !== 0 else plusminus0">
+              (<ng-container *ngIf="capInScenario?.diffPlaces > 0">+</ng-container>{{capInScenario?.diffPlaces.toLocaleString()}})
+            </ng-container>
+          </td>
+        </tr>
+        <tr *ngIf="planningService.activeService?.hasCapacity"
+            title="{{capInScenario?.totalCapacity}} {{planningService.activeService.capacityPluralUnit}}">
+          <td style="width: 1%;">
+            {{planningService.activeService.capacityPluralUnit}}:
+          </td>
+          <td [style.font-weight]="(capInScenario?.diffCapacity !== 0)? 'bold': 'regular'">
+            {{capInScenario?.totalCapacity.toLocaleString()}}
+            <ng-container *ngIf="capInScenario?.diffCapacity !== 0 else plusminus0">
+              (<ng-container *ngIf="capInScenario?.diffCapacity > 0">+</ng-container>{{capInScenario?.diffCapacity.toLocaleString()}})
+            </ng-container>
+          </td>
+        </tr>
+      </table>
     </div>
-      <div title="{{capInScenario?.labelPlaces}}">
-        <b> {{planningService.activeService?.facilityPluralUnit}}: {{capInScenario?.labelPlaces}} </b>
-      </div>
-      <div title="{{capInScenario?.labelCapacity}}"
-           *ngIf="planningService.activeService?.hasCapacity">
-        <b> {{planningService.activeService?.capacityPluralUnit}}: {{capInScenario?.labelCapacity}}</b>
-      </div>
-  </div>
+    <ng-template #plusminus0><ng-container *ngIf="!scenario.isBase">(±0)</ng-container></ng-template>
+  </ng-container>
 </ng-template>
 
 <ng-template #supplyScenarioTable>
