@@ -2,13 +2,13 @@
   <label *ngIf="label">{{label}}</label>
   <ng-container *ngFor="let modeItem of modes | keyvalue">
     <ng-container *ngVar="Number(modeItem.key) as mode">
-      <div [title]="modeStatus[mode]?.message? modeItem.value + ': ' + modeStatus[mode].message: modeItem.value">
+      <div [title]="modeStatus[mode]?.message? modeItem.value + ': ' + modeStatus[mode].message: modeItem.value"
+           [style.cursor]="modeStatus[mode]?.enabled? 'pointer': 'not-allowed'">
         <div (click)="changeMode(mode)"
-             [ngClass]="{ 'selected': mode === selected, 'disabled': !modeStatus[mode]?.enabled }"
+             [ngClass]="{ 'selected': mode === selectedMode }"
              [style.pointer-events]="modeStatus[mode]?.enabled? '': 'none'">
-          <div [ngClass]="{ 'inverted': mode === selected, 'disabled': !modeStatus[mode]?.enabled }"
-               class="mini-fab-icon primary"
-               style="cursor: pointer;">
+          <div [ngClass]="{ 'inverted': mode === selectedMode, 'disabled': !modeStatus[mode]?.enabled }"
+               class="mini-fab-icon primary">
             <ng-container *ngIf="mode === TransportMode.WALK || Number(modeItem.key) === TransportMode.BIKE">
               <mat-icon *ngIf="mode === TransportMode.WALK"
                         style="font-size: 20px;" class="material-icons-outlined">
@@ -19,9 +19,7 @@
                 directions_bike
               </mat-icon>
             </ng-container>
-            <ng-container *ngIf="mode === TransportMode.CAR || mode === TransportMode.TRANSIT"
-                          class="mini-fab-icon primary"
-                          style="cursor: pointer;">
+            <ng-container *ngIf="mode === TransportMode.CAR || mode === TransportMode.TRANSIT">
               <div *ngIf="mode === TransportMode.CAR" class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
               <div *ngIf="mode === TransportMode.TRANSIT" class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
             </ng-container>

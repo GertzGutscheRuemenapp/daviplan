@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { ModeStatistics, Scenario, TransportMode } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
+import { Subscription } from "rxjs";
 
 export const modes: Record<number, string> = {};
 modes[TransportMode.WALK] = 'zu Fuß';
@@ -13,39 +14,31 @@ modes[TransportMode.TRANSIT] = 'ÖPNV';
   templateUrl: './mode-select.component.html',
   styleUrls: ['./mode-select.component.scss']
 })
-export class ModeSelectComponent {
-  @Input() selected: TransportMode = TransportMode.WALK;
+export class ModeSelectComponent implements OnDestroy{
   @Input() label?: string;
-  @Output() modeChanged = new EventEmitter<TransportMode>();
+  @Output() modeChanged = new EventEmitter<TransportMode | undefined>();
   TransportMode = TransportMode;
   modes = modes;
   Number = Number;
   modeStatus: Record<number, { enabled: boolean, message: string }> = {};
-  _scenario?: Scenario;
+  scenario?: Scenario;
+  selectedMode?: TransportMode;
+  private subscriptions: Subscription[] = [];
 
-  @Input() set scenario(scenario: Scenario | undefined){
-    this._scenario = scenario;
-    if (scenario === undefined)
-      this.initModeStatus();
-    else
-      this.verifyModes();
-  };
+  @Input() set selected(mode: TransportMode | undefined) {
+    this.selectedMode = mode;
+  }
 
   constructor(private planningService: PlanningService) {
-    this.initModeStatus();
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+      this.scenario = scenario;
+      this.verifyModes();
+    }));
   }
 
-  changeMode(mode: TransportMode): void {
-    this.selected = mode;
-    this.modeChanged.emit(mode);
-  }
-
-  initModeStatus() {
-    this.modeStatus = {};
-    // enable all modes by default (stays this way until scenario is passed)
-    Object.keys(modes).forEach(mode => {
-      this.modeStatus[Number(mode)] = { enabled: true, message: ''};
-    })
+  changeMode(mode: TransportMode | undefined): void {
+    this.selectedMode = mode;
+    this.modeChanged.emit(this.selectedMode);
   }
 
   /**
@@ -56,10 +49,10 @@ export class ModeSelectComponent {
    */
   verifyModes(): void {
     this.modeStatus = {};
-    if (!this._scenario) return;
+    if (!this.scenario) return;
     this.planningService.getRoutingStatistics().subscribe(stats => {
       for (let mode in this.modes) {
-        const variant = this._scenario!.modeVariants.find(mv => mv.mode === Number(mode));
+        const variant = this.scenario!.modeVariants.find(mv => mv.mode === Number(mode));
         if (!variant) {
           this.modeStatus[mode] = { enabled: false, message: 'Verkehrsmittelvariante ist nicht verfügbar' };
         }
@@ -68,6 +61,13 @@ export class ModeSelectComponent {
           this.modeStatus[mode] = { enabled: nRels > 0, message: (nRels === 0)? 'Verkehrsmittelvariante ist nicht berechnet': '' }
         }
       }
+      if (this.selectedMode && !this.modeStatus[this.selectedMode]?.enabled) {
+        this.changeMode(undefined);
+      }
     })
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }
