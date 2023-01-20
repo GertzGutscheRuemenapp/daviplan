@@ -78,7 +78,7 @@
         </mat-form-field>
       </ng-container>
       <ng-container *ngIf="parameter.name === 'mode'">
-        <app-mode-select [mode]="indicatorParams['mode']"
+        <app-mode-select [selected]="indicatorParams['mode']"
                          [label]="parameter.title"
                          (modeChanged)="setParam('mode', $event);">
         </app-mode-select>

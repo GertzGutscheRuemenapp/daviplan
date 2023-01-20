@@ -116,7 +116,7 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <app-mode-select [mode]="activeMode" (modeChanged)="changeMode($event)"></app-mode-select>
+  <app-mode-select [selected]="activeMode" [scenario]="activeScenario" (modeChanged)="changeMode($event)"></app-mode-select>
 </mat-expansion-panel>
 
 <ng-template #filterTemplate>

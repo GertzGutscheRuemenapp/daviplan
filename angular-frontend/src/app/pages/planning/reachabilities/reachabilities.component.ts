@@ -6,9 +6,9 @@ import { environment } from "../../../../environments/environment";
 import {
   CellResult,
   IndicatorLegendClass,
-  Infrastructure, ModeStatistics,
+  Infrastructure,
+  ModeStatistics,
   Place,
-  RasterCell,
   Scenario,
   Service,
   TransportMode
@@ -61,7 +61,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   nextPlaceReachabilityLayer?: VectorTileLayer;
   selectedPlaceId?: number;
   pickedCoords?: number[];
-  modeStatistics?: ModeStatistics;
 
   constructor(private mapService: MapService, private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService) { }
@@ -75,9 +74,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.infrastructures = infrastructures;
       this.updatePlaces().subscribe();
     });
-    this.planningService.getRoutingStatistics().subscribe(stats => {
-      this.modeStatistics = stats;
-    })
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
       this.updatePlaces().subscribe(() => this.renderReachability());
@@ -87,6 +83,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.updatePlaces().subscribe(() => this.renderReachability());
     }))
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = undefined;
       this.activeScenario = scenario;
       this.updatePlaces().subscribe(() => this.renderReachability());
     }));
