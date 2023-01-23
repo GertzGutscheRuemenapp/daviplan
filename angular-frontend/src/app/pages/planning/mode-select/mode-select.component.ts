@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { ModeStatistics, Scenario, TransportMode } from "../../../rest-interfaces";
+import { ModeStatistics, ModeVariant, Scenario, TransportMode } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { Subscription } from "rxjs";
 
@@ -36,11 +36,6 @@ export class ModeSelectComponent implements OnDestroy{
     }));
   }
 
-  changeMode(mode: TransportMode | undefined): void {
-    this.selectedMode = mode;
-    this.modeChanged.emit(this.selectedMode);
-  }
-
   /**
    * check status of variant-modes of set scenario
    * flag mode as disabled (in disableModes) if either variant is not calculated or not set
@@ -50,14 +45,15 @@ export class ModeSelectComponent implements OnDestroy{
   verifyModes(): void {
     this.modeStatus = {};
     if (!this.scenario) return;
-    this.planningService.getRoutingStatistics().subscribe(stats => {
+    this.planningService.getModeVariants().subscribe(variants => {
       for (let mode in this.modes) {
-        const variant = this.scenario!.modeVariants.find(mv => mv.mode === Number(mode));
-        if (!variant) {
+        const scenarioVariant = this.scenario!.modeVariants.find(mv => mv.mode === Number(mode));
+        if (!scenarioVariant) {
           this.modeStatus[mode] = { enabled: false, message: 'Verkehrsmittelvariante ist nicht verfügbar' };
         }
         else {
-          const nRels = stats.nRelsPlaceCellModevariant[variant.variant] || 0;
+          const stats = variants.find(v => v.id === scenarioVariant.variant)?.statistics;
+          const nRels = stats?.nRelsPlaceCellModevariant || 0;
           this.modeStatus[mode] = { enabled: nRels > 0, message: (nRels === 0)? 'Verkehrsmittelvariante ist nicht berechnet': '' }
         }
       }
@@ -65,6 +61,11 @@ export class ModeSelectComponent implements OnDestroy{
         this.changeMode(undefined);
       }
     })
+  }
+
+  changeMode(mode: TransportMode | undefined): void {
+    this.selectedMode = mode;
+    this.modeChanged.emit(this.selectedMode);
   }
 
   ngOnDestroy(): void {

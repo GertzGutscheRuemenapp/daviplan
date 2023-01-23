@@ -67,7 +67,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
     this.selectedVariant = variant;
     this.statistics = undefined;
     this.isLoading$.next(true);
-    this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => {
+    this.restService.getModeStatistics({ reset: true }).subscribe(stats => {
       this.statistics = stats;
       this.isLoading$.next(false);
     });
@@ -238,7 +238,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
       this.isProcessing$.next(false);
-      this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => this.statistics = stats)
+      this.restService.getModeStatistics({ reset: true }).subscribe(stats => this.statistics = stats)
     }
   }
 

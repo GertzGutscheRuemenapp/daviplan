@@ -156,7 +156,7 @@
                   [placeholder]="(transitVariants.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
                   [disabled]="scenario.isBase || !processEditable">
         <mat-option *ngFor="let variant of transitVariants" [value]="variant">
-          {{variant.label}}
+          {{variant.label}} <ng-container *ngIf="!variant.statistics?.nRelsPlaceCellModevariant">(nicht berechnet)</ng-container>
         </mat-option>
       </mat-select>
     </mat-form-field>

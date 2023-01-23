@@ -390,6 +390,13 @@ export interface ModeVariant {
   mode: number,
   network: number,
   isDefault: boolean
+  statistics?: {
+    nStops: number,
+    nRelsPlaceCellModevariant: number,
+    nRelsPlaceStopModevariant: number,
+    nRelsStopCellModevariant: number,
+    nRelsStopStopModevariant: number
+  }
   // cutoffTime: number
 }
 
@@ -402,8 +409,6 @@ export interface LogEntry {
 }
 
 export interface ModeStatistics {
-  nPlaces: number,
-  nCells: number,
   nStops: Record<number, number>,
   nRelsPlaceCellModevariant: Record<number, number>,
   nRelsPlaceStopModevariant: Record<number, number>,

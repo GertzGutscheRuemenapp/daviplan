@@ -46,7 +46,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
 
   getStatistics(): void {
     this.isLoading$.next(true);
-    this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => {
+    this.restService.getModeStatistics({ reset: true }).subscribe(stats => {
       this.statistics = {};
       this.modeVariants.forEach(mV => this.statistics[mV.mode] = stats.nRelsPlaceCellModevariant[mV.id]);
       this.isLoading$.next(false);
