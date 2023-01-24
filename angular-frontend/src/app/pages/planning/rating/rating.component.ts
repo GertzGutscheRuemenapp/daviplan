@@ -17,13 +17,12 @@ import {
 import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
-import { MapLayer, TileLayer, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { MapLayer, TileLayer, ValueStyle, VectorLayer } from "../../../map/layers";
 import {
   BarChartData,
   HorizontalBarchartComponent
 } from "../../../diagrams/horizontal-barchart/horizontal-barchart.component";
 import { sortBy } from "../../../helpers/utils";
-import { saveSvgAsPng } from "save-svg-as-png";
 import { modes } from "../mode-select/mode-select.component";
 
 @Component({
@@ -209,7 +208,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
                             Szenario: ${this.activeScenario?.name}`;
           this.selectedIndicator?.additionalParameters?.forEach(param => {
             let value = this.indicatorParams[param.name];
-            if (param.name == 'mode') value = modes[value];
+            if (param.name == 'mode')
+              value = modes[value];
             description += `<br>${param.title}: ${(value != undefined)? value: '-'}`;
           })
           displayedPlaces.push({
@@ -389,19 +389,19 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   onIndicatorChange(): void {
     this.cookies.set('planning-indicator', this.selectedIndicator?.name);
-/*    this.selectedIndicator?.additionalParameters?.forEach(indicatorParam => {
-      this.indicatorParams[indicatorParam.name] = ;
-    })*/
     this.updateMap();
   }
 
   updateMapDescription(): void {
-    const desc = `${this.planningService.activeScenario?.name}<br>
-                  ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}"<br>
-                  <b>${this.selectedIndicator?.description}</b>`
+    let desc = `${this.planningService.activeScenario?.name}<br>
+                ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}"`;
+    if (this.selectedIndicator?.additionalParameters?.find(p => p.name === 'mode')) {
+      const mode = this.indicatorParams['mode'];
+      desc += ((mode !== TransportMode.WALK) ? ' mit dem ' : ' ') + modes[mode];
+    }
+    desc += `<br><b>${this.selectedIndicator?.description}</b>`
     this.mapControl?.setDescription(desc);
   }
-
 
   onFullscreenDialog(): void {
     this.dialog.open(SimpleDialogComponent, {
