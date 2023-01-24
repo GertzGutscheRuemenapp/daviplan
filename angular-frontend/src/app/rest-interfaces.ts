@@ -318,7 +318,8 @@ export interface Infrastructure {
   order: number,
   symbol?: Symbol,
   placeFields?: PlaceField[],
-  placesCount: number
+  placesCount: number,
+  access: boolean
 }
 
 export interface Place {

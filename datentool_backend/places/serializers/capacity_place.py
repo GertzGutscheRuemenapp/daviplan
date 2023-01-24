@@ -267,7 +267,8 @@ class PlaceFieldListSerializer(serializers.ListSerializer):
             infrastructure = Infrastructure.objects.get(id=infrastructure_id)
             users_infra_access = infrastructure.infrastructureaccess_set.filter(
                 profile=user.profile)
-            allow_sensitive_data = users_infra_access[0].allow_sensitive_data
+            allow_sensitive_data = users_infra_access[0].allow_sensitive_data \
+                if users_infra_access else False
             fields = data.filter(infrastructure=infrastructure)
             for field in fields:
                 if not field.sensitive or allow_sensitive_data:

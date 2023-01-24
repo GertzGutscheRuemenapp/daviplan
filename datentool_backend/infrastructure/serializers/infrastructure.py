@@ -10,6 +10,7 @@ from datentool_backend.area.models import MapSymbol, FieldTypes, FieldType
 from datentool_backend.area.serializers import MapSymbolSerializer
 from datentool_backend.places.serializers import (
     PlaceFieldNestedSerializer, ADDRESS_FIELDS)
+from django.core.exceptions import ObjectDoesNotExist
 
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
@@ -28,6 +29,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     accessible_by = InfrastructureAccessSerializer(
         many=True, source='infrastructureaccess_set', required=False)
+    access = serializers.SerializerMethodField()
     place_fields = PlaceFieldNestedSerializer(
         many=True, source='placefield_set', required=False)
     places_count = serializers.SerializerMethodField()
@@ -36,9 +38,19 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         model = Infrastructure
         fields = ('id', 'name', 'description',
                   'editable_by', 'accessible_by',
-                  'order', 'symbol', 'place_fields', 'places_count')
+                  'order', 'symbol', 'place_fields', 'places_count', 'access')
         extra_kwargs = {'description': {'required':  False}}
         #read_only_fields = (place_fields, )
+
+    def get_access(self, obj):
+        user = self.context['request'].user
+        if user.is_superuser or user.profile.admin_access:
+            return True
+        try:
+            obj.infrastructureaccess_set.get(profile=user.profile)
+        except ObjectDoesNotExist:
+            return False
+        return True
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol', None)
