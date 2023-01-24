@@ -4,6 +4,8 @@ logger = logging.getLogger(name='test')
 from typing import Tuple, Set, List
 import json
 
+import pandas as pd
+
 from django.test import TestCase
 from django.contrib.gis.geos import Point
 from test_plus import APITestCase
@@ -671,6 +673,68 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                              'nPlaces': expected_value[0],
                              'totalCapacity': expected_value[1], })
         self.assert_response_equals_expected(r1, expected)
+
+    def test_replace_capacities(self):
+        """Test replacing capacities with new values"""
+        url = 'capacities-replace'
+        scenario1 = ScenarioFactory()
+
+        planning_process = scenario1.planning_process
+        owner = planning_process.owner
+        planning_process.allow_shared_change = False
+        planning_process.save()
+
+        place1: Place = self.obj
+        service1 = ServiceFactory(infrastructure=place1.infrastructure)
+
+        CapacityFactory(place=place1, service=service1, capacity=99)
+        CapacityFactory(place=place1, service=service1,
+                        from_year=2025, capacity=77)
+        CapacityFactory(place=place1, service=service1,
+                        from_year=2025, capacity=0)
+
+        data = {'scenario': scenario1.pk,
+                'place': place1.pk,
+                'service': service1.pk,
+                'capacities': [{'from_year': 2022, 'capacity': 33,},
+                               {'from_year': 2030, 'capacity': 44,},
+                               ],}
+
+        res = self.post(url, data=data, extra={'format': 'json',})
+        self.assert_http_403_forbidden(res)
+
+        planning_process.users.add(self.profile)
+        res = self.post(url, data=data, extra={'format': 'json',})
+        self.assert_http_403_forbidden(res)
+
+        planning_process.allow_shared_change = True
+        planning_process.save()
+        res = self.post(url, data=data, extra={'format': 'json',})
+        self.assert_http_200_ok(res)
+
+        expected = pd.Series(index=pd.Index([2022, 2030], name='from_year'),
+                             data=[33., 44.],
+                             name='capacity')
+
+        actual = pd.DataFrame(res.data).set_index('from_year').capacity
+        pd.testing.assert_series_equal(actual, expected)
+
+        self.client.force_login(owner.user)
+        planning_process.allow_shared_change = False
+        planning_process.save()
+
+        data['capacities'] = [{'from_year': 2022, 'capacity': 19,},
+                               {'from_year': 2035, 'capacity': 49,},
+                               ]
+        res = self.post(url, data=data, extra={'format': 'json',})
+        self.assert_http_200_ok(res)
+
+        expected = pd.Series(index=pd.Index([2022, 2035], name='from_year'),
+                             data=[19., 49.],
+                             name='capacity')
+
+        actual = pd.DataFrame(res.data).set_index('from_year').capacity
+        pd.testing.assert_series_equal(actual, expected, check_like=True)
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,

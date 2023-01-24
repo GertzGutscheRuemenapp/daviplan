@@ -34,6 +34,7 @@
   </button>
   <mat-menu #profileMenu>
     <a mat-menu-item *ngIf="!user" routerLink="/login">Login</a>
+    <a mat-menu-item *ngIf="user" (click)="showProfile()">Profil</a>
     <a mat-menu-item *ngIf="user" (click)="logout()" href="">Logout</a>
   </mat-menu>
 </mat-toolbar>
@@ -57,3 +58,60 @@
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<ng-template #userTemplate>
+  <table class="profile-table">
+    <tr>
+      <td i18n>Nutzername</td>
+      <td><b>{{user?.username || '-'}}</b></td>
+    </tr>
+    <tr>
+      <td i18n>Vorname</td>
+      <td>{{user?.firstName || '-'}}</td>
+    </tr>
+    <tr>
+      <td i18n>Nachname</td>
+      <td>{{user?.lastName || '-'}}</td>
+    </tr>
+    <tr>
+      <td i18n>E-Mail</td>
+      <td>{{user?.email || '-'}}</td>
+    </tr>
+  </table>
+  <mat-divider style="margin: 10px 0;"></mat-divider>
+  <ng-container *ngIf="user?.isSuperuser">
+    <b>ist Superuser</b> (voller Zugriff)
+  </ng-container>
+  <ng-container *ngIf="!user?.isSuperuser">
+    <table>
+      <ng-container *ngIf="!user?.isSuperuser">
+        <tr>
+          <td i18n>Kann Seite administrieren</td>
+          <td><ng-container *ngIf="user?.profile?.adminAccess else nein"><b>ja</b></ng-container></td>
+        </tr>
+        <tr>
+          <td i18n>Kann Grundlagendaten editieren</td>
+          <td><ng-container *ngIf="user?.profile?.canEditBasedata else nein"><b>ja</b></ng-container></td>
+        </tr>
+        <tr>
+          <td i18n>Kann Planungsprozesse anlegen</td>
+          <td><ng-container *ngIf="user?.profile?.canCreateProcess else nein"><b>ja</b></ng-container></td>
+        </tr>
+        <ng-template #nein>nein</ng-template>
+      </ng-container>
+    </table>
+    <mat-divider style="margin: 10px 0;"></mat-divider>
+    Kann folgende Infrastrukturbereiche einsehen:
+    <ng-container *ngIf="user && user.access.length > 0">
+      <ul>
+        <li *ngFor="let access of user?.access">
+          {{getInfrastructure(access.infrastructure)?.name}}
+          <ng-container *ngIf="access.allowSensitiveData">&nbsp;(inkl. sensible Daten)</ng-container>
+        </li>
+      </ul>
+    </ng-container>
+    <ng-container *ngIf="user && user.access.length === 0">
+      &nbsp;<b>keine</b>
+    </ng-container>
+  </ng-container>
+</ng-template>

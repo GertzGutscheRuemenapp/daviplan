@@ -96,7 +96,7 @@
             <td><i>{{place.attributes[field.name] || '-'}}</i></td>
           </tr>
         </table>
-        <button *ngIf="place.scenario !== null || !processEditable"
+        <button *ngIf="place.scenario !== null && processEditable"
                 mat-button class="mat-button-dv"
                 (click)="showEditPlace(place)"
                 color="primary">
@@ -120,7 +120,7 @@
           </tr>
         </table>
       </div>
-      <button *ngIf="!activeScenario?.isBase || !processEditable"
+      <button *ngIf="!activeScenario?.isBase && processEditable"
               mat-button class="mat-button-dv"
               (click)="showEditCapacities(place)"
               color="primary">
@@ -171,7 +171,7 @@
 <ng-template #placeCapacitiesEditTemplate let-place="place">
   <div><b>Standort "{{ place.name }}"</b></div>
   <div>Leistung "{{ activeService?.name }}"</div>
-  <mat-divider style="margin: 10px 0;"></mat-divider>
+  <mat-divider style="margin: 10px 0 20px;"></mat-divider>
   <table id="capacityTable">
     <ng-container *ngFor="let capacity of _editCapacities; let i = index;">
       <tr>
@@ -216,20 +216,10 @@
                   (click)="removeEditCap(i)"
                   title="Zeitraum entfernen">
             <mat-icon>close</mat-icon>
-<!--              Jahr entfernen-->
           </button>
         </td>
       </tr>
       <tr style="height: 20px;">
-<!--          <ng-container *ngIf="i !== _editCapacities.length - 1">
-          <td>
-            <mat-divider></mat-divider>
-            <div style="position: absolute; margin-top: -15px; background-color: white; padding-right: 10px;">
-              bis
-            </div>
-          </td>
-          <td><mat-divider></mat-divider></td>
-        </ng-container>-->
         <ng-container *ngIf="i !== _editCapacities.length - 1">
           <td><mat-divider></mat-divider></td>
           <td><mat-divider></mat-divider></td>
@@ -241,12 +231,19 @@
                   (click)="insertEditCap(i+1, place)"
                   [title]="(i === _editCapacities.length-1)? 'Jahr hinzufügen': 'Zeitraum einfügen'" i18n>
             <mat-icon>add</mat-icon>
-<!--              Jahr <ng-container *ngIf="i !== _editCapacities.length - 1">einfügen</ng-container>-->
             <ng-container *ngIf="i === _editCapacities.length - 1">Jahr</ng-container>
           </button>
         </td>
       </tr>
     </ng-container>
   </table>
-  <mat-divider></mat-divider>
+  <button *ngIf="!activeScenario?.isBase && processEditable"
+          mat-button class="mat-button-dv"
+          style="margin-top: 10px;"
+          (click)="resetEditCapacities(place)"
+          color="primary">
+    <mat-icon>undo</mat-icon>
+    auf Status Quo zurücksetzen
+  </button>
+  <mat-divider style="margin-top: 20px;"></mat-divider>
 </ng-template>

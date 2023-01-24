@@ -174,7 +174,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy, OnInit {
       if (!population) return;
       if (confirmed) {
         this.yearCard?.setLoading(true);
-        this.http.delete(`${this.rest.URLS.populations}${population.id}/?force=true/`
+        this.http.delete(`${this.rest.URLS.populations}${population.id}/?force=true`
         ).subscribe(res => {
           const idx = this.populations.indexOf(population);
           if (idx > -1) this.populations.splice(idx, 1);

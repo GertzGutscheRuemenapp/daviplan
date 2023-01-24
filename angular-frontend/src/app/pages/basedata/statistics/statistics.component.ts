@@ -251,13 +251,16 @@ export class StatisticsComponent implements OnInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
+        this.isLoading$.next(true);
         this.http.delete(`${this.rest.URLS.statistics}${statistics.id}/`
         ).subscribe(() => {
           const idx = this.statistics!.indexOf(statistics);
           if (idx > -1) this.statistics!.splice(idx, 1);
           this.year = undefined;
           this.onYearChange();
+          this.isLoading$.next(false);
         },(error) => {
+          this.isLoading$.next(false);
           showAPIError(error, this.dialog);
         });
       }

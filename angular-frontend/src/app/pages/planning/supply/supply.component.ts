@@ -148,8 +148,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.layerGroup?.clear();
       let mapPlaces: any[] = [];
       this.places?.forEach(place => {
-        const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
-          [this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
+        const tooltip = `<b>${place.name}</b><br>
+                         ${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'} im Jahr ${this.year}<br>
+                         im Szenario "${this.planningService.activeScenario?.name}"`
         const doCompare = (place.capacity !== undefined) && (place.baseCapacity !== undefined);
         if (this.ignoreCapacities || place.capacity || place.scenario) {
           mapPlaces.push({
@@ -505,6 +506,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   showEditCapacities(place: Place): void {
     if (!this.activeService) return;
+    // clone capacities for given place
     this._editCapacities = this.getCapacities(place).map(cap => Object.assign({}, cap));
     if (this._editCapacities.length === 0 || this._editCapacities[0].fromYear !== 0) {
       const startCap: Capacity = {
@@ -566,6 +568,14 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       capacity: 0,
     }
     this._editCapacities.splice(i, 0, capacity);
+  }
+
+  resetEditCapacities(place: Place): void {
+    this.planningService.getCapacities({ service: this.activeService }).subscribe(capacities => {
+      const placeCapacities = capacities.filter(cap => cap.place === place.id);
+      // cloned capacities
+      this._editCapacities = placeCapacities.map(cap => Object.assign({}, cap));
+    })
   }
 
   getFieldType(field: PlaceField): FieldType | undefined {

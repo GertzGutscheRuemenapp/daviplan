@@ -24,7 +24,28 @@
            class="scenario-card">
         <div class="scenario-card-header"
              (click)="setScenario(scenario)">
-          {{ scenario.name }}
+          <div [style.width]="(!scenario.isBase && processEditable)? 'calc(100% - 30px)': '100%'">{{ scenario.name }}</div>
+          <ng-container *ngIf="!scenario.isBase && processEditable">
+            <button mat-icon-button color="primary"
+                    class="small"
+                    style="width: 30px; margin-top: -2px;"
+                    [matMenuTriggerFor]="editMenu"
+                    [ngClass]="{'inverted': scenario.id === activeScenario?.id}"
+                    title="Szenariomenü (Editieren/Entfernen)"
+                    (click)="$event.stopPropagation()">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #editMenu>
+              <button mat-menu-item (click)="editScenario(scenario);" title='Szenario "{{scenario.name}}" umbenennen'>
+                <mat-icon>edit</mat-icon>
+                <span>Szenario umbenennen</span>
+              </button>
+              <button mat-menu-item (click)="deleteScenario(scenario);" title='Szenario "{{scenario.name}}" entfernen'>
+                <mat-icon>delete_forever</mat-icon>
+                <span>Szenario entfernen</span>
+              </button>
+            </mat-menu>
+          </ng-container>
         </div>
         <div class="scenario-card-body">
           <ng-container *ngIf="domain==='demand'">
@@ -49,21 +70,9 @@
     <div id="scenario-controls" *ngIf="processEditable">
       <div>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined || activeScenario.id === baseScenario?.id"
-                (click)="onEditScenario()"
-                title="ausgewähltes Szenario editieren">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button color="primary" class="small"
                 (click)="onCreateScenario()"
                 title="Szenario erstellen">
           <mat-icon>add</mat-icon>
-        </button>
-        <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined || activeScenario.id === baseScenario?.id"
-                (click)="onDeleteScenario()"
-                title="ausgewähltes Szenario entfernen">
-          <mat-icon>close</mat-icon>
         </button>
       </div>
     </div>
@@ -76,7 +85,7 @@
   </div>
 </div>
 
-<ng-template #editScenario>
+<ng-template #editScenarioTemplate>
   <form [formGroup]="editScenarioForm">
     <div fxLayout="column">
       <mat-form-field appearance="fill">
@@ -90,8 +99,8 @@
 <ng-template #demandTemplate let-scenario="scenario">
   <div class="scenario-row" *ngIf="planningService.activeService && planningService.activeService.demandType !== 3">
     <mat-form-field appearance="standard" class="small"
-                    style="width: 145px;"
                     floatLabel="always"
+                    [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
                     title="Nachfragequoten-Set ({{planningService.activeService.name}})">
       <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
       <mat-select disableOptionCentering disableRipple
@@ -106,7 +115,7 @@
     </mat-form-field>
     <button mat-icon-button *ngIf="getDemandRateSet(scenario)"
             class="outlined small" color="primary"
-            style="margin-top: 10px;"
+            style="margin-top: 10px; width: 30px;"
             title="aktuell eingestellte Nachfragequoten anzeigen"
             (click)="onShowDemandQuotaSet()">
 <!--      <mat-icon>show_chart</mat-icon>-->
@@ -120,11 +129,11 @@
       info
     </mat-icon>-->
     <mat-form-field appearance="standard" class="small"
-                    style="width: 145px;"
                     floatLabel="always">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [value]="scenario.prognosis"
+                  [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
                   [disabled]="scenario.isBase || !processEditable"
                   [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Prognosen definiert'"
                   (selectionChange)="onPrognosisChange(scenario, $event.value)">
@@ -139,7 +148,6 @@
 <ng-template #reachabilitiesTemplate let-scenario="scenario">
   <div class="scenario-row">
     <mat-form-field appearance="standard" class="small"
-                    style="width: 145px;"
                     floatLabel="always">
       <mat-label>ÖPNV-Netz</mat-label>
       <mat-select disableOptionCentering disableRipple
@@ -163,19 +171,39 @@
 </ng-template>
 
 <ng-template #supplyScenario let-scenario="scenario">
-  <div class="supply-capacity"
-       *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
-    <div title='{{planningService.activeService?.name || "-"}}'> Angebot für Leistung <br> <b>{{planningService.activeService?.name || "-"}}</b> <br>
-      im Jahr <b>{{planningService.activeYear}} </b>
+  <ng-container *ngIf="planningService.activeService">
+    <div class="supply-capacity"
+         *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
+      <div title='{{planningService.activeService.name || "-"}}'> Angebot für Leistung ({{planningService.activeYear}})</div>
+      <div style="margin-top: -5px;">{{planningService.activeService.name}}</div>
+      <table>
+        <tr title="{{capInScenario?.nPlaces}} {{planningService.activeService.facilityPluralUnit}}">
+          <td style="width: 1%;">
+            {{planningService.activeService.facilityPluralUnit}}:
+          </td>
+          <td [style.font-weight]="(capInScenario?.diffPlaces !== 0)? 'bold': 'regular'">
+            {{capInScenario?.nPlaces.toLocaleString()}}
+            <ng-container *ngIf="capInScenario?.diffPlaces !== 0 else plusminus0">
+              (<ng-container *ngIf="capInScenario?.diffPlaces > 0">+</ng-container>{{capInScenario?.diffPlaces.toLocaleString()}})
+            </ng-container>
+          </td>
+        </tr>
+        <tr *ngIf="planningService.activeService?.hasCapacity"
+            title="{{capInScenario?.totalCapacity}} {{planningService.activeService.capacityPluralUnit}}">
+          <td style="width: 1%;">
+            {{planningService.activeService.capacityPluralUnit}}:
+          </td>
+          <td [style.font-weight]="(capInScenario?.diffCapacity !== 0)? 'bold': 'regular'">
+            {{capInScenario?.totalCapacity.toLocaleString()}}
+            <ng-container *ngIf="capInScenario?.diffCapacity !== 0 else plusminus0">
+              (<ng-container *ngIf="capInScenario?.diffCapacity > 0">+</ng-container>{{capInScenario?.diffCapacity.toLocaleString()}})
+            </ng-container>
+          </td>
+        </tr>
+      </table>
     </div>
-      <div title="{{capInScenario?.labelPlaces}}">
-        <b> {{planningService.activeService?.facilityPluralUnit}}: {{capInScenario?.labelPlaces}} </b>
-      </div>
-      <div title="{{capInScenario?.labelCapacity}}"
-           *ngIf="planningService.activeService?.hasCapacity">
-        <b> {{planningService.activeService?.capacityPluralUnit}}: {{capInScenario?.labelCapacity}}</b>
-      </div>
-  </div>
+    <ng-template #plusminus0><ng-container *ngIf="!scenario.isBase">(±0)</ng-container></ng-template>
+  </ng-container>
 </ng-template>
 
 <ng-template #supplyScenarioTable>

@@ -1,11 +1,32 @@
 import requests
 from django.conf import settings
 from routingpy import OSRM
+import polyline
+from datentool_backend.models import Mode
+
+
+def assert_routers_are_running(check_service_only=False) -> str:
+    '''run all routers on start'''
+    error_msg = None
+
+    for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+        router = OSRMRouter(mode)
+        if not router.service_is_up:
+            error_msg = ('Der Router-Service reagiert nicht. '
+                         'Bitte kontaktieren Sie den Administrator.')
+            break
+        if not check_service_only and not router.is_running:
+            router.run()
+            error_msg = ('Der Router läuft gerade nicht. Er wird versucht '
+                         'zu starten. Bitte warten Sie ein paar Minuten '
+                         'und versuchen Sie es dann erneut')
+    return error_msg
 
 
 class OSRMRouter():
-    def __init__(self, mode):
+    def __init__(self, mode, algorithm=settings.ROUTING_ALGORITHM):
         self.mode = mode
+        self.algorithm = algorithm or 'ch'
 
     @property
     def settings(self):
@@ -35,12 +56,13 @@ class OSRMRouter():
             return False
         return True
 
-    def _post_service_cmd(self, cmd, **kwargs):
+    def _post_service_cmd(self, cmd, data={}, **kwargs):
         alias = self.settings['alias']
-        return requests.post(f'{self.service_url}/{cmd}/{alias}', **kwargs)
+        return requests.post(f'{self.service_url}/{cmd}/{alias}', data=data,
+                             **kwargs)
 
     def run(self):
-        res = self._post_service_cmd('run')
+        res = self._post_service_cmd('run', data={'algorithm': self.algorithm })
         return res.status_code == 200
 
     def stop(self):
@@ -51,7 +73,7 @@ class OSRMRouter():
         res = self._post_service_cmd('remove')
         return res.status_code == 200
 
-    def build(self, pbf_path):
+    def build(self, pbf_path: str):
         files = {'file': open(pbf_path, 'rb')}
         res = self._post_service_cmd('build', files=files)
         return res.status_code == 200
@@ -61,13 +83,42 @@ class OSRMRouter():
         sources: list of tuples (lon, lat)
         destinations: list of tuples (lon, lat)
         '''
-        client = OSRM(base_url=self.routing_url, timeout=3600)
+        client = OSRMPolyline(base_url=self.routing_url, timeout=3600)
         coords = sources + destinations
-        #radiuses = [30000 for i in range(len(coords))]
 
         matrix = client.matrix(locations=coords,
-                               # radiuses=radiuses,
-                               sources=range(len(sources)),
-                               destinations=range(len(sources), len(coords)),
+                               sources=list(range(len(sources))),
+                               destinations=list(range(len(sources), len(coords))),
                                profile='driving')
         return matrix
+
+
+class OSRMPolyline(OSRM):
+    def matrix(
+        self,
+        locations,
+        profile="driving",
+        radiuses=None,
+        bearings=None,
+        sources=None,
+        destinations=None,
+        dry_run=None,
+        annotations=("duration", "distance"),
+        **matrix_kwargs,
+    ):
+        """
+        Gets travel distance and time for a matrix of origins and destinations.
+        pass the coordinates as polylines
+        """
+        poly = polyline.encode(locations, geojson=True)
+        coords = f'polyline({poly})'
+
+        params = self.get_matrix_params(
+            locations, profile, radiuses, bearings, sources, destinations,
+            annotations, **matrix_kwargs
+        )
+
+        return self.parse_matrix_json(
+            self.client._request(f"/table/v1/{profile}/{coords}",
+                                 get_params=params, dry_run=dry_run)
+        )

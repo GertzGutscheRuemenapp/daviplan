@@ -92,6 +92,19 @@
   color: $light-black;
 }
 
+.profile-table {
+ td:first-child:not(.not-first-child) {
+   padding-right: 20px;
+   font-size: 14px;
+   line-height: 16px;
+   color: #00000061;
+   text-transform: uppercase;
+   font-weight: bold;
+   letter-spacing: 0.6px;
+   white-space: nowrap;
+ }
+}
+
 @media only screen and (max-width: 75em) {
   .page-links {
     a {

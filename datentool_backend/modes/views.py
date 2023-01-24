@@ -6,6 +6,7 @@ import json
 
 from django.db.models import Q
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,7 +14,8 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
 from datentool_backend.utils.serializers import MessageSerializer
-from datentool_backend.utils.routers import OSRMRouter
+from datentool_backend.utils.routers import (OSRMRouter,
+                                             assert_routers_are_running)
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata)
@@ -35,7 +37,6 @@ import logging
 
 logger = logging.getLogger('routing')
 
-_l_i = 0
 
 class ModeVariantViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = ModeVariant.objects.all()
@@ -93,6 +94,8 @@ def delete_depending_matrices(variant: ModeVariant,
         .filter(variant=variant)
     delete_chunks(qs, logger)
 
+_l_i = 0
+
 
 class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Network.objects.all()
@@ -119,6 +122,7 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     @staticmethod
     def _pull_base_network(logger: logging.Logger):
         fp = os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF)
+        fp_temp = os.path.join(settings.MEDIA_ROOT, 'osm.pbf.tmp')
         if os.path.exists(fp):
             os.remove(fp)
         # ToDo: download in chunks to show progress (in logs)
@@ -131,13 +135,14 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
                             f'{totalSize // 1024}kB)')
                 _l_i = percent
 
-        (f, res) = urllib.request.urlretrieve(settings.PBF_URL, fp,
+        (f, res) = urllib.request.urlretrieve(settings.PBF_URL, fp_temp,
                                               reporthook=progress_hook)
+        os.rename(fp_temp, fp)
         # ToDo: errors?
 
-        fp_project = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
-        if os.path.exists(fp_project):
-            os.remove(fp_project)
+        #fp_project = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+        #if os.path.exists(fp_project):
+            #os.remove(fp_project)
 
         logger.info(f'OSM-Straßennetz erfolgreich heruntergeladen')
 
@@ -155,6 +160,12 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     @action(methods=['POST'], detail=False)
     def build_project_network(self, request, **kwargs):
         project_area = ProjectSetting.load().project_area
+        error_msg = assert_routers_are_running(check_service_only=True)
+
+        if error_msg:
+            return Response({'message': error_msg},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         if not project_area:
             msg = 'Das Projektgebiet ist nicht definiert'
             logger.error(msg)
@@ -191,10 +202,14 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
             if os.path.exists(fp):
                 os.remove(fp)
 
+        project_settings = ProjectSetting.load()
+        project_settings.project_net_date = None
+        project_settings.save()
+
         buffer = 30000
         logger.info('Verschneide das Straßennetz mit dem Projektgebiet und '
                     f'einem Buffer von {buffer/1000} km')
-        project_area = ProjectSetting.load().project_area
+        project_area = project_settings.project_area
         buffered = project_area.buffer(buffer)
         buffered.transform('EPSG: 4326')
 
@@ -205,7 +220,6 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
                      'properties': { 'name': 'EPSG:4326' } },
             'geometry': json.loads(buffered.geojson),
         })
-
 
         with open(fp_project_json, "w") as json_file:
             json_file.write(geojson)
@@ -227,8 +241,6 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
         network.network_file = fp_target_pbf
         network.save()
 
-        o_success = True
-
         def build(mode):
             logger.info(f'Baue Router {mode.name}')
             router = OSRMRouter(mode)
@@ -239,19 +251,18 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
             if not success:
                 msg = (f'Berechnung fehlgeschlagen. Der Router {mode.name} '
                        'konnte nicht gebaut werden.')
-                logger.error(msg)
-                global o_success
-                o_success = False
+                raise Exception(msg)
             else:
-                msg = (f'Router {mode.name} erfolgreich gebaut. Starte Router')
+                msg = (f'Router {mode.name} erfolgreich gebaut.')
                 logger.info(msg)
                 router.run()
 
-        modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
+        modes = [Mode.WALK, Mode.BIKE, Mode.CAR]
         for mode in modes:
             build(mode)
-        if not o_success:
-            raise Exception('')
+
+        project_settings.project_net_date = timezone.now()
+        project_settings.save()
 
     @extend_schema(
         description=('start routers for modes bike, car and foot'),
@@ -264,7 +275,10 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     @action(methods=['POST'], detail=False)
     def run_routers(self, request, **kwargs):
         for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
-            success = OSRMRouter(mode).run()
+            router = OSRMRouter(mode)
+            if router.is_running:
+                continue
+            success = router.run()
             if not success:
                 return Response(
                     {'message': f'Failed to run router for mode {mode}'},

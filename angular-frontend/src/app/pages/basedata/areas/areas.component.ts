@@ -156,8 +156,7 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.restService.getAreas(this.activeLevel.id,
       {targetProjection: this.mapControl?.map?.mapProjection, reset: true}).subscribe(areas => {
         this.areas = areas;
-        this.areaLayer = new VectorLayer(this.activeLevel!.name, )
-        this.layerGroup?.addVectorLayer(this.activeLevel!.name, {
+        this.areaLayer = this.layerGroup?.addVectorLayer(this.activeLevel!.name, {
           description: 'Gebiete der ausgewählten Gebietseinheit',
           order: 0,
           opacity: 0.7,
@@ -175,7 +174,7 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
         });
-        this.areaLayer.addFeatures(this.areas);
+        this.areaLayer?.addFeatures(this.areas);
         this.activeLevel!.areaCount = this.areas.length;
         this.isLoading$.next(false);
         this.dataColumns = this.activeLevel!.areaFields;

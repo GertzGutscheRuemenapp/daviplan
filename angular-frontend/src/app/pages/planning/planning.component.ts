@@ -36,6 +36,11 @@ interface IncludedInfrastructure extends Infrastructure {
   included?: boolean;
 }
 
+const processInfoText = "<p>Geben Sie Ihrem Planungsprozess einen – möglichst kurzen – Namen (z.B. „Kitabedarfsplanung“) und eine kurze Beschreibung (z.B. „Bedarfsplanung für den Zeitraum 2024-2026“).</p>" +
+  "<p>Wählen Sie anschließend aus, welche Infrastrukturbereiche Sie in diesem Planungsprozess bearbeiten wollen. Nur diese Infrastrukturbereiche sind innerhalb des Planungsprozesses sichtbar und können mit Hilfe von Auswertungen und Szenarien bearbeitet werden.</p>" +
+  "<p>Legen Sie abschließend noch fest, welche anderen daviplan-Nutzer:innen Zugriff auf den Planungsprozess haben sollen. Mit dem Häkchen unten rechts können Sie festlegen, ob die ausgewählten Nutzer:innen die Szenarien des Planungsprozesses verändern können sollen. Wenn Sie diese Option deaktivieren, können die anderen Nutzer:innen nur Auswertungen vornehmen, aber keine Veränderungen (mehr) in den Szenarien (andere Einwohnerentwicklung, andere Nachfragequoten, andere Standort- und Kapazitätsstruktur, andere ÖPNV-Netze) vornehmen.</p>" +
+  "<p>Sie können alle Eintragungen auch nachträglich noch verändern.</p>"
+
 @Component({
   selector: 'app-planning',
   templateUrl: './planning.component.html',
@@ -195,7 +200,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         template: this.processTemplate,
         closeOnConfirm: false,
         confirmButtonText: 'Bestätigen',
-        infoText: 'Platzhalter'
+        infoText: processInfoText
       }
     });
     dialogRef.afterOpened().subscribe(() => {
@@ -247,7 +252,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         template: this.processTemplate,
         closeOnConfirm: false,
         confirmButtonText: 'Speichern',
-        infoText: 'Platzhalter'
+        infoText: processInfoText
       }
     });
     dialogRef.afterOpened().subscribe(() => {

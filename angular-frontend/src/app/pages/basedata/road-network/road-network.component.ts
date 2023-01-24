@@ -38,7 +38,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     this.settings.fetchBaseDataSettings();
     this.isLoading$.next(true);
     this.restService.getModeVariants().subscribe(modeVariants => {
-      this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT);
+      this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT && m.isDefault);
       this.isLoading$.next(false);
       this.getStatistics();
     })
@@ -66,8 +66,8 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       if (this.baseDataSettings?.routing) {
-        this.baseDataSettings.routing.projectAreaNet = false;
-        this.baseDataSettings.routing.baseNet = false;
+        // this.baseDataSettings.routing.projectNetDate = undefined;
+        this.baseDataSettings.routing.baseNetDate = undefined;
       }
       this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
         this.isProcessing$.next(true);
@@ -88,14 +88,17 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         closeOnConfirm: true
       }
     });
+    this.isLoading$.next(true);
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      if (this.baseDataSettings?.routing) {
-        this.baseDataSettings.routing.projectAreaNet = false;
-      }
       this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
         this.isProcessing$.next(true);
+        if (this.baseDataSettings?.routing) {
+          this.baseDataSettings.routing.projectNetDate = undefined;
+        }
+        this.isLoading$.next(false);
       },(error) => {
         showAPIError(error, this.dialog);
+        this.isLoading$.next(false);
       })
     })
   }

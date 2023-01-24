@@ -56,8 +56,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         sn_classifications = 'Klassifizierungen'
 
-        columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet. '\
-                   'Jeder Standort muss einen Namen haben, den kein anderer Standort trägt.'}
+        columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet.'}
 
         columns.update(ADDRESS_FIELDS)
         columns.update({'Lon': 'Längengrad, in WGS84',
@@ -77,9 +76,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
         dv_float.title = 'Ungültige Zahlen-Werte'
 
         dv_pos_float = DataValidation(type="decimal",
-                                operator="greaterThanOrEqual",
-                                formula1=0,
-                                allow_blank=True)
+                                      operator="greaterThanOrEqual",
+                                      formula1=0,
+                                      allow_blank=True)
         dv_pos_float.error = 'Nur Zahlen >= 0 erlaubt'
         dv_pos_float.title = 'Ungültige positive Zahlen-Werte'
 
@@ -256,13 +255,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
             dv.errorTitle = 'Ungültige Koordinaten'
             dv.add('G3:H999999')
 
-            dv_unique_name = DataValidation(type='custom',
-                                            formula1='=COUNTIF(B$3:B$99999,B3)<2',
-                                            allow_blank=True)
-            dv_unique_name.error ='Name muss eindeutig sein'
-            dv_unique_name.errorTitle = 'Name nicht eindeutig'
-            dv_unique_name.add('B3:B999999')
-
             dv_plz = DataValidation(type='textLength',
                                     operator='equal',
                                     formula1=5,
@@ -272,7 +264,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
             dv_plz.add('E3:E999999')
 
             ws.add_data_validation(dv)
-            ws.add_data_validation(dv_unique_name)
             ws.add_data_validation(dv_01)
             ws.add_data_validation(dv_float)
             ws.add_data_validation(dv_pos_float)

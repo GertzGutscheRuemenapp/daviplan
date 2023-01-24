@@ -68,8 +68,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
           if (layer.active)
             this.layerTree.setChecked(layer, layer.active);
         })
-        this.isLoading$.next(false);
       });
+      this.isLoading$.next(false);
     })
     this.layerTree.addItemClicked.subscribe(node => {
       const parent = this.getGroup(node.id);

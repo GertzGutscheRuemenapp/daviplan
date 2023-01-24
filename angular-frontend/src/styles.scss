@@ -323,6 +323,10 @@ mat-icon.outlined {
   outline: 2px solid;
 }
 
+table td {
+  padding-right: 20px;
+}
+
 app-data-card table, app-dash-card table {
   border-collapse: separate;
   border-spacing: 15px 0;
@@ -565,15 +569,15 @@ button.mat-icon-button {
     color: white;
   }
 }
-.mini-fab-icon.inverted.primary {
-  background-color: $primary;
-}
 .mat-icon-button.inverted{
   color: white;
   background-color: $accent;
 }
-.mat-icon-button.inverted[color="primary"] {
+.mat-icon-button.inverted[color="primary"], .mini-fab-icon.inverted.primary {
   background-color: $primary;
+}
+.mat-icon-button.inverted[color="primary"]:hover, .mat-mini-fab[color="primary"]:hover {
+  background-color: #4baefc;
 }
 .mat-icon-button.inverted[color="warning"] {
   background-color: $warning;
@@ -1322,4 +1326,13 @@ mat-checkbox.reverse {
   tr.warn td:first-child {
     color: $warning;
   }
+}
+
+mat-optgroup.group-label-hidden .mat-optgroup-label {
+  display: none;
+}
+
+.mat-menu-content .mat-focus-indicator {
+  border: none !important;
+  outline: none;
 }

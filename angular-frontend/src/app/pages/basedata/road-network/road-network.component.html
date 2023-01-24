@@ -35,8 +35,11 @@
                     [disabled]="!!(isProcessing$ | async)"
                     infoText="<p>Über die Schaltfläche „Basisnetz herunterladen“ wird das aktuelle Straßennetz auf den Server heruntergeladen. Das OSM-Netz wird für die Ausführung von Schritt 2 benötigt.</p>">
       <div>
-        Status: {{baseDataSettings?.routing?.baseNet? 'Basisnetz vorhanden': 'Basisnetz nicht vorhanden'}}
-        <mat-icon *ngIf="baseDataSettings?.routing?.baseNet" color="primary">done</mat-icon>
+        Status: {{baseDataSettings?.routing?.baseNetDate? 'Basisnetz vorhanden': 'Basisnetz nicht vorhanden'}}
+        <mat-icon *ngIf="baseDataSettings?.routing?.baseNetDate" color="primary">done</mat-icon>
+      </div>
+      <div *ngIf="baseDataSettings?.routing?.baseNetDate">
+        Stand: <i>{{baseDataSettings?.routing?.baseNetDate}}</i>
       </div>
       <button mat-flat-button color="primary"
               style="margin-top: 10px"
@@ -51,8 +54,11 @@
                               <p>Mit einem Klick auf die Schaltfläche „Straßennetz verschneiden“ wird der Vorgang gestartet.</p>
                               <p>Das verschnittene Netz wird für die Berechnung der Reisezeiten in Schritt 3 benötigt.">
       <div>
-        Status: {{baseDataSettings?.routing?.projectAreaNet? 'Basisnetz verschnitten': 'Basisnetz nicht verschnitten'}}
-        <mat-icon *ngIf="baseDataSettings?.routing?.projectAreaNet" color="primary">done</mat-icon>
+        Status: {{baseDataSettings?.routing?.projectNetDate? 'Basisnetz verschnitten': 'Basisnetz nicht verschnitten'}}
+        <mat-icon *ngIf="baseDataSettings?.routing?.projectNetDate" color="primary">done</mat-icon>
+      </div>
+      <div *ngIf="baseDataSettings?.routing?.projectNetDate">
+        ausgeführt am: <i>{{baseDataSettings?.routing?.projectNetDate}}</i>
       </div>
       <button mat-flat-button color="primary"
               style="margin-top: 10px"
@@ -68,15 +74,15 @@
       <table>
         <tr>
           <td i18n>Anzahl Relationen Fuß: </td>
-          <td>{{statistics[TransportMode.WALK]?.toLocaleString() || '-'}}</td>
+          <td>{{statistics[TransportMode.WALK]?.toLocaleString() || 'keine'}}</td>
         </tr>
         <tr>
           <td i18n>Anzahl Relationen Rad: </td>
-          <td>{{statistics[TransportMode.BIKE]?.toLocaleString() || '-'}}</td>
+          <td>{{statistics[TransportMode.BIKE]?.toLocaleString() || 'keine'}}</td>
         </tr>
         <tr>
           <td i18n>Anzahl Relationen Auto: </td>
-          <td>{{statistics[TransportMode.CAR]?.toLocaleString() || '-'}}</td>
+          <td>{{statistics[TransportMode.CAR]?.toLocaleString() || 'keine'}}</td>
         </tr>
       </table>
       <button mat-flat-button color="primary"

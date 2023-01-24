@@ -11,7 +11,7 @@
       <mat-select #processSelect disableOptionCentering disableRipple
                   [ngbPopover]="activeProcessPopover"
                   [popoverTitle]="activeProcess?.name"
-                  placement="auto"
+                  placement="right-top"
                   container="body"
                   triggers="mouseenter:mouseleave"
                   panelClass="custom-option-panel"
@@ -29,8 +29,7 @@
           </span>
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
-        <mat-optgroup *ngIf="user?.profile?.canCreateProcess || myProcesses.length > 0"
-                      label="Meine Planungsprozesse">
+        <mat-optgroup label="Meine Planungsprozesse">
           <button *ngIf="user?.profile?.canCreateProcess || user?.isSuperuser"
                   title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
@@ -102,7 +101,7 @@
       <p>Legen Sie hier einen Planungsprozess (z.B. „Kita-Bedarfsplanung“, „Feuerwehrkonzept“ oder
         „Zukunftskonzept Hausarztversorgung“) an und wählen Sie die dafür relevanten Infrastrukturbereiche aus.  </p>
       <p> Ein Planungsprozess bildet den Rahmen für Ihre Szenarien zur Infrastrukturentwicklung und deren Bewertung.
-        Sie legen fest, welche daviplan-Nutzer/innen den Planungsprozess sehen und bearbeiten können sollen.</p>
+        Sie legen fest, welche daviplan-Nutzer:innen den Planungsprozess sehen und bearbeiten können sollen.</p>
       <p>
         Alle Szenarien eines Planungsprozesses beziehen sich auf alle von Ihnen für diesen Prozess ausgewählten
         Infrastrukturbereiche und deren Leistungen.
@@ -118,19 +117,19 @@
   <app-help-button title="Infrastrukturplanung" position="center" style="margin-left: 8px;" [top]="50" [width]="600">
     <p>Im gerade angezeigten Hauptmenübereich „Infrastrukturplanung“ können Sie auf Basis von Szenarien eine
     Infrastrukturplanung für die zuvor definierten Infrastrukturbereiche vornehmen.</p>
-    <p>Wenn Sie auf „Nachfrage“ klicken, können Sie sich für jede einzelne Leistung eine Nachfrageschätzung ansehen und
+    <p>Wenn Sie auf <b>„Nachfrage“</b> klicken, können Sie sich für jede einzelne Leistung eine Nachfrageschätzung ansehen und
       die editieren. Die Nachfrage errechnet sich für jede Gebietseinteilung aus der Zahl der Einwohner:innen in einem
       bestimmten Alter und einer Nachfragequote.</p>
-    <p>Im Abschnitt „Angebot“ können Sie sich das Angebot aktuelle Angebot ansehen, d.h. die räumliche Verteilung
+    <p>Im Abschnitt <b>„Angebot“</b> können Sie sich das Angebot aktuelle Angebot ansehen, d.h. die räumliche Verteilung
       und ggf. die Kapazitäten der Einrichtungen, die die von Ihnen betrachtete Leistung anbieten. Dieses Angebot
       können Sie über Szenarien für die Zukunft variieren.</p>
-    <p>Der Abschnitt „Erreichbarkeiten“ ermöglicht Ihnen eine Analyse der Wegzeiten zwischen den Wohnstandorten der
+    <p>Der Abschnitt <b>„Erreichbarkeiten“</b> ermöglicht Ihnen eine Analyse der Wegzeiten zwischen den Wohnstandorten der
       Nachfragenden und den Einrichtungen. Auch hier können Sie in Szenarien unterschiedliche Erreichbarkeitsverhältnisse
       definieren.</p>
-    <p>Im Abschnitt „Bewertung“ überprüfen Sie, in welchen Szenario Ihre Annahmen zur Nachfrage-, Angebots- und
+    <p>Im Abschnitt <b>„Bewertung“</b> überprüfen Sie, in welchen Szenario Ihre Annahmen zur Nachfrage-, Angebots- und
       Erreichbarkeitsentwicklung zur besten Versorgungssituation führen. Bei Bedarf kehren Sie zu einem der anderen
       Abschnitte zurück, um Ihre Annahmen anzupassen oder weitere Szenarien zu definieren.</p>
-    <p>Bevor Sie mit der Szenarienarbeit beginnen, legen Sie oben links einen Planungsprozess an. Mit diesem
+    <p>Bevor Sie mit der Szenarienarbeit beginnen, legen Sie oben links einen <b>Planungsprozess</b> an. Mit diesem
       definieren Sie, welche Infrastrukturbereiche betrachtet werden sollen und wer an der Szenarienentwicklung
       mitwirken darf.</p>
   </app-help-button>

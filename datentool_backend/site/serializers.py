@@ -1,24 +1,25 @@
-from typing import Dict, List
+from typing import Dict
 import os
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
-from django.db.models import Max, Min, Count, F
+from django.db.models import Max, Min, Count
 from django.conf import settings
+from datetime import datetime
 import logging
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datentool_backend.utils.crypto import encrypt
-from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
 
-from datentool_backend.modes.models import Mode, ModeVariant
+from datentool_backend.modes.models import Mode, ModeVariant, ModeVariantStatistic
 from datentool_backend.site.models import Year
 from datentool_backend.demand.models import DemandRateSet
 from datentool_backend.population.models import Prognosis
 from datentool_backend.area.models import AreaLevel
 
-from datentool_backend.indicators.models import (MatrixCellPlace,
+from datentool_backend.indicators.models import (MatrixMixin,
+                                                 MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
                                                  MatrixStopStop,
@@ -120,16 +121,20 @@ class BaseDataSettingSerializer(serializers.Serializer):
             return
 
     def get_routing(self, obj):
-        base_net_existing = os.path.exists(
-            os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF))
-        project_area_net_existing = os.path.exists(
-            os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
+        base_net_file = os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF)
+        base_net_existing = os.path.exists(base_net_file)
+        base_net_date = datetime.fromtimestamp(
+            os.path.getmtime(base_net_file)).strftime('%d.%m.%Y %H:%M:%S')\
+            if base_net_existing else ''
+        project_net_date = ProjectSetting.load().project_net_date
+        if project_net_date:
+            project_net_date = project_net_date.strftime('%d.%m.%Y %H:%M:%S')
         #running = {}
         #for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
             #running[mode.name] = OSRMRouter(mode).is_running
         return {
-            'base_net': base_net_existing,
-            'project_area_net': project_area_net_existing,
+            'base_net_date': base_net_date,
+            'project_net_date': project_net_date,
             #'running': running,
         }
 
@@ -140,7 +145,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
 
 
 class SiteSettingSerializer(serializers.ModelSerializer):
-    #''''''
+    ''''''
     #url = serializers.HyperlinkedIdentityField(
         #view_name='settings-detail', read_only=True)
     bkg_password_is_set = serializers.SerializerMethodField()
@@ -184,39 +189,22 @@ class SiteSettingSerializer(serializers.ModelSerializer):
 
 
 class MatrixStatisticsSerializer(serializers.Serializer):
-    n_places = serializers.SerializerMethodField(read_only=True)
-    n_cells = serializers.SerializerMethodField(read_only=True)
     n_rels_place_cell_modevariant = serializers.SerializerMethodField(read_only=True)
     n_stops = serializers.SerializerMethodField(read_only=True)
     n_rels_place_stop_modevariant = serializers.SerializerMethodField(read_only=True)
     n_rels_stop_cell_modevariant = serializers.SerializerMethodField(read_only=True)
     n_rels_stop_stop_modevariant = serializers.SerializerMethodField(read_only=True)
 
-    class Meta:
-        fields = ('n_places',
-                  'n_cells',
-                  'n_rels_place_cell_walk',
-                  'n_rels_place_cell_bike',
-                  'n_rels_place_cell_car',
-                  'n_rels_place_cell_transit',
-                  'n_stops',
-                  'n_rels_place_stop_transit',
-                  'n_rels_stop_cell_transit',
-                  'n_rels_stop_stop_transit',
-                  )
-
-    def get_n_places(self, obj) -> int:
-            return MatrixCellPlace.objects.distinct('place_id').count()
-
-    def get_n_cells(self, obj) -> int:
-            return MatrixCellPlace.objects.distinct('cell_id').count()
-
     def get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
-            qs = MatrixCellPlace.objects\
-                .values('variant')\
-                .annotate(n_relations=Count('variant'))
-            return {var['variant']: var['n_relations']
-                    for var in qs}
+        return self._get_n_rels(obj, matrix=MatrixCellPlace)
+
+    def _get_n_rels(self, obj, matrix: MatrixMixin) -> Dict[int, int]:
+        ret = {}
+        for variant in ModeVariant.objects.all():
+            cnt = matrix.get_n_rels(variant)
+            if cnt:
+                ret[variant.pk] = cnt
+        return ret
 
     def get_n_stops(self, obj) -> int:
         qs = Stop.objects.values('variant').annotate(n_stops=Count('id'))
@@ -224,23 +212,10 @@ class MatrixStatisticsSerializer(serializers.Serializer):
                 for var in qs}
 
     def get_n_rels_place_stop_modevariant(self, obj) -> Dict[int, int]:
-        qs = MatrixPlaceStop.objects\
-            .values('stop__variant')\
-            .annotate(n_relations=Count('*'))
-        return {var['stop__variant']: var['n_relations']
-                for var in qs}
+        return self._get_n_rels(obj, matrix=MatrixPlaceStop)
 
     def get_n_rels_stop_cell_modevariant(self, obj) -> Dict[int, int]:
-        qs = MatrixCellStop.objects\
-            .values('stop__variant')\
-            .annotate(n_relations=Count('*'))
-        return {var['stop__variant']: var['n_relations']
-                for var in qs}
+        return self._get_n_rels(obj, matrix=MatrixCellStop)
 
     def get_n_rels_stop_stop_modevariant(self, obj) -> Dict[int, int]:
-        qs = MatrixStopStop.objects\
-            .values('from_stop__variant')\
-            .annotate(n_relations=Count('*'))
-        return {var['from_stop__variant']: var['n_relations']
-                for var in qs}
-
+        return self._get_n_rels(obj, matrix=MatrixStopStop)

@@ -31,9 +31,9 @@ import { showAPIError } from "../../../helpers/utils";
 import { AuthService } from "../../../auth.service";
 import { Subscription } from "rxjs";
 
-interface LabelledTotalCapacity extends TotalCapacityInScenario{
-  labelPlaces: string;
-  labelCapacity: string;
+interface DiffCapacity extends TotalCapacityInScenario{
+  diffCapacity: number,
+  diffPlaces: number
 }
 
 @Component({
@@ -45,7 +45,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
   @Input() domain!: 'demand' | 'reachabilities' | 'rating' | 'supply';
   @Input() helpText = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
-  @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
+  @ViewChild('editScenarioTemplate') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
   @ViewChild('demandPlaceholderTable') demandPlaceholderTemplate?: TemplateRef<any>;
   @ViewChild('demandQuotaDialog') demandQuotaTemplate?: TemplateRef<any>;
@@ -61,8 +61,8 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
   transitVariants: ModeVariant[] = [];
   prognoses: Prognosis[] = [];
   year?: number;
-  totalCapacities: Record<number, LabelledTotalCapacity> = {};
-  service?:Service;
+  totalCapacities: Record<number, DiffCapacity> = {};
+  service?: Service;
   subscriptions: Subscription[] = [];
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
@@ -79,7 +79,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     })
     this.planningService.scenarioChanged.subscribe(scenario => {
       if (this.domain==="supply") {
-        this.updateTotalCapacities({scenario: scenario, reset:true});
+        this.updateTotalCapacities({scenario: scenario, reset: true});
       }
     })
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
@@ -132,48 +132,16 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     if (!options?.scenario)
       this.totalCapacities = {};
     if (!this.service || !this.year) return;
-    this.planningService.getTotalCapactities(this.year, this.service,{scenario:options?.scenario, planningProcess:this.planningService.activeProcess, reset:options?.reset}).subscribe(cap => {
-      const baseCap = cap.find(scen => scen.scenarioId===0) || this.totalCapacities[0];
+    this.planningService.getTotalCapactities(this.year, this.service,{scenario:options?.scenario, planningProcess: this.planningService.activeProcess, reset:options?.reset}).subscribe(cap => {
+      const baseCap = cap.find(scen => scen.scenarioId === 0) || this.totalCapacities[0];
       if (!baseCap) return;
       cap.forEach(scen => {
-        if (scen.scenarioId===0){
-          this.totalCapacities[scen.scenarioId]= {
-            labelPlaces:scen.nPlaces.toLocaleString(),
-            labelCapacity:scen.totalCapacity.toLocaleString(),
-            scenarioId: scen.scenarioId,
-            totalCapacity: scen.totalCapacity,
-            nPlaces: scen.nPlaces}
-        }
-        else {
-          const totalCapacity = scen.totalCapacity - baseCap.totalCapacity;
-          const nPlaces = scen.nPlaces - baseCap.nPlaces;
-
-          function labelTotalCapacity(value:number):string{
-            if (value > 0)
-              return scen.totalCapacity.toLocaleString() + " (+ " + value.toLocaleString()+")";
-            else if (value === 0)
-              return scen.totalCapacity.toLocaleString() + " (unverändert)";
-            else if (value < 0)
-              return scen.totalCapacity.toLocaleString() + " (" + value.toLocaleString() + ")";
-            return  value.toLocaleString();
-          }
-          function labelNPlaces(value:number):string{
-            if (value > 0)
-              return scen.nPlaces.toLocaleString() + " (+ " + value.toLocaleString()+")";
-            else if (value === 0)
-              return scen.nPlaces.toLocaleString() + " (unverändert)";
-            else if (value < 0)
-              return scen.nPlaces.toLocaleString() + " (" + value.toLocaleString() + ")";
-            return  value.toLocaleString();
-          }
-
-          this.totalCapacities[scen.scenarioId] = {
-            scenarioId: scen.scenarioId,
-            totalCapacity: totalCapacity,
-            nPlaces: nPlaces,
-            labelCapacity:labelTotalCapacity(totalCapacity),
-            labelPlaces:labelNPlaces(nPlaces)
-          }
+        this.totalCapacities[scen.scenarioId] = {
+          scenarioId: scen.scenarioId,
+          totalCapacity: scen.totalCapacity,
+          nPlaces: scen.nPlaces,
+          diffCapacity: (scen.totalCapacity || 0) - (baseCap.totalCapacity || 0),
+          diffPlaces: (scen.nPlaces || 0) - (baseCap.nPlaces || 0)
         }
       });
     });
@@ -196,24 +164,25 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     this.scenarios = (process)? [this.baseScenario!].concat(process.scenarios || []): [];
   }
 
-  onDeleteScenario(): void {
+  deleteScenario(scenario: Scenario): void {
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Das Szenario wirklich entfernen?`,
         confirmButtonText: $localize`Szenario entfernen`,
-        value: this.activeScenario!.name
+        value: scenario.name
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/?force=true`
+        this.http.delete(`${this.rest.URLS.scenarios}${scenario.id}/?force=true`
         ).subscribe(res => {
-          const idx = this.process!.scenarios!.indexOf(this.activeScenario!);
+          const idx = this.process!.scenarios!.indexOf(scenario);
           if (idx >= 0) {
             this.process!.scenarios!.splice(idx, 1);
             this.scenarios = [this.baseScenario!].concat(this.process!.scenarios!);
           }
-          this.activeScenario = this.baseScenario;
+          if (scenario.id === this.activeScenario?.id)
+            this.activeScenario = this.baseScenario;
         }, error => {
           showAPIError(error, this.dialog);
         });
@@ -257,8 +226,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     });
   }
 
-  onEditScenario(): void {
-    if(!this.activeScenario) return;
+  editScenario(scenario: Scenario): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       panelClass: 'absolute',
@@ -271,7 +239,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     });
     dialogRef.afterOpened().subscribe(() => {
       this.editScenarioForm.reset({
-        scenarioName: this.activeScenario!.name
+        scenarioName: scenario.name
       });
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
@@ -282,9 +250,9 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
         name: this.editScenarioForm.value.scenarioName
       };
       this.http.patch<Scenario>(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/`, attributes
-      ).subscribe(scenario => {
-        this.activeScenario!.name = scenario.name;
-        this.planningService.activeScenario$.next(this.activeScenario);
+      ).subscribe(scen => {
+        scenario.name = scen.name;
+        this.planningService.activeScenario$.next(scenario);
       },(error) => {
         showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);

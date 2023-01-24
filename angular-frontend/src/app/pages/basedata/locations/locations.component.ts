@@ -78,7 +78,7 @@ export class LocationsComponent implements OnInit, AfterViewInit, OnDestroy {
       })
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
-      this.isProcessing$.next(bs.processes?.routing || false);
+      this.isProcessing$.next(bs.processes?.infrastructure || false);
     }));
   }
 
@@ -102,7 +102,9 @@ export class LocationsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isLoading$.next(false);
       this.dataColumns = ['Standort'];
       this.selectedInfrastructure!.placeFields?.forEach(field => {
-        this.dataColumns.push(field.name);
+        let colName = field.label || field.name;
+        if (field.label) colName += ` (${field.name})`;
+        this.dataColumns.push(colName);
       })
       this.selectedInfrastructure!.services.forEach(service => {
         let columnTitle = (service.hasCapacity)? `${service.name} (Kapazität)`: service.name;

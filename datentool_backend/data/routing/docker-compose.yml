@@ -4,6 +4,8 @@ services:
 
   router-car:
     image: gertzgutscheruemenapp/osrm-flask
+    environment:
+      - PYTHONUNBUFFERED=1
     ports:
       - "8001:8001"
       - "5001:5001"
@@ -13,6 +15,8 @@ services:
 
   router-bike:
     image: gertzgutscheruemenapp/osrm-flask
+    environment:
+      - PYTHONUNBUFFERED=1
     ports:
       - "8002:8001"
       - "5002:5002"
@@ -22,6 +26,8 @@ services:
 
   router-walk:
     image: gertzgutscheruemenapp/osrm-flask
+    environment:
+      - PYTHONUNBUFFERED=1
     ports:
       - "8003:8001"
       - "5003:5003"

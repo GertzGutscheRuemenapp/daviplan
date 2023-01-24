@@ -33,17 +33,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='matrixcellstop',
             name='access_variant',
-            field=models.ForeignKey(default=datentool_backend.indicators.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mcs_access_variant', to='datentool_backend.modevariant'),
+            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mcs_access_variant', to='datentool_backend.modevariant'),
         ),
         migrations.AddField(
             model_name='matrixplacestop',
             name='access_variant',
-            field=models.ForeignKey(default=datentool_backend.indicators.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mps_access_variant', to='datentool_backend.modevariant'),
+            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mps_access_variant', to='datentool_backend.modevariant'),
         ),
         migrations.AlterField(
             model_name='matrixstopstop',
             name='variant',
-            field=models.ForeignKey(default=datentool_backend.indicators.models.get_default_transit_variant, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
+            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_transit_variant, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
         ),
         migrations.AlterUniqueTogether(
             name='matrixcellplace',

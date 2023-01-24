@@ -5,6 +5,7 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { FloatingDialogComponent } from "../../dialogs/floating-dialog/floating-dialog.component";
+import { showMessage } from "../../helpers/utils";
 
 @Component({
   selector: 'app-map-controls',
@@ -55,6 +56,7 @@ export class MapControlsComponent implements AfterViewInit {
   }
 
   exportLegend(): void {
+    // showMessage('Noch nicht implementiert', this.dialog);
     this.mapControl?.exportLegend();
   }
 

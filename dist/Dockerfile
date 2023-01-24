@@ -9,7 +9,8 @@ RUN apt-get -y update \
     && apt-get -y install libpq-dev \
     && apt-get -y install binutils libproj-dev libgeos-dev \
     && apt-get -y install libsqlite3-mod-spatialite \
-    && apt-get -y install osmium-tool
+    && apt-get -y install osmium-tool \
+    && apt-get -y install language-pack-de
 
 RUN git clone https://github.com/GertzGutscheRuemenapp/bule_datentool.git /datentool
 

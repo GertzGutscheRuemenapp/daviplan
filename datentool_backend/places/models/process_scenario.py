@@ -5,7 +5,7 @@ from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.population.models import Prognosis
 from datentool_backend.demand.models import DemandRateSet
-from datentool_backend.modes.models import ModeVariant, Network
+from datentool_backend.modes.models import ModeVariant, Mode
 from datentool_backend.user.models import Profile
 from datentool_backend.infrastructure.models import (Service, Infrastructure)
 
@@ -40,22 +40,32 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
         is_created = self.pk == None
         super().save(**kwargs)
         if is_created:
+            # set default prognosis
             try:
                 self.prognosis = Prognosis.objects.get(is_default=True)
+                self.save()
             except Prognosis.DoesNotExist:
                 pass
+
+            # set default DemandRateSets for Services in Scenario
             for default_set in DemandRateSet.objects.filter(is_default=True):
                 ScenarioService.objects.create(scenario=self,
                                                service=default_set.service,
                                                demandrateset=default_set)
-            try:
-                default_network = Network.objects.get(is_default=True)
-                for default_mode in ModeVariant.objects.filter(
-                    is_default=True, network=default_network):
-                    ScenarioMode.objects.create(scenario=self,
-                                                variant=default_mode)
-            except Network.DoesNotExist:
-                pass
+
+            # create default scenario mode-variants
+            for mode in [Mode.WALK, Mode.BIKE, Mode.CAR, Mode.TRANSIT]:
+                try:
+                    variant = ModeVariant.objects.get(mode=mode,
+                                                      is_default=True)
+                except ModeVariant.DoesNotExist:
+                    try:
+                        variant = ModeVariant.objects.get(mode=mode,
+                                                      network__is_default=True)
+                    except ModeVariant.DoesNotExist:
+                        continue
+                ScenarioMode.objects.create(scenario=self,
+                                            variant=variant)
 
     def has_write_permission(self, user: User):
         owner_is_user = user.profile == self.planning_process.owner
@@ -73,6 +83,14 @@ class ScenarioMode(models.Model):
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
     variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
 
+    def save(self, *args, **kwargs):
+        # only one ScenarioModeVariant per Scenario and Mode allowed
+        other_sm = ScenarioMode.objects\
+            .filter(scenario=self.scenario,
+                    variant__mode=self.variant.mode)\
+            .exclude(pk=self.pk)
+        other_sm.delete()
+        super().save(*args, **kwargs)
 
 class ScenarioService(models.Model):
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)

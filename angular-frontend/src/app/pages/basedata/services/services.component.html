@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
                  cookieId="exp-services-header"
-                 width="1200px">
+                 width="1130px">
   <p>Im Administrationsbereich wurde festgelegt, welche Infrastrukturbereiche der Daseinsvorsorge (z.B. Kindertagesbetreuung, Schule, Feuerwehr, ärztliche Versorgung, Einzelhandel, …) mit daviplan betrachtet werden sollen.</p>
   <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer:innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
   <p>Für den Infrastrukturbereich „Kindertagesbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ drei mögliche Leistungen sein. Bei der ärztlichen Versorgung z.B. „Hausärzte“ und „Fachärzte“, wobei ggf. bei den Fachärzten noch zwischen den wichtigsten Fachrichtungen unterschieden werden können, indem diese jeweils als eigene Leistung definiert werden. Für die Feuerwehr könnten z.B. unterschiedliche Einsatztypen durch entsprechende definierte Leistungen abgebildet werden.</p>
@@ -69,10 +69,9 @@
                     [title]="'Einrichtungen und ihre Kapazität'"
                     [editTemplate]="capacityEdit"
                     [subtitle]="activeService?.name || ''"
-                    infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, ob für diese Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein.</p>
-                    <p>Bei manchen Leistungen ist es hingegen eher relevant, dass diese überhaupt an einem Ort verfügbar ist, wohingegen die Kapazität für Ihre Fragestellung eher zweitrangig ist (oder Ihnen keine Daten hierzu vorliegen). Dies können z.B. Feuerwehrstandorte, Ärzte oder Lebensmittelläden sein. In diesem Fall löschen Sie bitte das Häkchen vor der Eingangsfrage.</p>
-                    <p>Je nach Fragestellung oder Datenstand können Sie aber natürlich auch für diese beispielhaft genannten Infrastrukturen eine Kapazität definieren. In diesem Fall setzen Sie das Häkchen.</p>
-                    <p>Wenn Sie das Häkchen gesetzt haben, werden Sie gebeten anzugeben, wie die Maßeinheit der Kapazität für diese Leistung heißt, z.B. „Plätze“ oder „Patienten (max.)“ (Die eigentlichen Werte geben Sie im nachfolgenden Menüpunkt „Kapazitäten“ an.). Um im weiteren Verlauf Anzeigen wie „1 Plätze“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Platz“) an.</p>">
+                    infoText="<p>Über die Schaltfläche „Editieren“ legen Sie den allgemeingültigen Begriff für die Einrichtungen der ausgewählten Leistung fest (z.B. Schulen, Praxen, Läden, …). Geben Sie hier Einzahl („Praxis“), Mehrzahl („Praxen“) und den richtigen Artikel („die [Praxis]“) an. In nebenstehenden Anzeigebox können Sie prüfen, ob sich daraus sinnvolle Beispieltexte ergeben.</p>
+                    <p>Zudem können Sie festlegen, ob für die ausgewählte Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein. Wenn die Kapazität der Einrichtungen berücksichtigt werden sollen, geben Sie bitte dessen Maßeinheit (z.B. „Plätze“, „Arztstellen“, „qm“, …) an – ebenfalls in Ein- und Mehrzahl.</p>
+                    <p>Bei manchen Leistungen ist es hingegen eher relevant, dass diese überhaupt an einem Ort verfügbar ist, wohingegen die Kapazität für Ihre Fragestellung eher zweitrangig ist (oder Ihnen keine Daten hierzu vorliegen). Dies können z.B. Feuerwehrstandorte, Ärzte oder Lebensmittelläden sein. In diesem Fall deaktivieren Sie bitte das entsprechende Häkchen.</p>">
       <div  *ngIf="activeService">
         <table style="margin-top: 10px;">
           <tr>
@@ -106,26 +105,30 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="470px" [ngClass]="{'hidden': !activeService}">
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
     <app-input-card #demandCard
                     [title]="'Nachfrage nach der Leistung'"
                     [editTemplate]="demandEdit"
                     [subtitle]="activeService?.name || ''"
-                    infoText="Platzhalter"
-                    dialogInfoText= 'Tragen Sie in den beiden oberen Felder bitte ein, wie die Nachfragenden nach der ausgewählten Leistung in der Einzahl und der Mehrzahl heißen (z.B. "Krippenkind" und "Krippenkinder" oder "Patient:in" und "Patient:innen". <br>
-                                     Wählen Sie im untersten Feld zudem aus, ob die Nachfragenden zu den Einrichtungen gehen, um die Leistung in Anspruch zu nehmen (Kitas, Schule, Läden, Ärzte, ...) oder ob die Leistung von den Einrichtungen zu den Nachfragenden kommt (Feuerwehr, Rettungsdienst, ...).'>
+                    infoText="<p>Über die Schaltfläche „Editieren“ legen Sie den allgemeingültigen Begriff für die Nachfragemenge der ausgewählten Leistung fest.</p>
+                    <p>Achten Sie dabei auf eine Konsistenz mit Ihren Festlegungen zur Nachfrageberechnung im übernächsten Menüpunkt: Wenn die Nachfrage über die Anzahl der Personen beschrieben werden soll, die die Leistung regelmäßig nachfragen und deren Menge im Folgenden über eine Nachfragequote geschätzt wird, tragen Sie eine Bezeichnung für die nachfragenden Personen (z.B. Kitakinder, Schüler:innen, Kund:innen, Hilfesuchende, …) ein.</p>
+                    <p>Wenn die Nachfrage hingegen über die Nutzungshäufigkeit beschrieben und berechnet werden soll, sollte sich Ihre Bezeichnung eher auf die einzelne Leistungsinanspruchnahme beziehen (z.B. Arztkontakte, Hilfegesuche, Beratungstermine, Alarmierungen, Kundenkontakte, Einkäufe, …).</p>
+                    <p>Geben Sie bitte die Einzahl („Schüler:in“) und Mehrzahl („Schüler:innen“) an. In nebenstehenden Anzeigebox können Sie prüfen, ob sich daraus sinnvolle Beispieltexte ergeben.</p>
+                    <p>Zudem müssen Sie festlegen, ob die Nachfragenden zu den Einrichtungen gehen müssen (wie z.B. bei Schulen oder Läden) oder ob die Leistung zu den Nachfragenden kommt (wie z.B. bei der Feuerwehr). Auch diese Auswahl wirkt sich auf die Beispieltexte aus.</p>"
+                    dialogInfoText= "<p>Tragen Sie in den beiden oberen Felder bitte ein, wie die Nachfragenden nach der ausgewählten Leistung in der Einzahl und der Mehrzahl heißen (z.B. „Krippenkind“ und „Krippenkinder“ oder „Patient:in“ und „Patient:innen“.</p>
+                                     <p>Wählen Sie im untersten Feld zudem aus, ob die Nachfragenden zu den Einrichtungen gehen, um die Leistung in Anspruch zu nehmen (Kitas, Schule, Läden, Ärzte, ...) oder ob die Leistung von den Einrichtungen zu den Nachfragenden kommt (Feuerwehr, Rettungsdienst, ...).</p>">
       <div *ngIf="activeService">
         <table style="margin-top: 10px;">
           <tr>
-            <td>Nachfragende Einzahl</td>
+            <td style="white-space: normal;">Nachfragende Einzahl</td>
             <td>{{activeService.demandSingularUnit}}</td>
           </tr>
           <tr>
-            <td>Nachfragende Mehrzahl</td>
+            <td style="white-space: normal;">Nachfragende Mehrzahl</td>
             <td>{{activeService.demandPluralUnit}}</td>
           </tr>
           <tr>
-            <td>Richtung der Wegebeziehung </td>
+            <td style="white-space: normal;">Richtung der Wegebeziehung </td>
             <td>{{(activeService.directionWayRelationship === 1)? 'die Nachfragenden gehen zu den Einrichtungen': (activeService.directionWayRelationship === 2)? 'die Leistung kommt zu den Nachfragenden': '-'}}</td>
           </tr>
         </table>
@@ -133,7 +136,7 @@
     </app-input-card>
     <app-dash-card *ngIf="(indicators.length > 0)"
                    subtitle='Beispieltexte auf Basis der aktuellen Einstellungen für die ausgewählte Leistung "{{activeService?.name}}"'>
-      <ul>
+      <ul style="padding-left: 20px;">
         <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
           {{indicator.description}}
         </li>

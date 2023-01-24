@@ -21,6 +21,7 @@ import {
   VectorLayerOptions, ServiceLayerOptions, LayerOptions, VectorTileLayerOptions
 } from "./layers";
 import { CookieService } from "../helpers/cookies.service";
+import { saveAs } from "file-saver";
 
 interface MapLayerGroupOptions {
   order?: number,
@@ -286,7 +287,7 @@ export class MapControl {
       this.getServiceLayerGroups({ internal: true, external: true });
     })
     this.markerLayer = new VectorLayer('marker-layer', {
-      zIndex: 100000
+      zIndex: 100000, visible: true
     });
     this.markerLayer.addToMap(this.map);
   }
@@ -576,32 +577,73 @@ export class MapControl {
   }
 
   exportLegend(): void {
-    let entries: {color: string, text: string, shiftX: number}[] = [];
+    let entries: ({fillColor?: string, strokeColor?: string, symbol?: string, text: string, shiftX: number, textStyle?: string} | undefined)[] = [];
     this.layerGroups.filter(g => !g.external).forEach(group => {
-      console.log(group);
-      group.children.filter(l => l.legend !== undefined).forEach(layer => {
-        if (layer.legend!.entries) {
-          entries.concat(layer.legend!.entries.map(e => {
-            return { color: e.color, text: e.label, shiftX: 0 }
+      group.children.filter(l => (l instanceof VectorLayer) && l.visible).forEach(l => {
+        const layer = l as VectorLayer;
+        if (layer.legend?.entries) {
+          entries.push({ text: layer.name, shiftX: 0, textStyle: 'bold' });
+          entries = entries.concat(layer.legend!.entries.map(e => {
+            return { fillColor: e.color, strokeColor: e.strokeColor, symbol: (layer.style?.symbol === 'line')? 'square': 'circle', text: e.label, shiftX: 20 }
           }));
         }
+        else {
+          entries.push({ fillColor: layer.style?.fillColor, strokeColor: layer.style?.strokeColor,
+                         symbol: layer.style?.symbol, text: layer.name, shiftX: 20, textStyle: 'bold' });
+        }
+        // empty row
+        entries.push(undefined);
       })
     })
     const canvas = document.createElement('canvas');
     canvas.width = 600;
-    canvas.height = entries.length * 20;
+    canvas.height = (entries.length + 1) * 20;
     const ctx = canvas.getContext("2d")!;
     entries.forEach((entry, i) => {
-      ctx.beginPath();
-      ctx.rect(10, 10 + (i * 20), 15, 15);
-      ctx.fillStyle = entry.color;
-      ctx.fill();
+      if (!entry) return;
+      if (entry.fillColor || entry.strokeColor) {
+        ctx.beginPath();
+        if (entry.symbol === 'circle')
+          ctx.arc(17 + entry.shiftX, 17 + (i * 20), 7, 0, 2 * Math.PI);
+        else if (entry.symbol === 'line') {
+          ctx.moveTo(10 + entry.shiftX, 17 + (i * 20));
+          ctx.lineTo(25 + entry.shiftX, 17 + (i * 20));
+          ctx.lineWidth = 3;
+        }
+        else
+          ctx.rect(10 + entry.shiftX, 10 + (i * 20), 15, 15);
+        if (entry.fillColor) {
+          ctx.fillStyle = entry.fillColor;
+          ctx.fill();
+        }
+        if (entry.strokeColor) {
+          ctx.strokeStyle = entry.strokeColor;
+          ctx.stroke();
+        }
+      }
+      let font = `${entry.textStyle? entry.textStyle + ' ': ''}12px sans-serif`;
+      if (entry.textStyle)
+        font += ` `;
+      ctx.font = font;
+      ctx.fillStyle = 'black';
+      ctx.fillText(entry.text, 35 + entry.shiftX, 22 + (i * 20));
     })
+    if (navigator.hasOwnProperty('msSaveBlob')) {
+      // link download attribute does not work on MS browsers
+      // @ts-ignore
+      navigator.msSaveBlob(mapCanvas.msToBlob(), filename);
+    } else {
+      saveAs(canvas.toDataURL(), 'Legende.png');
+    }
   }
 
   exportTitleToClipboard(): void {
-    // current value of map description without HTML tags (resp. <br> to line break)
-    const description = this.mapDescription$.value.replace('<br>', '\n').replace(/<[^>]+>/g, '')
+    // remove existing line breaks
+    let description = this.mapDescription$.value.split('\n').join('');
+    // replace <br> with line breaks
+    description = description.split('<br>').join('\n');
+    // remove other HTML tags and replace multiple spaces with single spaces
+    description = description.replace(/<[^>]+>/g, '').replace(/  +/g, ' ');
     navigator.clipboard.writeText(description);
   }
 

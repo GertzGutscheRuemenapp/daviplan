@@ -1,10 +1,11 @@
-from abc import abstractstaticmethod
+from abc import abstractstaticmethod, abstractmethod
 from io import StringIO
 from distutils.util import strtobool
 from typing import Dict
 import sys
 import traceback
 import pandas as pd
+import logging
 
 from django.http import HttpResponse
 from django.db import transaction
@@ -85,23 +86,23 @@ class ExcelTemplateMixin(RunProcessMixin):
                                       drop_constraints=drop_constraints,
                                       **params)
 
+    @abstractstaticmethod
     def get_read_excel_params(self, request) -> Dict:
-        params = dict()
-        return params
+        """Read excel-params to a dict"""
 
     @abstractstaticmethod
     def process_excelfile(logger,
                           model,
                           drop_constraints=False,
                           **params):
-        # read excelfile
-        df = pd.DataFrame()
-        # write_df
-        write_template_df(df, model, logger, drop_constraints=drop_constraints)
+        """Process the Excelfile"""
+        # read excelfile -> df
+        # write_template_df(df, model, logger, drop_constraints=drop_constraints)
         # postprocess (optional)
 
 
-def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
+def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False,
+                      log_level=logging.INFO):
     manager = model.copymanager
     with transaction.atomic():
         if drop_constraints:
@@ -109,7 +110,7 @@ def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
             manager.drop_indexes()
         try:
             if len(df):
-                logger.info('Schreibe Daten in Datenbank')
+                logger.debug('Schreibe Daten in Datenbank')
                 with StringIO() as file:
                     df.to_csv(file, index=False)
                     file.seek(0)
@@ -143,6 +144,6 @@ def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False):
                 manager.restore_indexes()
 
     if (len(df)):
-        msg = f'{len(df)} Einträge geschrieben'
-        logger.info(msg)
+        msg = f'{len(df):n} Einträge geschrieben'
+        logger.log(log_level, msg)
 
