@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl } from "../../../map/map.service";
 import {
   LogEntry,
@@ -31,7 +31,6 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
   selectedVariant?: ModeVariant;
   variantForm: FormGroup;
   file?: File;
-  statistics?: ModeStatistics;
   isLoading$ = new BehaviorSubject<boolean>(false);
   isProcessing$ = new BehaviorSubject<boolean>(false);
   subscriptions: Subscription[] = [];
@@ -39,7 +38,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
 
   constructor(private dialog: MatDialog, private restService: RestCacheService, private settings: SettingsService,
-              private http: HttpClient, private rest: RestAPI, private formBuilder: FormBuilder) {
+              private http: HttpClient, private rest: RestAPI, private formBuilder: FormBuilder, private cdref: ChangeDetectorRef) {
     // make sure data requested here is up-to-date
     this.restService.reset();
     this.variantForm = this.formBuilder.group({
@@ -56,21 +55,18 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
 
   fetchVariants(options?: { reset?: boolean }): void {
     this.isLoading$.next(true);
-    this.restService.getModeVariants({reset: options?.reset}).subscribe(variants => {
+    this.restService.getModeVariants({ reset: options?.reset }).subscribe(variants => {
+      if (this.selectedVariant)
+        this.selectedVariant = variants.find(v => v.id === this.selectedVariant?.id);
       this.variants = variants.filter(v => v.mode === TransportMode.TRANSIT);
       this.isLoading$.next(false);
+      this.cdref.detectChanges();
     })
   }
 
   selectVariant(variant: ModeVariant): void {
     if (variant === this.selectedVariant) return;
     this.selectedVariant = variant;
-    this.statistics = undefined;
-    this.isLoading$.next(true);
-    this.restService.getModeStatistics({ reset: true }).subscribe(stats => {
-      this.statistics = stats;
-      this.isLoading$.next(false);
-    });
   }
 
   onEditVariant(create = false): void {
@@ -238,7 +234,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
       this.isProcessing$.next(false);
-      this.restService.getModeStatistics({ reset: true }).subscribe(stats => this.statistics = stats)
+      this.fetchVariants({ reset: true });
     }
   }
 
@@ -266,7 +262,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
         ).subscribe(res => {
           this.selectedVariant = undefined;
           // other variants might change on deletion of the default one
-          this.fetchVariants({reset: true});
+          this.fetchVariants({ reset: true });
         }, error => {
           showAPIError(error, this.dialog);
         });

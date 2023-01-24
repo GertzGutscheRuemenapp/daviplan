@@ -20,8 +20,8 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   isProcessing$ = new BehaviorSubject<boolean>(false);
   subscriptions: Subscription[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
-  statistics: Record<number, number> = {};
   TransportMode = TransportMode;
+  statistics: Record<number, number> = {};
 
   constructor(private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
               private settings: SettingsService, private restService: RestCacheService) {
@@ -37,18 +37,14 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     }));
     this.settings.fetchBaseDataSettings();
     this.isLoading$.next(true);
-    this.restService.getModeVariants().subscribe(modeVariants => {
-      this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT && m.isDefault);
-      this.isLoading$.next(false);
-      this.getStatistics();
-    })
+    this.fetchVariants();
   }
 
-  getStatistics(): void {
+  fetchVariants(options?: { reset?: boolean }): void {
     this.isLoading$.next(true);
-    this.restService.getModeStatistics({ reset: true }).subscribe(stats => {
-      this.statistics = {};
-      this.modeVariants.forEach(mV => this.statistics[mV.mode] = stats.nRelsPlaceCellModevariant[mV.id]);
+    this.restService.getModeVariants({ reset: options?.reset }).subscribe(variants => {
+      this.modeVariants = variants.filter(m => m.mode !== TransportMode.TRANSIT && m.isDefault);
+      this.modeVariants.forEach(mV => this.statistics[mV.mode] = mV.statistics?.nRelsPlaceCellModevariant || 0)
       this.isLoading$.next(false);
     })
   }
@@ -130,7 +126,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     if (log?.status?.finished) {
       this.isProcessing$.next(false);
       this.settings.fetchBaseDataSettings();
-      this.getStatistics();
+      this.fetchVariants({ reset: true })
     }
   }
 
