@@ -100,7 +100,7 @@
   <div class="scenario-row" *ngIf="planningService.activeService && planningService.activeService.demandType !== 3">
     <mat-form-field appearance="standard" class="small"
                     floatLabel="always"
-                    [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
+                    style="width: calc(100% - 30px);"
                     title="Nachfragequoten-Set ({{planningService.activeService.name}})">
       <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
       <mat-select disableOptionCentering disableRipple
@@ -114,12 +114,11 @@
       </mat-select>
     </mat-form-field>
     <button mat-icon-button *ngIf="getDemandRateSet(scenario)"
-            class="outlined small" color="primary"
-            style="margin-top: 10px; width: 30px;"
-            title="aktuell eingestellte Nachfragequoten anzeigen"
+            class="small" color="primary"
+            style="margin-top: 15px; width: 25px; height: 25px; line-height: 25px;"
+            title="Aktuell eingestellte Nachfragequoten anzeigen"
             (click)="onShowDemandQuotaSet()">
-<!--      <mat-icon>show_chart</mat-icon>-->
-      <mat-icon>query_stats</mat-icon>
+      <mat-icon>search</mat-icon>
     </button>
   </div>
   <div class="scenario-row">
@@ -133,7 +132,6 @@
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [value]="scenario.prognosis"
-                  [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
                   [disabled]="scenario.isBase || !processEditable"
                   [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Prognosen definiert'"
                   (selectionChange)="onPrognosisChange(scenario, $event.value)">

@@ -394,7 +394,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   updateMapDescription(): void {
     let desc = `${this.planningService.activeScenario?.name}<br>
-                ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}"`;
+                ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}" ${this.year}`;
     if (this.selectedIndicator?.additionalParameters?.find(p => p.name === 'mode')) {
       const mode = this.indicatorParams['mode'];
       desc += ' (' + ((mode !== TransportMode.WALK) ? 'mit dem ' : '') + modes[mode] + ')';

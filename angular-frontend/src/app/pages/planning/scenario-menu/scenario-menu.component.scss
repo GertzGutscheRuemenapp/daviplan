@@ -51,6 +51,7 @@
     }
     .scenario-row {
       display: flex;
+      position: relative;
       mat-icon {
         cursor: pointer;
         align-self: end;

@@ -126,6 +126,7 @@ mat-toolbar mat-form-field {
 ::ng-deep app-planning {
 
   #scenario-menu {
+    display: flex;
     position: fixed;
     top: 155px;
     //left: calc(#{$context-bar-width} - 100% - 100px);
