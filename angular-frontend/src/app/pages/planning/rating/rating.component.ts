@@ -8,7 +8,7 @@ import {
   Area,
   AreaIndicatorResult,
   AreaLevel,
-  Indicator,
+  Indicator, IndicatorParameter,
   Infrastructure, PlaceIndicatorResult,
   RasterIndicatorResult, Scenario,
   Service,
@@ -53,7 +53,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   layerGroup?: MapLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
-  indicatorParams: any = {mode: TransportMode.WALK};
+  indicatorParams: any = {};
+  indicatorErrors: string[] = [];
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService, private mapService: MapService) {}
@@ -112,7 +113,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.layerGroup?.clear();
     this.barChart.clear();
     this.mapControl?.setDescription('');
-    if(!this.activeScenario || !this.activeService) return;
+    const valid = this.verifyActiveIndicator();
+    if(!valid || !this.activeScenario || !this.activeService) return;
     switch (this.selectedIndicator?.resultType) {
       case 'area':
         this.renderAreaIndicator();
@@ -368,6 +370,33 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  verifyActiveIndicator(): boolean {
+    this.indicatorErrors = [];
+    if (!this.activeScenario) {
+      this.indicatorErrors.push('Kein Szenario ausgewählt');
+      return false;
+    }
+    if (!this.selectedIndicator) {
+      this.indicatorErrors.push('Kein Indikator ausgewählt');
+      return false;
+    }
+    let valid = true;
+    this.selectedIndicator.additionalParameters?.forEach(param => {
+      let value = this.indicatorParams[param.name];
+      if (param.type === 'number') {
+        if ((value || 0) < (param.min || 0)) {
+          this.indicatorErrors.push(`Kein gültiger Wert für "${param.title}"`);
+          valid = false;
+        }
+      }
+      else if (!value) {
+        this.indicatorErrors.push(`Kein Eintrag für "${param.title}"`);
+        valid = false;
+      }
+    })
+    return valid;
+  }
+
   renderDiagram(data: BarChartData[]){
     this.barChart.draw(sortBy(data, 'value', { reverse: true }));
   }
@@ -381,8 +410,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     return params;
   }
 
-  setParam(param: string, value: any): void {
-    this.indicatorParams[param] = value;
+  setParam(param: IndicatorParameter, value: any): void {
+    this.indicatorParams[param.name] = (param.type === 'number')? Number(value): value;
     this.cookies.set('planning-rating-params', this.indicatorParams);
     this.updateMap();
   }

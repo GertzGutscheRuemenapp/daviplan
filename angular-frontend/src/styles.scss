@@ -676,6 +676,9 @@ mat-form-field.warning  .mat-form-field-flex {
 }
 
 mat-form-field.invalid {
+  .mat-form-field-outline {
+    color: red;
+  }
   mat-select .mat-select-min-line {
     color: red !important;
   }
@@ -1161,6 +1164,10 @@ app-map-controls {
   padding: 10px 5px 5px 10px;
   border: 1px solid #dedede;
   border-radius: 5px;
+}
+
+.sub-select-wrapper.invalid {
+  border-color: red;
 }
 
 .mat-radio-button.mat-radio-disabled {

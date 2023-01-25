@@ -25,8 +25,8 @@
         <mat-icon class="material-icons-outlined">lightbulb</mat-icon>
       </div>
       Bewertung
-      <mat-icon *ngIf="!selectedIndicator" class="warning"
-                title="Kein Indikator ausgewählt">
+      <mat-icon *ngIf="indicatorErrors.length > 0" class="warning"
+                [title]="'Fehler: ' + indicatorErrors.join(' | ')">
         error_outline
       </mat-icon>
       <app-help-button title="Indikator" position="right">
@@ -67,20 +67,23 @@
     <div *ngFor="let parameter of selectedIndicator?.additionalParameters"
          style="margin-top: 10px;">
       <ng-container *ngIf="parameter.type === 'number' || parameter.type === 'string'">
-        <mat-form-field class="small" appearance="outline">
+        <mat-form-field class="small" appearance="outline"
+                        [ngClass]="{ 'invalid': (parameter.type === 'number')? (indicatorParams[parameter.name] < (parameter.min || 0)): !indicatorParams[parameter.name] }">
           <mat-label>{{parameter.title}}</mat-label>
           <input matInput *ngIf="parameter.type === 'number'" type="number"
                  [value]="indicatorParams[parameter.name] || 0"
-                 (change)="setParam(parameter.name, $any($event.target).value)">
+                 [min]="parameter.min || 0"
+                 [max]="parameter.max || 9999999"
+                 (change)="setParam(parameter, $any($event.target).value)">
           <input matInput *ngIf="parameter.type === 'string'"
                  [value]="indicatorParams[parameter.name] || ''"
-                 (change)="setParam(parameter.name, $any($event.target).value!)">
+                 (change)="setParam(parameter, $any($event.target).value!)">
         </mat-form-field>
       </ng-container>
       <ng-container *ngIf="parameter.name === 'mode'">
         <app-mode-select [selected]="indicatorParams['mode']"
                          [label]="parameter.title"
-                         (modeChanged)="setParam('mode', $event);">
+                         (modeChanged)="setParam(parameter, $event);">
         </app-mode-select>
       </ng-container>
     </div>

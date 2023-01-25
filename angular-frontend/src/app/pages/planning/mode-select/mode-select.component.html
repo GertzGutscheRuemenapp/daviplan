@@ -1,4 +1,5 @@
-<div id="mode-select" class="sub-select-wrapper" style="display: flex">
+<div id="mode-select" class="sub-select-wrapper" style="display: flex"
+     [ngClass]="{ 'invalid': !selectedMode }">
   <label *ngIf="label">{{label}}</label>
   <ng-container *ngFor="let modeItem of modes | keyvalue">
     <ng-container *ngVar="Number(modeItem.key) as mode">

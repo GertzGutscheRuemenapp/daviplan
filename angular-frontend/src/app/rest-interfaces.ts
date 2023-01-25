@@ -96,10 +96,12 @@ export interface Source {
   url: string
 }
 
-interface IndicatorParameter {
+export interface IndicatorParameter {
   name: string,
   type : 'choice' | 'number' | 'string',
   title: string,
+  min: number,
+  max: number,
   choices?: string[];
 }
 
