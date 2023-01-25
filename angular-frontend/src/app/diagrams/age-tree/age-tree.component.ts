@@ -123,7 +123,7 @@ export class AgeTreeComponent extends DiagramComponent implements AfterViewInit 
         d3.axisBottom(xScale)
           .ticks(5)
           .tickSize(-height)
-          .tickFormat(d3.format('d'))
+          .tickFormat((d) => d.toLocaleString())
       );
 
     this.svg.append('g')
@@ -133,7 +133,7 @@ export class AgeTreeComponent extends DiagramComponent implements AfterViewInit 
         d3.axisBottom(xScale.copy().range([pointA, 0]))
           .ticks(5)
           .tickSize(-height)
-          .tickFormat(d3.format('d'))
+          .tickFormat((d) => d.toLocaleString())
       );
 
     // title

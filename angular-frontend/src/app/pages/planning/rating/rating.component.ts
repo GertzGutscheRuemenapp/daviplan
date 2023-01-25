@@ -17,7 +17,7 @@ import {
 import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
-import { MapLayer, TileLayer, ValueStyle, VectorLayer } from "../../../map/layers";
+import { MapLayer, ValueStyle, VectorLayer } from "../../../map/layers";
 import {
   BarChartData,
   HorizontalBarchartComponent
