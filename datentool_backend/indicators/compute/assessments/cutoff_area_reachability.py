@@ -54,6 +54,8 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
         area_level_id = self.data.get('area_level')
         mode = self.data.get('mode')
         variant = self.get_mode_variant(mode, scenario_id)
+        if not variant:
+            return []
         cutoff = self.data.get('cutoff')
 
         if area_level_id is None:
