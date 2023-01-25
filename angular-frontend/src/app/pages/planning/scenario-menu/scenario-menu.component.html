@@ -6,6 +6,10 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
       </div>
       Szenario
+      <mat-icon *ngIf="inputErrors.length > 0" class="warning"
+                [title]="'Fehler in ausgewähltem Szenario: ' + inputErrors.join(' | ')">
+        error_outline
+      </mat-icon>
       <app-help-button title="Szenario" position="right" style="pointer-events: all;">
         <div [innerHTML]="helpText"></div>
       </app-help-button>
@@ -144,7 +148,7 @@
 </ng-template>
 
 <ng-template #reachabilitiesTemplate let-scenario="scenario">
-  <div class="scenario-row">
+  <div>
     <mat-form-field appearance="standard" class="small"
                     floatLabel="always">
       <mat-label>ÖPNV-Netz</mat-label>
@@ -153,12 +157,18 @@
                   (selectionChange)="onTransitChange(scenario, $event.value)"
                   [placeholder]="(transitVariants.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
                   [disabled]="scenario.isBase || !processEditable">
-        <mat-option *ngFor="let variant of transitVariants" [value]="variant">
-          {{variant.label}} <ng-container *ngIf="!variant.statistics?.nRelsPlaceCellModevariant">(nicht berechnet)</ng-container>
+        <mat-option *ngFor="let variant of transitVariants"
+                    [value]="variant"
+                    [title]="variant.label">
+          {{variant.label}} <ng-container *ngIf="!variant.statistics?.nRelsPlaceCellModevariant">(nicht vorberechnet)</ng-container>
         </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
+<!--  <div *ngIf="!getTransitVariant(scenario)?.statistics?.nRelsPlaceCellModevariant"
+       class="scenario-row">
+    Das gewählte Netz wurde nicht vorberechnet.
+  </div>-->
 </ng-template>
 
 <ng-template #ratingScenario let-scenario="scenario">
