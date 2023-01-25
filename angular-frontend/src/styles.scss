@@ -675,6 +675,12 @@ mat-form-field.warning  .mat-form-field-flex {
   }
 }
 
+mat-form-field.invalid {
+  mat-select .mat-select-min-line {
+    color: red !important;
+  }
+}
+
 mat-icon.warning {
   color: $warning;
 }
