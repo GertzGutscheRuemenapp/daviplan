@@ -235,7 +235,7 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`,
+        this.http.delete(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/?force=true`,
           { params: { force: true }}).subscribe(res => {
             this.activeLevel = undefined;
             // resetting all area levels because deletion might change the set population level

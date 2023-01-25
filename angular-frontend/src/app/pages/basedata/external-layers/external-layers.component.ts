@@ -349,7 +349,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.layers}${layer.id}/`
+        this.http.delete(`${this.rest.URLS.layers}${layer.id}/?force=true`
         ).subscribe(res => {
           for (let group of this.layerGroups) {
             if (!group.children) continue;
@@ -385,7 +385,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.layerGroups}${group.id}/?override_protection=true`
+        this.http.delete(`${this.rest.URLS.layerGroups}${group.id}/?force=true`
         ).subscribe(res => {
           const idx = this.layerGroups.indexOf(group);
           if (idx >= 0) {

@@ -260,7 +260,7 @@ export class UsersComponent implements AfterViewInit  {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.users}${this.selectedUser?.id}/`
+        this.http.delete(`${this.rest.URLS.users}${this.selectedUser?.id}/?force=true`
         ).subscribe(res => {
           const idx = this.users.indexOf(this.selectedUser!);
           if (idx > -1) {

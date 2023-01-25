@@ -307,7 +307,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.processes}${process.id}/`
+        this.http.delete(`${this.rest.URLS.processes}${process.id}/?force=true`
         ).subscribe(res => {
           const idx = this.myProcesses.indexOf(process);
           if (idx > -1) {
