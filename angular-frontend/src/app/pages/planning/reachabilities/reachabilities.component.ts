@@ -56,6 +56,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private mapClickSub?: Subscription;
   placesLayer?: VectorLayer;
+  stopsLayer?: VectorLayer;
   year?: number;
   placeReachabilityLayer?: VectorLayer;
   nextPlaceReachabilityLayer?: VectorTileLayer;
@@ -85,6 +86,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updatePlaces().subscribe(() => this.renderReachability());
+      // this.updateStops();
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
@@ -104,7 +106,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): Observable<boolean> {
     const observable = new Observable<any>(subscriber => {
-      this.placesLayerGroup?.clear();
+      if (this.placesLayer) {
+        this.placesLayerGroup?.removeLayer(this.placesLayer);
+        this.placesLayer = undefined;
+      }
       if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) {
         subscriber.next(false);
         subscriber.complete();
@@ -115,10 +120,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
         this.places = places;
-        if (this.placesLayer) {
-          this.placesLayerGroup?.removeLayer(this.placesLayer);
-          this.placesLayer = undefined;
-        }
         this.placesLayer = this.placesLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
           id: 'reach-places',
           order: 1,
@@ -149,7 +150,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         });
         this.placesLayer?.setSelectable(this.indicator === 'place');
         this.placesLayer?.addFeatures(places.map(place => {
-          return { id: place.id, geometry: place.geom, properties: { name: place.name } }
+          return { id: place.id, geometry: place.geom, properties: { name: `Standort: ${place.name}` } }
         }));
 
         this.placesLayer?.featuresSelected?.subscribe(features => {
@@ -169,6 +170,43 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       if (done && this.indicator === 'next')
         this.showNextPlaceReachabilities();
     });
+  }
+
+  updateStops(): void {
+    const transitVariant = this.activeScenario?.modeVariants.find(mv => mv.mode === TransportMode.TRANSIT);
+    if (this.stopsLayer) {
+      this.placesLayerGroup?.removeLayer(this.stopsLayer);
+      this.stopsLayer = undefined;
+    }
+    if (!transitVariant) return;
+    this.planningService.getTransitStops({ variant: transitVariant['variant'] }).subscribe(stops => {
+      this.stopsLayer = this.placesLayerGroup?.addVectorLayer('Haltestellen', {
+        id: 'reach-places',
+        order: 1,
+        zIndex: 99998,
+        description: 'Haltestellen',
+        radius: 7,
+        style: {
+          fillColor: '#c26f12',
+          strokeColor: 'black',
+          symbol: 'circle'
+        },
+        labelField: 'name',
+        tooltipField: 'name',
+        mouseOver: {
+          enabled: true,
+          cursor: '',
+          style: {
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
+        },
+        labelOffset: { y: 15 }
+      });
+      this.stopsLayer?.addFeatures(stops.map(stop => {
+        return { id: stop.id, geometry: stop.geom, properties: { name: `Haltestelle: ${stop.name}` } }
+      }));;
+    })
   }
 
   showPlaceReachability(): void {

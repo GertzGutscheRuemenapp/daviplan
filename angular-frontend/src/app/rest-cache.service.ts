@@ -396,12 +396,23 @@ export class RestCacheService {
     }));
   }
 
-  getTransitStops(options?: { reset?: boolean, variant?: number }): Observable<TransitStop[]> {
+  getTransitStops(options?: { reset?: boolean, variant?: number, targetProjection?: string }): Observable<TransitStop[]> {
     const url = this.rest.URLS.transitStops;
     let params: any = {};
     if (options?.variant !== undefined)
       params.variant = options.variant;
-    return this.getCachedData<TransitStop[]>(url, { reset: options?.reset, params: params });
+    const query = this.getCachedData<TransitStop[]>(url, { reset: options?.reset, params: params });
+    const targetProjection = (options?.targetProjection !== undefined) ? options?.targetProjection : 'EPSG:4326';
+    return query.pipe(map(stops => {
+      stops.forEach( stop => {
+        if (!(stop.geom instanceof Geometry)) {
+          const geometry = wktToGeom(stop.geom as string,
+            { targetProjection: targetProjection, ewkt: true });
+          stop.geom = geometry;
+        }
+      })
+      return stops;
+    }));
   }
 
   getTransitMatrix(options?: { reset?: boolean, variant?: number }): Observable<TransitMatrixEntry[]> {
