@@ -76,6 +76,7 @@
     <div class="diagram-wrapper">
       <app-multiline-chart #yearChart
                            [height]="chartHeight"
+                           [showPNGExport]="true"
                            [yLegendOffset]="50"
                            [xLegendOffset]="40"
                            [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
@@ -94,9 +95,10 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px;">
+    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px; position: relative">
       <app-multiline-chart #ageGroupChart
                            [height]="chartHeight"
+                           [showPNGExport]="true"
                            [yLegendOffset]="50"
                            [xLegendOffset]="40"
                            [yTicks]="10"
