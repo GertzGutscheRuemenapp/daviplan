@@ -306,6 +306,9 @@ DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# maximum number of persisted log entries per room
+MAX_N_LOGS = 2000
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

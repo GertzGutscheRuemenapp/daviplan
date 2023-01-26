@@ -1,5 +1,6 @@
 import logging
 from django.utils import timezone
+from django.conf import settings
 
 
 class PersistLogHandler(logging.StreamHandler):
@@ -24,6 +25,15 @@ class PersistLogHandler(logging.StreamHandler):
         room = record.name
         message = record.getMessage()
         if message:
+            max_n_logs = getattr(settings, 'MAX_N_LOGS')
+            if (max_n_logs):
+                logs = LogEntry.objects.filter(room=room)
+                diff = logs.count() - max_n_logs
+                if (diff == 1):
+                    logs.order_by('id').first().delete()
+                elif (diff > 1):
+                    ids = logs.order_by('id')[:diff].values_list('id')
+                    LogEntry.objects.filter(id__in=ids).delete()
             LogEntry.objects.create(
                 date=timezone.now(), room=room, text=message,
                 user=self.user, level=record.levelname,

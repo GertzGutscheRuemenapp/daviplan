@@ -1,9 +1,8 @@
 from django.db import models
-from datentool_backend.base import NamedModel
 from datentool_backend.user.models import Profile
 
 
-class LogEntry(NamedModel, models.Model):
+class LogEntry(models.Model):
     """a generic log entry"""
     user = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True)
     date = models.DateTimeField()
