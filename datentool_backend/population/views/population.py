@@ -280,7 +280,7 @@ class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
     def _pull_regionalstatistik(area_level: AreaLevel,
                                 logger: logging.Logger,
                                 drop_constraints=False):
-        CHUNK_SIZE = 10
+        CHUNK_SIZE = 5
         areas = Area.annotated_qs(area_level).filter(area_level=area_level)
 
         min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
