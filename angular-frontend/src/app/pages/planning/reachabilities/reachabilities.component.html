@@ -111,12 +111,16 @@
         <mat-icon class="material-icons-outlined">directions_bus_filled</mat-icon>
       </div>
       Verkehrsmittel
+      <mat-icon *ngIf="!activeMode" class="warning"
+                title="Kein Verkehrsmittel ausgewählt">
+        error_outline
+      </mat-icon>
       <app-help-button title="Verkehrsmittel" position="right">
         <p>Wählen Sie hier das Verkehrsmittel für die Erreichbarkeitsdarstellung.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <app-mode-select [mode]="activeMode" (modeChanged)="changeMode($event)"></app-mode-select>
+  <app-mode-select [selected]="activeMode" (modeChanged)="changeMode($event)"></app-mode-select>
 </mat-expansion-panel>
 
 <ng-template #filterTemplate>

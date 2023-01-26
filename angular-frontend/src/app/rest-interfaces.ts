@@ -96,10 +96,12 @@ export interface Source {
   url: string
 }
 
-interface IndicatorParameter {
+export interface IndicatorParameter {
   name: string,
   type : 'choice' | 'number' | 'string',
   title: string,
+  min: number,
+  max: number,
   choices?: string[];
 }
 
@@ -318,7 +320,8 @@ export interface Infrastructure {
   order: number,
   symbol?: Symbol,
   placeFields?: PlaceField[],
-  placesCount: number
+  placesCount: number,
+  access: boolean
 }
 
 export interface Place {
@@ -390,6 +393,13 @@ export interface ModeVariant {
   mode: number,
   network: number,
   isDefault: boolean
+  statistics?: {
+    nStops: number,
+    nRelsPlaceCellModevariant: number,
+    nRelsPlaceStopModevariant: number,
+    nRelsStopCellModevariant: number,
+    nRelsStopStopModevariant: number
+  }
   // cutoffTime: number
 }
 
@@ -402,8 +412,6 @@ export interface LogEntry {
 }
 
 export interface ModeStatistics {
-  nPlaces: number,
-  nCells: number,
   nStops: Record<number, number>,
   nRelsPlaceCellModevariant: Record<number, number>,
   nRelsPlaceStopModevariant: Record<number, number>,

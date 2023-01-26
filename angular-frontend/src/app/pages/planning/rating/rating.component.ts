@@ -8,7 +8,7 @@ import {
   Area,
   AreaIndicatorResult,
   AreaLevel,
-  Indicator,
+  Indicator, IndicatorParameter,
   Infrastructure, PlaceIndicatorResult,
   RasterIndicatorResult, Scenario,
   Service,
@@ -17,13 +17,12 @@ import {
 import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
-import { MapLayer, TileLayer, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { MapLayer, ValueStyle, VectorLayer } from "../../../map/layers";
 import {
   BarChartData,
   HorizontalBarchartComponent
 } from "../../../diagrams/horizontal-barchart/horizontal-barchart.component";
 import { sortBy } from "../../../helpers/utils";
-import { saveSvgAsPng } from "save-svg-as-png";
 import { modes } from "../mode-select/mode-select.component";
 
 @Component({
@@ -54,7 +53,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   layerGroup?: MapLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
-  indicatorParams: any = {mode: TransportMode.WALK};
+  indicatorParams: any = {};
+  indicatorErrors: string[] = [];
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService, private mapService: MapService) {}
@@ -113,7 +113,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.layerGroup?.clear();
     this.barChart.clear();
     this.mapControl?.setDescription('');
-    if(!this.activeScenario || !this.activeService) return;
+    const valid = this.verifyActiveIndicator();
+    if(!valid || !this.activeScenario || !this.activeService) return;
     switch (this.selectedIndicator?.resultType) {
       case 'area':
         this.renderAreaIndicator();
@@ -209,7 +210,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
                             Szenario: ${this.activeScenario?.name}`;
           this.selectedIndicator?.additionalParameters?.forEach(param => {
             let value = this.indicatorParams[param.name];
-            if (param.name == 'mode') value = modes[value];
+            if (param.name == 'mode')
+              value = modes[value];
             description += `<br>${param.title}: ${(value != undefined)? value: '-'}`;
           })
           displayedPlaces.push({
@@ -368,6 +370,33 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  verifyActiveIndicator(): boolean {
+    this.indicatorErrors = [];
+    if (!this.activeScenario) {
+      this.indicatorErrors.push('Kein Szenario ausgewählt');
+      return false;
+    }
+    if (!this.selectedIndicator) {
+      this.indicatorErrors.push('Kein Indikator ausgewählt');
+      return false;
+    }
+    let valid = true;
+    this.selectedIndicator.additionalParameters?.forEach(param => {
+      let value = this.indicatorParams[param.name];
+      if (param.type === 'number') {
+        if ((value || 0) < (param.min || 0)) {
+          this.indicatorErrors.push(`Kein gültiger Wert für "${param.title}"`);
+          valid = false;
+        }
+      }
+      else if (!value) {
+        this.indicatorErrors.push(`Kein Eintrag für "${param.title}"`);
+        valid = false;
+      }
+    })
+    return valid;
+  }
+
   renderDiagram(data: BarChartData[]){
     this.barChart.draw(sortBy(data, 'value', { reverse: true }));
   }
@@ -381,27 +410,27 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     return params;
   }
 
-  setParam(param: string, value: any): void {
-    this.indicatorParams[param] = value;
+  setParam(param: IndicatorParameter, value: any): void {
+    this.indicatorParams[param.name] = (param.type === 'number')? Number(value): value;
     this.cookies.set('planning-rating-params', this.indicatorParams);
     this.updateMap();
   }
 
   onIndicatorChange(): void {
     this.cookies.set('planning-indicator', this.selectedIndicator?.name);
-/*    this.selectedIndicator?.additionalParameters?.forEach(indicatorParam => {
-      this.indicatorParams[indicatorParam.name] = ;
-    })*/
     this.updateMap();
   }
 
   updateMapDescription(): void {
-    const desc = `${this.planningService.activeScenario?.name}<br>
-                  ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}"<br>
-                  <b>${this.selectedIndicator?.description}</b>`
+    let desc = `${this.planningService.activeScenario?.name}<br>
+                ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}" ${this.year}`;
+    if (this.selectedIndicator?.additionalParameters?.find(p => p.name === 'mode')) {
+      const mode = this.indicatorParams['mode'];
+      desc += ' (' + ((mode !== TransportMode.WALK) ? 'mit dem ' : '') + modes[mode] + ')';
+    }
+    desc += `<br><b>${this.selectedIndicator?.description}</b>`
     this.mapControl?.setDescription(desc);
   }
-
 
   onFullscreenDialog(): void {
     this.dialog.open(SimpleDialogComponent, {

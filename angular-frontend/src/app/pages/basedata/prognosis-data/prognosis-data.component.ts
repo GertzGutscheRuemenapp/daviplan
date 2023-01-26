@@ -258,7 +258,7 @@ export class PrognosisDataComponent implements OnInit, AfterViewInit, OnDestroy 
       const population = this.populations.find(p => p.year === year.id);
       if (!population) return;
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.populations}${population.id}/`
+        this.http.delete(`${this.rest.URLS.populations}${population.id}/?force=true`
         ).subscribe(res => {
           const idx = this.populations.indexOf(population);
           if (idx > -1) this.populations.splice(idx, 1);

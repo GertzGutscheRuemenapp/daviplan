@@ -39,6 +39,8 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
         area_level_id = self.data.get('area_level')
         mode = self.data.get('mode')
         variant = self.get_mode_variant(mode, scenario_id)
+        if not variant:
+            return []
 
         if area_level_id is None:
             raise BadRequest('No AreaLevel provided')

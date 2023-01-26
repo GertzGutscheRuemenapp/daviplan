@@ -165,7 +165,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.activeProcess$.next(process);
     this.planningService.activeScenario$.next(scenario);
     this.planningService.getInfrastructures({ process: process }).subscribe( infrastructures => {
-      this.infrastructures = infrastructures;
+      this.infrastructures = infrastructures.filter(i => i.access === true);
       const infraId = this.cookies.get(`planning-infrastructure-${id}`, 'number');
       // process does not contain last selected infrastructure -> do not select it
       let activeInfrastructure = (infraId !== undefined && this.activeProcess && this.activeProcess.infrastructures.indexOf(infraId) >= 0)? this.infrastructures?.find(i => i.id === infraId): undefined;
@@ -307,7 +307,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.processes}${process.id}/`
+        this.http.delete(`${this.rest.URLS.processes}${process.id}/?force=true`
         ).subscribe(res => {
           const idx = this.myProcesses.indexOf(process);
           if (idx > -1) {
@@ -328,9 +328,14 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     if (!process) return '';
     let description = process.description? `<p><i>${process.description}</i></p>`: '';
     const infraNames = process.infrastructures.map(iId => this.allInfrastructures.find(i => i.id === iId)?.name);
+    const access = process.infrastructures.map(iId => this.allInfrastructures.find(i => i.id === iId)?.access);
     description += `<p>Infrastrukturbereiche:
                       <ul>
-                        ${(infraNames.length > 0)? infraNames.map(s => (s === undefined)? '<li class="red">unbekannter Bereich (keine Zugriffsberechtigung!)</li>': `<li>${s}</li>`).join(''): '-'}
+                        ${(infraNames.length > 0)? infraNames.map((s, i) =>
+                          (s === undefined)? '<li class="red">unbekannter Bereich (keine Zugriffsberechtigung!)</li>':
+                            (!access[i])? `<li class="red"> ${s} (keine Zugriffsberechtigung!)</li>`:
+                            `<li>${s}</li>`).join('')
+                          : '-' }
                       </ul>
                     </p>`;
     if (process.owner === this.user?.id && process.users.length > 0) {

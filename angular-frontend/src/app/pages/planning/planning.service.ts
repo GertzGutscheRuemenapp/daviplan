@@ -11,7 +11,8 @@ import {
   Place,
   PlanningProcess,
   Scenario,
-  Service, TotalCapacityInScenario,
+  Service,
+  TotalCapacityInScenario,
   User
 } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";

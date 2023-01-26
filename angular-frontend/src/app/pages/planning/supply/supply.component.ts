@@ -491,7 +491,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete<Place>(`${this.rest.URLS.places}${place.id}/`).subscribe(p => {
+        this.http.delete<Place>(`${this.rest.URLS.places}${place.id}/?force=true`).subscribe(p => {
           this.placePreviewDialogRef?.close();
           this.selectedPlaces = [];
           this.updatePlaces({ resetScenario: true });

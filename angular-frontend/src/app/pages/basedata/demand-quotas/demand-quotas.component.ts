@@ -259,7 +259,7 @@ export class DemandQuotasComponent implements OnInit, AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`
+        this.http.delete(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/?force=true`
         ).subscribe(() => {
           this.activeDemandRateSet = undefined;
           // other set might change on deletion of the default one
