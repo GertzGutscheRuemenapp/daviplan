@@ -16,6 +16,9 @@
       margin-left: 0;
     }
   }
+  .mini-fab-icon:hover {
+    background-color: $primary-light;
+  }
   > div {
     text-align: center;
     min-width: 55px;
@@ -27,6 +30,9 @@
   }
   div.selected {
     color: $primary;
+    .mini-fab-icon:hover {
+      background-color: $primary;
+    }
   }
 
   label {
