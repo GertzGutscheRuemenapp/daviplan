@@ -403,13 +403,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
       }
       // prognosis year and no prognosis selected
       if (this.year && this.realYears.indexOf(this.year) < 0 && !this.activeScenario.prognosis) {
-        this.inputErrors.push('Keine Prognose ausgewählt');
-      }
-    }
-    if (this.domain === 'reachabilities' || this.domain === 'rating') {
-      const variant = this.getActiveTransitVariant(this.activeScenario);
-      if (variant && !variant.statistics?.nRelsPlaceCellModevariant) {
-        this.inputErrors.push('Gewähltes ÖPNV-Netz ist nicht vorberechnet');
+        this.inputErrors.push('Keine Einwohnerentwicklung ausgewählt');
       }
     }
   };
