@@ -1,4 +1,5 @@
-<mat-form-field appearance="outline" class="small">
+<mat-form-field appearance="outline" class="small"
+                [ngClass]="{ 'invalid': !selectedInfrastructure }">
   <mat-label>Infrastrukturbereich</mat-label>
   <mat-select disableOptionCentering disableRipple
               [(ngModel)]="selectedInfrastructure"

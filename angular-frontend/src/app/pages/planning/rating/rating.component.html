@@ -34,7 +34,8 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-form-field appearance="outline" class="small" style="margin-top: 12px;">
+  <mat-form-field appearance="outline" class="small" style="margin-top: 12px;"
+                  [ngClass]="{ 'invalid': !selectedIndicator }">
     <mat-label>Indikator</mat-label>
     <mat-select disableOptionCentering panelClass="custom-option-panel"
                 disableRipple
@@ -106,7 +107,8 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-form-field appearance="outline" class="small">
+  <mat-form-field appearance="outline" class="small"
+                  [ngClass]="{ 'invalid': !selectedAreaLevel }">
     <mat-select disableOptionCentering disableRipple
                 [(value)]="selectedAreaLevel"
                 (selectionChange)="onAreaLevelChange()">

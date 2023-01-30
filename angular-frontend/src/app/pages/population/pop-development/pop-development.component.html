@@ -14,7 +14,8 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-form-field floatLabel="never" appearance="outline" class="small">
+  <mat-form-field floatLabel="never" appearance="outline" class="small"
+                  [ngClass]="{ 'invalid': !activeLevel }">
     <mat-select disableOptionCentering disableRipple
                 placeholder="Gebietseinteilung auswählen"
                 [(ngModel)]="activeLevel"
@@ -41,7 +42,8 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-form-field appearance="outline" class="small">
+  <mat-form-field appearance="outline" class="small"
+                  [ngClass]="{ 'invalid': !activePrognosis }">
     <mat-select disableOptionCentering disableRipple
                 placeholder="Prognose auswählen"
                 [(ngModel)]="activePrognosis"
