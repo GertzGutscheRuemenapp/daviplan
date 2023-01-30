@@ -85,7 +85,10 @@
        style="height : 60px"
        [title]="'Szenariomenü einklappen'"
        (click)="planningService.showScenarioMenu = false">
-    <div class="side-toggle-indicator"> <mat-icon>chevron_left</mat-icon> </div>
+    <div class="side-toggle-indicator"
+         [style.transform]="processEditable? 'translateX(50px)': ''">
+      <mat-icon>chevron_left</mat-icon>
+    </div>
   </div>
 </div>
 
