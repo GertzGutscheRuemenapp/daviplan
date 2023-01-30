@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
 import { ModeStatistics, ModeVariant, Scenario, TransportMode } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { Subscription } from "rxjs";
@@ -29,7 +38,7 @@ export class ModeSelectComponent implements OnDestroy{
     this.selectedMode = mode;
   }
 
-  constructor(private planningService: PlanningService) {
+  constructor(private planningService: PlanningService, private cdRef: ChangeDetectorRef) {
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.scenario = scenario;
       this.verifyModes();
@@ -46,6 +55,7 @@ export class ModeSelectComponent implements OnDestroy{
     this.modeStatus = {};
     if (!this.scenario) return;
     this.planningService.getModeVariants().subscribe(variants => {
+      console.log(variants);
       for (let mode in this.modes) {
         const scenarioVariant = this.scenario!.modeVariants.find(mv => mv.mode === Number(mode));
         if (!scenarioVariant) {
@@ -57,6 +67,8 @@ export class ModeSelectComponent implements OnDestroy{
           this.modeStatus[mode] = { enabled: nRels > 0, message: (nRels === 0)? 'Verkehrsmittelvariante ist nicht berechnet': '' }
         }
       }
+      this.cdRef.detectChanges();
+      console.log(this.modeStatus);
       if (this.selectedMode && !this.modeStatus[this.selectedMode]?.enabled) {
         this.changeMode(undefined);
       }
