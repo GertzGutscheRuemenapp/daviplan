@@ -384,7 +384,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.selectedIndicator.additionalParameters?.forEach(param => {
       let value = this.indicatorParams[param.name];
       if (param.type === 'number') {
-        if ((value || 0) < (param.min || 0)) {
+        if (value === undefined || value < (param.min || 0) || value > (param.max)) {
           this.indicatorErrors.push(`Kein gültiger Wert für "${param.title}"`);
           valid = false;
         }

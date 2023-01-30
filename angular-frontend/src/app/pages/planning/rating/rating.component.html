@@ -67,25 +67,27 @@
   <ng-container *ngIf="selectedIndicator?.additionalParameters">
     <div *ngFor="let parameter of selectedIndicator?.additionalParameters"
          style="margin-top: 10px;">
-      <ng-container *ngIf="parameter.type === 'number' || parameter.type === 'string'">
-        <mat-form-field class="small" appearance="outline"
-                        [ngClass]="{ 'invalid': (parameter.type === 'number')? (indicatorParams[parameter.name] < (parameter.min || 0)): !indicatorParams[parameter.name] }">
-          <mat-label>{{parameter.title}}</mat-label>
-          <input matInput *ngIf="parameter.type === 'number'" type="number"
-                 [value]="indicatorParams[parameter.name] || 0"
-                 [min]="parameter.min || 0"
-                 [max]="parameter.max || 9999999"
-                 (change)="setParam(parameter, $any($event.target).value)">
-          <input matInput *ngIf="parameter.type === 'string'"
-                 [value]="indicatorParams[parameter.name] || ''"
-                 (change)="setParam(parameter, $any($event.target).value!)">
-        </mat-form-field>
-      </ng-container>
-      <ng-container *ngIf="parameter.name === 'mode'">
-        <app-mode-select [selected]="indicatorParams['mode']"
-                         [label]="parameter.title"
-                         (modeChanged)="setParam(parameter, $event);">
-        </app-mode-select>
+      <ng-container *ngVar="indicatorParams[parameter.name] as value">
+        <ng-container *ngIf="parameter.type === 'number' || parameter.type === 'string'">
+          <mat-form-field class="small" appearance="outline"
+                          [ngClass]="{ 'invalid': (parameter.type === 'number')? (value === undefined || value < (parameter.min || 0) || (parameter.max && value > (parameter.max))): !value }">
+            <mat-label>{{parameter.title}}</mat-label>
+            <input matInput *ngIf="parameter.type === 'number'" type="number"
+                   [value]="value || 0"
+                   [min]="parameter.min || 0"
+                   [max]="parameter.max || 9999999"
+                   (change)="setParam(parameter, $any($event.target).value)">
+            <input matInput *ngIf="parameter.type === 'string'"
+                   [value]="value || ''"
+                   (change)="setParam(parameter, $any($event.target).value!)">
+          </mat-form-field>
+        </ng-container>
+        <ng-container *ngIf="parameter.name === 'mode'">
+          <app-mode-select [selected]="value"
+                           [label]="parameter.title"
+                           (modeChanged)="setParam(parameter, $event);">
+          </app-mode-select>
+        </ng-container>
       </ng-container>
     </div>
   </ng-container>

@@ -435,7 +435,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(indicatorDesc?: string): void {
     let desc = `${this.activeScenario?.name}<br>
                   Erreichbarkeit "${this.activeService?.name}" ${this.year}<br>`;
-    if (indicatorDesc) desc += `<b>Wegzeit ${(this.activeMode !== TransportMode.WALK)? 'mit dem ': ''}${modes[this.activeMode!]} ${indicatorDesc}</b>`
+    if (indicatorDesc) desc += `<b>Wegezeit ${(this.activeMode !== TransportMode.WALK)? 'mit dem ': ''}${modes[this.activeMode!]} ${indicatorDesc}</b>`
     this.mapControl?.setDescription(desc);
   }
 

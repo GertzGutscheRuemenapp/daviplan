@@ -25,7 +25,7 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
     params = (
         ModeParameter(),
         IndicatorNumberParameter('cutoff', 'maximale Wegezeit (in Minuten)',
-                                 min=0, max=240, integer_only=True)
+                                 min=5, max=240, integer_only=True)
     )
     representation = 'colorramp'
     colormap_name = 'Greens'
