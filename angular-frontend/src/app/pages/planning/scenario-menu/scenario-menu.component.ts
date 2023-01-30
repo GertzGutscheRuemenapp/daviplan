@@ -398,7 +398,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     if (this.domain === 'supply') return;
     if (this.domain === 'demand' || this.domain === 'rating') {
       // service has demand and no demand rate set selected
-      if (this.planningService.activeService?.demandType !== 3 && !this.getActiveDemandRateSet(this.activeScenario)) {
+      if (this.planningService.activeService && this.planningService.activeService?.demandType !== 3 && !this.getActiveDemandRateSet(this.activeScenario)) {
         this.inputErrors.push('Keine Nachfragequote ausgewählt');
       }
       // prognosis year and no prognosis selected

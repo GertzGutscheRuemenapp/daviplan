@@ -150,15 +150,15 @@ class PlaceSerializer(serializers.ModelSerializer):
                 n_inserted = len(df)
                 if not n_inserted:
                     continue
-                logger.info(f'Routing für Modus {repr(variant)}: {n_inserted:n} Relationen gefunden')
+                print(f'Routing für Modus {repr(variant)}: {n_inserted:n} Relationen gefunden')
                 MatrixCellPlace.add_n_rels(df)
                 MatrixCellPlaceRouter.save_df(df, MatrixCellPlace, False)
-                logger.info(f'{n_inserted:n} {model_name}-Einträge geschrieben')
+                print(f'{n_inserted:n} {model_name}-Einträge geschrieben')
 
             except (ConnectionError, RoutingError):
-                logger.warn(f'Routing für {variant.label} hat nicht funktioniert')
+                print(f'Routing für {variant.label} hat nicht funktioniert')
 
-        logger.info(f'Routenberechnung erfolgreich')
+        print(f'Routenberechnung erfolgreich')
 
     def delete_existing_martixentries_for_place(self, instance: Place):
         # delete existing entries for the place in the CellPlace and PlaceStop-Matrix
