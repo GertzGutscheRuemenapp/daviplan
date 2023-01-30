@@ -528,7 +528,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         title: 'Kapazitäten editieren',
         template: this.placeCapacitiesEditTemplate,
         context: { place: place },
-        showCloseButton: true
+        showCloseButton: false
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {

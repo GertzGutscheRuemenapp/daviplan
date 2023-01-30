@@ -27,6 +27,7 @@ export class InputCardComponent implements AfterViewInit {
   @Input() dialogTitle: string = '';
   @Input() infoText: string = '';
   @Input() dialogInfoText: string = '';
+  @Input() showDialogCloseButton: boolean = false;
   @Input() confirmButtonText: string = '';
   @Input() width: string = '';
   @Input() dialogWidth: string = '500px';
@@ -61,10 +62,11 @@ export class InputCardComponent implements AfterViewInit {
       disableClose: true,
       autoFocus: false,
       data: {
-        title: this.dialogTitle || this.title,
+        title: this.dialogTitle || this.title || this.subtitle,
         template: this.editTemplate,
         closeOnConfirm: false,
         infoText: this.dialogInfoText,
+        showCloseButton: this.showDialogCloseButton,
         confirmButtonText: $localize`Speichern`
       }
     });
