@@ -285,7 +285,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         description += (this.compareYears && !value)? 'keine Änderung ': `${this.compareYears && value > 0? '+': ''}${value.toLocaleString()} Ew. `;
         description += (this.compareYears)? `zwischen ${this.comparedYear} und ${this.year}`: `im Jahr ${this.year}`;
         if (hasProg)
-          description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`;
+          description += `<br>Prognosevariante: ${this.activePrognosis?.name}`;
         return {
           id: area.id,
           geometry: area.centroid!,
@@ -461,7 +461,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
       description = this.getLayerDescription();
       if (this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1)
-        description += `<br>Prognoseszenario: ${this.activePrognosis?.name || '-'}`;
+        description += `<br>Prognosevariante: ${this.activePrognosis?.name || '-'}`;
       description += `<br>${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);

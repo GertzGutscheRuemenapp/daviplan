@@ -64,7 +64,8 @@
         error_outline
       </mat-icon>
       <app-help-button title="Bevölkerungsgruppe" position="right">
-        <p>Beschreiben Sie in diesem Bereich die Bevölkerungsgruppe für die Werte in der Karte dargestellt werden sollen. Wählen Sie dafür das Geschlecht aus dem Dropdown-Menü und die Altersgruppe/n für die Darstellung mit den Checkboxen aus. Werden mehrere Altersgruppen ausgewählt, erfolgt die Darstellung der Summe über die ausgewählten Altersklassen.</p>
+        <p>Beschreiben Sie in diesem Bereich die Bevölkerungsgruppe, für die Werte in der Karte dargestellt werden soll.</p>
+        <p>Wählen Sie dafür das Geschlecht aus dem Dropdown-Menü und die Altersgruppe/n mit den Checkboxen aus. Werden mehrere Altersgruppen ausgewählt, erfolgt die Darstellung der Summe über die ausgewählten Altersklassen.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -225,7 +226,6 @@
           </app-help-button>
           <div *ngIf="selectedTab===2">
             <app-age-tree #ageTree
-                          figureId="bevpyramide"
                           [showPNGExport]="true"
                           [animate]="true"
                           [title]="ageTreeProps.title"
