@@ -91,8 +91,15 @@
         <div class="diagram-wrapper">
           <app-help-button title="Wanderung" position="right"
                            style="position: absolute; left: 0; top: 10px; z-index: 1;">
-            <p *ngIf="theme === 'nature'">Platzhalter Erklärung Diagramm Wanderung Natur</p>
-            <p *ngIf="theme === 'migration'">Das Diagramm zeigt die Zahl der Zuzüge (grün) und Fortzüge (rot) in bzw. aus dem ausgewählten Gebiet dar. Angezeigt werden alle zurückliegenden Jahre, für die Daten zur Verfügung stehen. Für jedes Jahr wird zudem ein Wanderungssaldo (blaue Linie) angezeigt. Dies entspricht jeweils der Zahl der Zuzüge minus der Zahl der Fortzüge. Dieses Wanderungssaldo wird in einem zweiten Diagramm auch noch einmal gesondert angezeigt. Dieses erreichen Sie über den Reiter “Wanderungssaldo”.</p>
+            <div *ngIf="theme === 'nature'">
+              <p>Das Diagramm zeigt die Geburten (grün) und Sterbefälle (rot) für das ausgewählte Gebiet über alle Jahre, für die entsprechende Daten vorliegen.</p>
+              <p>Die blaue Linie entspricht in jedem Jahr dem so genannten „natürlichen Saldo“. Dies ist die Zahl der Geburten minus die Zahl der Sterbefälle. Liegt diese unter 0, gab es in dem betreffenden Jahr mehr Sterbefälle als Geburten.</p>
+            </div>
+            <div *ngIf="theme === 'migration'">
+              <p>Das Diagramm zeigt die Zahl der Zuzüge (grün) und Fortzüge (rot) in bzw. aus dem ausgewählten Gebiet dar. Angezeigt werden alle zurückliegenden Jahre, für die Daten zur Verfügung stehen.</p>
+              <p>Für jedes Jahr wird zudem ein Wanderungssaldo (blaue Linie) angezeigt. Dies entspricht jeweils der Zahl der Zuzüge minus der Zahl der Fortzüge.</p>
+              <p>Dieses Wanderungssaldo wird in einem zweiten Diagramm auch noch einmal gesondert angezeigt. Dieses erreichen Sie über den Reiter “Wanderungssaldo”.</p>
+            </div>
           </app-help-button>
           <div *ngIf="selectedTab===0">
             <app-balance-chart #balanceChart
@@ -121,8 +128,13 @@
         <div class="diagram-wrapper">
           <app-help-button title="Wanderungssaldo Gesamtgebiet" position="right"
                            style="position: absolute; left: 0; top: 10px; z-index: 1;">
-            <p *ngIf="theme === 'nature'">Platzhalter Erklärung Diagramm Wanderungsaldo Natur</p>
-            <p *ngIf="theme === 'migration'">Das Diagramm zeigt das jährliche Wanderungssaldo des ausgewählten Gebiets. Angezeigt werden alle zurückliegenden Jahre, für die Daten zur Verfügung stehen. Das Wanderungssaldo entspricht im jedem Jahr der Zahl der Zuzüge minus der Zahl der Fortzüge. Im ersten Diagramm, das Sie über den Reiter “Wanderung” erreichen, wird Ihnen zusätzlich auch der jährliche Umfang der Zu- und Fortzüge angezeigt.</p>
+            <div *ngIf="theme === 'nature'">
+              <p>Das Diagramm zeigt für jedes Jahr, für das entsprechende Daten vorliegen, den so genannten „natürlichen Saldo“. Dies ist die Zahl der Geburten minus die Zahl der Sterbefälle.</p>
+              <p>Liegt dieser Saldo unter 0, gab es in dem betreffenden Jahr mehr Sterbefälle als Geburten. Die hinter der Berechnung stehenden Anzahlen an Geburten und Sterbefällen entnehmen Sie dem nebenstehenden Diagramm „Natürliche Bevölkerungsentwicklung“.</p></div>
+            <div *ngIf="theme === 'migration'">
+              <p>Das Diagramm zeigt das jährliche Wanderungssaldo des ausgewählten Gebiets. Angezeigt werden alle zurückliegenden Jahre, für die Daten zur Verfügung stehen. Das Wanderungssaldo entspricht im jedem Jahr der Zahl der Zuzüge minus der Zahl der Fortzüge.</p>
+              <p>Im ersten Diagramm, das Sie über den Reiter “Wanderung” erreichen, wird Ihnen zusätzlich auch der jährliche Umfang der Zu- und Fortzüge angezeigt.</p>
+            </div>
           </app-help-button>
           <div *ngIf="selectedTab===1">
             <app-multiline-chart #totalChart

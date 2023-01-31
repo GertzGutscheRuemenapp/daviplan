@@ -40,6 +40,7 @@
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
     <mat-select disableOptionCentering disableRipple
+                [ngClass]="{ 'invalid': !activeLevel }"
                 [(ngModel)]="activeLevel"
                 (selectionChange)="onAreaLevelChange()">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">

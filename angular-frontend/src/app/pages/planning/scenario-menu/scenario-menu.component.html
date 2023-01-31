@@ -85,7 +85,10 @@
        style="height : 60px"
        [title]="'Szenariomenü einklappen'"
        (click)="planningService.showScenarioMenu = false">
-    <div class="side-toggle-indicator"> <mat-icon>chevron_left</mat-icon> </div>
+    <div class="side-toggle-indicator"
+         [style.transform]="processEditable? 'translateX(50px)': ''">
+      <mat-icon>chevron_left</mat-icon>
+    </div>
   </div>
 </div>
 
@@ -139,12 +142,12 @@
     <mat-form-field appearance="standard" class="small"
                     [ngClass]="{ 'invalid': !scenario.prognosis }"
                     floatLabel="always">
-      <mat-label>Einwohnerentwicklung</mat-label>
+      <mat-label>Einwohnerentwicklung (Prognosevariante)</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [value]="scenario.prognosis"
                   [disabled]="scenario.isBase || !processEditable"
                   [title]="activePrognosis? activePrognosis.name: 'keine Auswahl'"
-                  [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Prognosen definiert'"
+                  [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Einwohnerentwicklung (Prognosevarianten) definiert'"
                   (selectionChange)="onPrognosisChange(scenario, $event.value)">
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis.id">
           {{prognosis.name}}
@@ -163,7 +166,7 @@
       <mat-label>ÖPNV-Netz</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [value]="activeVariant"
-                  [title]="activeVariant? activeVariant.label + (!activeVariant.statistics?.nRelsPlaceCellModevariant? ' (nicht vorberechnet)': ''): 'keine Auswahl'"
+                  [title]="!activeVariant? 'keine Auswahl': activeVariant.statistics?.nRelsPlaceCellModevariant? activeVariant.label: 'Das ausgewählte Netz wurde im Bereich Grundlagendaten nicht vorberechnet!'"
                   (selectionChange)="onTransitChange(scenario, $event.value)"
                   [placeholder]="(transitVariants.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
                   [disabled]="scenario.isBase || !processEditable">

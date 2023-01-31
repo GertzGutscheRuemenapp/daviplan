@@ -55,7 +55,6 @@ export class ModeSelectComponent implements OnDestroy{
     this.modeStatus = {};
     if (!this.scenario) return;
     this.planningService.getModeVariants().subscribe(variants => {
-      console.log(variants);
       for (let mode in this.modes) {
         const scenarioVariant = this.scenario!.modeVariants.find(mv => mv.mode === Number(mode));
         if (!scenarioVariant) {
@@ -68,7 +67,6 @@ export class ModeSelectComponent implements OnDestroy{
         }
       }
       this.cdRef.detectChanges();
-      console.log(this.modeStatus);
       if (this.selectedMode && !this.modeStatus[this.selectedMode]?.enabled) {
         this.changeMode(undefined);
       }

@@ -176,7 +176,10 @@
     <ng-container *ngFor="let capacity of _editCapacities; let i = index;">
       <tr>
         <td style="display: flex; align-items: baseline;">
-          <div *ngIf="i === 0 else notStart" style="margin-top: 10px;">&nbsp;{{realYears[0]}}&nbsp;</div>
+          <div *ngIf="i === 0 else notStart" style="margin-top: 10px;">&nbsp;
+            <ng-container *ngIf="_editCapacities.length === 1">ab </ng-container>
+            {{realYears[0]}}&nbsp;
+          </div>
           <ng-template #notStart>
             <mat-form-field appearance="outline" class="small yearInput">
               <mat-label i18n>ab</mat-label>
@@ -226,6 +229,7 @@
         </ng-container>
         <td>
           <button mat-button color="primary"
+                  [style.margin-top]="(i === _editCapacities.length - 1)? '10px': ''"
                   class="mat-button-dv"
                   *ngIf="(i === _editCapacities.length-1) || (_editCapacities[i+1].fromYear - capacity.fromYear > 1) "
                   (click)="insertEditCap(i+1, place)"

@@ -303,7 +303,6 @@ export class DemandQuotasComponent implements OnInit, AfterViewInit {
   }
 
   getTitle(demandType: number | undefined): string {
-    // [title] = "(activeService?.demandType === 1)? 'Nachfragequoten der ausgewählten Variante': (activeService?.demandType === 2)? 'Nutzungshäufigkeiten der ausgewählten Variante': 'jbkbjdsf'"
     switch(demandType) {
       case 1:
         return 'Nachfragequoten der ausgewählten Variante';

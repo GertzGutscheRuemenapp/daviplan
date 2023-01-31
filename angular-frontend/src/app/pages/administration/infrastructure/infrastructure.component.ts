@@ -89,6 +89,10 @@ export class InfrastructureComponent implements AfterViewInit  {
       // display errors for all fields even if not touched
       this.infrastructureForm.markAllAsTouched();
       if (this.infrastructureForm.invalid) return;
+      if (this.infrastructures.find(i => i.name === this.infrastructureForm.value.name)) {
+        showAPIError({ error: 'Ein Infrastrukturbereich mit diesem Namen ist bereits vorhanden' }, this.dialog);
+        return;
+      }
       let attributes: any = {
         name: this.infrastructureForm.value.name,
         description: this.infrastructureForm.value.description || ''

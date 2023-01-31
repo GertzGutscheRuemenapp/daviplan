@@ -1162,12 +1162,21 @@ app-map-controls {
 
 .sub-select-wrapper {
   padding: 10px 5px 5px 10px;
-  border: 1px solid #dedede;
+  outline: 1px solid #dedede;
+  //border: 1px solid #dedede;
   border-radius: 5px;
 }
 
+.sub-select-wrapper:hover {
+/*  padding: 9px 4px 4px 9px;
+  border-color: $primary;
+  border-width: 2px;*/
+  outline-color: $primary;
+  outline-width: 2px;
+}
+
 .sub-select-wrapper.invalid {
-  border-color: red;
+  outline-color: red;
 }
 
 .mat-radio-button.mat-radio-disabled {

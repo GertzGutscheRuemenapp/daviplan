@@ -199,6 +199,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         title: 'Planungsprozess erstellen',
         template: this.processTemplate,
         closeOnConfirm: false,
+        showCloseButton: false,
         confirmButtonText: 'Bestätigen',
         infoText: processInfoText
       }
@@ -246,12 +247,13 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '600px',
-      disableClose: false,
+      disableClose: true,
       data: {
         title: 'Planungsprozess editieren',
         template: this.processTemplate,
         closeOnConfirm: false,
         confirmButtonText: 'Speichern',
+        showCloseButton: false,
         infoText: processInfoText
       }
     });
