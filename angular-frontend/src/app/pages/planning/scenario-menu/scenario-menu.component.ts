@@ -30,6 +30,7 @@ import { CookieService } from "../../../helpers/cookies.service";
 import { showAPIError } from "../../../helpers/utils";
 import { AuthService } from "../../../auth.service";
 import { Subscription } from "rxjs";
+import { map } from "rxjs/operators";
 
 interface DiffCapacity extends TotalCapacityInScenario{
   diffCapacity: number,
@@ -64,6 +65,8 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
   totalCapacities: Record<number, DiffCapacity> = {};
   service?: Service;
   subscriptions: Subscription[] = [];
+  inputErrors: string[] = [];
+  realYears: number[] = [];
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI, private auth: AuthService) {
@@ -77,15 +80,21 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
         });
       }))
     })
-    this.planningService.scenarioChanged.subscribe(scenario => {
+    this.planningService.getRealYears().subscribe(years => {
+      this.realYears = years;
+    });
+    this.planningService.getPrognoses().subscribe(pr => this.prognoses = pr);
+    this.subscriptions.push(this.planningService.scenarioChanged.subscribe(scenario => {
+      this.verifyScenarioInputs();
       if (this.domain==="supply") {
         this.updateTotalCapacities({scenario: scenario, reset: true});
       }
-    })
+    }));
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
-       if (scenario)
-         this.setScenario(scenario, {silent: true});
-    }))
+      if (scenario)
+        this.setScenario(scenario, { silent: true });
+      this.verifyScenarioInputs();
+    }));
     this.editScenarioForm = this.formBuilder.group({
       scenarioName: new FormControl('')
     });
@@ -94,12 +103,12 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
       this.onServiceChange(service);
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
-      this.year=year;
+      this.year = year;
+      this.verifyScenarioInputs();
       if (this.domain==="supply"){
         this.updateTotalCapacities();
       }
     }));
-    this.planningService.getPrognoses().subscribe(pr => this.prognoses = pr);
   }
 
   ngOnInit(): void {
@@ -110,18 +119,28 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     switch (this.domain) {
       case 'supply':
         this.updateTotalCapacities();
+        this.verifyScenarioInputs();
         break;
       case 'demand':
         if (!service) return;
-        this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => {
+          this.demandRateSets = dr;
+          this.verifyScenarioInputs();
+        });
         break;
       case 'reachabilities':
-        this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
+        this.planningService.getModeVariants().subscribe(modeVariants => {
+          this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT);
+          this.verifyScenarioInputs();
+        });
         break;
       case 'rating':
         this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
         if (!service) return;
-        this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => {
+          this.demandRateSets = dr;
+          this.verifyScenarioInputs();
+        });
         break;
       default:
         break;
@@ -147,7 +166,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     });
   }
 
-  getDemandRateSet(scenario: Scenario): DemandRateSet | undefined {
+  getActiveDemandRateSet(scenario: Scenario): DemandRateSet | undefined {
     const id = scenario.demandrateSets.find(dr => dr.service === this.planningService.activeService?.id)?.demandrateset;
     return this.demandRateSets.find(dr => dr.id === id);
   }
@@ -157,6 +176,8 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     this.activeScenario = scenario;
     if (!options?.silent)
       this.planningService.activeScenario$.next(scenario);
+    else
+      this.verifyScenarioInputs();
   }
 
   onProcessChange(process: PlanningProcess | undefined): void {
@@ -292,7 +313,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
 
   onShowDemandQuotaSet(): void {
     const scenario = this.planningService.activeScenario;
-    const demandRateSet = this.getDemandRateSet(scenario!);
+    const demandRateSet = this.getActiveDemandRateSet(scenario!);
     if (!demandRateSet) return;
     this.planningService.getRealYears().subscribe(realYears => {
       this.planningService.getPrognosisYears().subscribe(prognosisYears => {
@@ -344,10 +365,14 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     this.patchScenarioSetting(scenario, body);
   }
 
-  getTransitVariant(scenario: Scenario): ModeVariant | undefined{
+  getActiveTransitVariant(scenario: Scenario): ModeVariant | undefined{
     const mv = scenario.modeVariants.find(v => v.mode === TransportMode.TRANSIT);
     if (!mv) return;
     return this.transitVariants.find(tv => tv.id === mv.variant);
+  }
+
+  getActivePrognosis(scenario: Scenario): Prognosis | undefined{
+    return this.prognoses.find(p => p.id === scenario.prognosis);
   }
 
   private patchScenarioSetting(scenario: Scenario, body: any): void { //: Observable<Scenario> {
@@ -356,8 +381,38 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
       Object.assign(scenario, scen);
       this.planningService.clearCache(scenario.id.toString());
       this.planningService.activeScenario$.next(scenario);
+      this.verifyScenarioInputs();
     });
   }
+
+  /**
+   * verify inputs of active scenario and append occuring missing or faulty inputs to inputErrors
+   */
+  verifyScenarioInputs(): void {
+    this.inputErrors = [];
+    if (!this.activeScenario) {
+      this.inputErrors.push('Kein Szenario ausgewählt');
+      return;
+    }
+    // supply domain has no inputs
+    if (this.domain === 'supply') return;
+    if (this.domain === 'demand' || this.domain === 'rating') {
+      // service has demand and no demand rate set selected
+      if (this.planningService.activeService?.demandType !== 3 && !this.getActiveDemandRateSet(this.activeScenario)) {
+        this.inputErrors.push('Keine Nachfragequote ausgewählt');
+      }
+      // prognosis year and no prognosis selected
+      if (this.year && this.realYears.indexOf(this.year) < 0 && !this.activeScenario.prognosis) {
+        this.inputErrors.push('Keine Prognose ausgewählt');
+      }
+    }
+    if (this.domain === 'reachabilities' || this.domain === 'rating') {
+      const variant = this.getActiveTransitVariant(this.activeScenario);
+      if (variant && !variant.statistics?.nRelsPlaceCellModevariant) {
+        this.inputErrors.push('Gewähltes ÖPNV-Netz ist nicht vorberechnet');
+      }
+    }
+  };
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());

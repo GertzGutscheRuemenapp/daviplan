@@ -17,7 +17,7 @@ class ModeVariantMixin:
                 variant = ModeVariant.objects.get(mode=mode,
                                                   is_default=True)
             except ModeVariant.DoesNotExist:
-                variant = ModeVariant.objects.filter(mode=mode)[0]
+                variant = ModeVariant.objects.filter(mode=mode).first()
             return variant
 
         if scenario_id is None:
@@ -59,6 +59,8 @@ class ReachabilityPlace(ModeVariantMixin, ComputeIndicator):
         mode = self.data.get('mode', Mode.WALK)
         scenario_id = self.data.get('scenario')
         variant = self.get_mode_variant(mode, scenario_id)
+        if not variant:
+            return []
 
         place = Place.objects.get(id=self.data.get('place'))
         cells = MatrixCellPlace.objects.filter(variant=variant.id, place=place)
@@ -82,6 +84,8 @@ class ReachabilityCell(ModeVariantMixin, ComputeIndicator):
         mode = self.data.get('mode', Mode.WALK)
         scenario_id = self.data.get('scenario')
         variant = self.get_mode_variant(mode, scenario_id)
+        if not variant:
+            return []
 
         cell_code = self.data.get('cell_code')
         places = MatrixCellPlace.objects.filter(variant=variant,
@@ -111,6 +115,8 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
         scenario_id = self.data.get('scenario')
         variant = self.get_mode_variant(mode, scenario_id)
         place_id = self.data.get('places')
+        if not variant:
+            return []
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,

@@ -48,6 +48,8 @@ class MaxPlaceReachability(ModeVariantMixin, ServiceIndicator):
         scenario_id = self.data.get('scenario')
         mode = self.data.get('mode')
         variant = self.get_mode_variant(mode, scenario_id)
+        if not variant:
+            return []
 
         places = self.get_places_with_capacities(service_id, year, scenario_id)
         cells_places = MatrixCellPlace.objects.filter(variant=variant, place__in=places)

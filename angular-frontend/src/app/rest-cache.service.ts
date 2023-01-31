@@ -318,13 +318,13 @@ export class RestCacheService {
     const compData = this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(
       this.rest.URLS.areaPopulation, { params: compParams, method: "POST" });
     return forkJoin([yearData, compData]).pipe(map(results => {
-        const diffValues = results[0].values.map(areaResult => {
-          const compResult = results[1].values.find(r => r.areaId === areaResult.areaId);
-          return {
-            value: areaResult.value - (compResult?.value || 0),
-            areaId: areaResult.areaId };
-        });
-        return { values: diffValues, legend: [] };
+      const diffValues = results[0].values.map(areaResult => {
+        const compResult = results[1].values.find(r => r.areaId === areaResult.areaId);
+        return {
+          value: areaResult.value - (compResult?.value || 0),
+          areaId: areaResult.areaId };
+      });
+      return { values: diffValues, legend: [] };
     }));
   }
 
@@ -379,16 +379,40 @@ export class RestCacheService {
   }
 
   getModeVariants(options?: { reset?: boolean }): Observable<ModeVariant[]> {
-    const url = this.rest.URLS.modevariants;
-    return this.getCachedData<ModeVariant[]>(url, options);
+    const variants = this.getCachedData<ModeVariant[]>(this.rest.URLS.modevariants, options);
+    const statistics = this.getModeStatistics(options);
+
+    return forkJoin([variants, statistics]).pipe(map(results => {
+      return results[0].map(v => {
+        v.statistics = {
+          nStops: results[1].nStops[v.id] || 0,
+          nRelsPlaceCellModevariant: results[1].nRelsPlaceCellModevariant[v.id] || 0,
+          nRelsPlaceStopModevariant: results[1].nRelsPlaceStopModevariant[v.id] || 0,
+          nRelsStopCellModevariant: results[1].nRelsStopCellModevariant[v.id] || 0,
+          nRelsStopStopModevariant: results[1].nRelsStopStopModevariant[v.id] || 0
+        }
+        return v;
+      })
+    }));
   }
 
-  getTransitStops(options?: { reset?: boolean, variant?: number }): Observable<TransitStop[]> {
+  getTransitStops(options?: { reset?: boolean, variant?: number, targetProjection?: string }): Observable<TransitStop[]> {
     const url = this.rest.URLS.transitStops;
     let params: any = {};
     if (options?.variant !== undefined)
       params.variant = options.variant;
-    return this.getCachedData<TransitStop[]>(url, { reset: options?.reset, params: params });
+    const query = this.getCachedData<TransitStop[]>(url, { reset: options?.reset, params: params });
+    const targetProjection = (options?.targetProjection !== undefined) ? options?.targetProjection : 'EPSG:4326';
+    return query.pipe(map(stops => {
+      stops.forEach( stop => {
+        if (!(stop.geom instanceof Geometry)) {
+          const geometry = wktToGeom(stop.geom as string,
+            { targetProjection: targetProjection, ewkt: true });
+          stop.geom = geometry;
+        }
+      })
+      return stops;
+    }));
   }
 
   getTransitMatrix(options?: { reset?: boolean, variant?: number }): Observable<TransitMatrixEntry[]> {
@@ -404,8 +428,8 @@ export class RestCacheService {
     return this.getCachedData<Network[]>(url, options);
   }
 
-  getRoutingStatistics(options?: { reset: boolean }): Observable<ModeStatistics> {
-    const url = this.rest.URLS.routingStatistics;
+  getModeStatistics(options?: { reset?: boolean }): Observable<ModeStatistics> {
+    const url = this.rest.URLS.modeStatistics;
     return this.getCachedData<ModeStatistics>(url, options);
   }
 

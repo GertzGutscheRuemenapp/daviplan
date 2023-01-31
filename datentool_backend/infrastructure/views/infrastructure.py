@@ -14,17 +14,17 @@ class InfrastructureViewSet(ProtectCascadeMixin,
     serializer_class = InfrastructureSerializer
     permission_classes = [CanPatchSymbol]
 
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            return Infrastructure.objects.all()
-        try:
-            profile = self.request.user.profile
-        except AttributeError:
-            # no profile yet
-            return Infrastructure.objects.none()
-        if profile.admin_access:
-            return Infrastructure.objects.all()
+    #def get_queryset(self):
+        #if self.request.user.is_superuser:
+            #return Infrastructure.objects.all()
+        #try:
+            #profile = self.request.user.profile
+        #except AttributeError:
+            ## no profile yet
+            #return Infrastructure.objects.none()
+        #if profile.admin_access:
+            #return Infrastructure.objects.all()
 
-        accessible = InfrastructureAccess.objects.filter(
-            profile=profile).values_list('infrastructure__id')
-        return Infrastructure.objects.filter(id__in=accessible)
+        #accessible = InfrastructureAccess.objects.filter(
+            #profile=profile).values_list('infrastructure__id')
+        #return Infrastructure.objects.filter(id__in=accessible)

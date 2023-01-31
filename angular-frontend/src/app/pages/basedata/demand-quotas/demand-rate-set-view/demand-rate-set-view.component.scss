@@ -5,6 +5,7 @@
 }
 
 .diagram-wrapper {
+  position: relative;
   width: 100%;
   border: 1px solid lightgrey;
   padding: 5px;
@@ -21,6 +22,10 @@
 
 .mat-mini-fab {
   box-shadow: none;
+}
+
+table td {
+  padding: 0;
 }
 
 table .mat-mini-fab.small {

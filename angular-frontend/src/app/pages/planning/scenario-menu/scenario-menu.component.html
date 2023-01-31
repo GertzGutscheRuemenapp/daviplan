@@ -6,6 +6,10 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
       </div>
       Szenario
+      <mat-icon *ngIf="inputErrors.length > 0" class="warning"
+                [title]="'Fehler in ausgewähltem Szenario: ' + inputErrors.join(' | ')">
+        error_outline
+      </mat-icon>
       <app-help-button title="Szenario" position="right" style="pointer-events: all;">
         <div [innerHTML]="helpText"></div>
       </app-help-button>
@@ -98,43 +102,48 @@
 
 <ng-template #demandTemplate let-scenario="scenario">
   <div class="scenario-row" *ngIf="planningService.activeService && planningService.activeService.demandType !== 3">
-    <mat-form-field appearance="standard" class="small"
-                    floatLabel="always"
-                    [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
-                    title="Nachfragequoten-Set ({{planningService.activeService.name}})">
-      <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
-      <mat-select disableOptionCentering disableRipple
-                  [disabled]="scenario.isBase || !processEditable"
-                  [placeholder]="(demandRateSets.length > 0)? 'keine Auswahl': 'keine Sets definiert'"
-                  [value]="getDemandRateSet(scenario)"
-                  (selectionChange)="onDemandRateChange(scenario, $event.value)">
-        <mat-option *ngFor="let set of demandRateSets" [value]="set">
-          {{set.name}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <button mat-icon-button *ngIf="getDemandRateSet(scenario)"
-            class="outlined small" color="primary"
-            style="margin-top: 10px; width: 30px;"
-            title="aktuell eingestellte Nachfragequoten anzeigen"
-            (click)="onShowDemandQuotaSet()">
-<!--      <mat-icon>show_chart</mat-icon>-->
-      <mat-icon>query_stats</mat-icon>
-    </button>
+    <ng-container *ngVar="getActiveDemandRateSet(scenario) as demandRateSet">
+      <mat-form-field appearance="standard" class="small"
+                      floatLabel="always"
+                      [style.width]="demandRateSet? 'calc(100% - 30px)': '100%'"
+                      [ngClass]="{ 'invalid': !demandRateSet }"
+                      title="Nachfragequoten-Set ({{planningService.activeService.name}})">
+        <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    [disabled]="scenario.isBase || !processEditable"
+                    [placeholder]="(demandRateSets.length > 0)? 'keine Auswahl': 'keine Sets definiert'"
+                    [title]="demandRateSet? demandRateSet.name: 'keine Auswahl'"
+                    [value]="demandRateSet"
+                    (selectionChange)="onDemandRateChange(scenario, $event.value)">
+          <mat-option *ngFor="let set of demandRateSets" [value]="set">
+            {{set.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button *ngIf="demandRateSet"
+              class="small" color="primary"
+              style="margin-top: 15px; width: 25px; height: 25px; line-height: 25px;"
+              title="Aktuell eingestellte Nachfragequoten anzeigen"
+              (click)="onShowDemandQuotaSet()">
+        <mat-icon>search</mat-icon>
+      </button>
+    </ng-container>
   </div>
-  <div class="scenario-row">
+  <div *ngVar="getActivePrognosis(scenario) as activePrognosis"
+       class="scenario-row">
 <!--    <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Einwohnerentwicklung anzeigen"
               (click)="onShowDemandPlaceholder()">
       info
     </mat-icon>-->
     <mat-form-field appearance="standard" class="small"
+                    [ngClass]="{ 'invalid': !scenario.prognosis }"
                     floatLabel="always">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [value]="scenario.prognosis"
-                  [style.width]="getDemandRateSet(scenario)? 'calc(100% - 30px)': '100%'"
                   [disabled]="scenario.isBase || !processEditable"
+                  [title]="activePrognosis? activePrognosis.name: 'keine Auswahl'"
                   [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Prognosen definiert'"
                   (selectionChange)="onPrognosisChange(scenario, $event.value)">
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis.id">
@@ -146,21 +155,30 @@
 </ng-template>
 
 <ng-template #reachabilitiesTemplate let-scenario="scenario">
-  <div class="scenario-row">
+  <div *ngVar="getActiveTransitVariant(scenario) as activeVariant"
+       class="scenario-row">
     <mat-form-field appearance="standard" class="small"
+                    [ngClass]="{ 'invalid': !activeVariant?.statistics?.nRelsPlaceCellModevariant }"
                     floatLabel="always">
       <mat-label>ÖPNV-Netz</mat-label>
       <mat-select disableOptionCentering disableRipple
-                  [value]="getTransitVariant(scenario)"
+                  [value]="activeVariant"
+                  [title]="activeVariant? activeVariant.label + (!activeVariant.statistics?.nRelsPlaceCellModevariant? ' (nicht vorberechnet)': ''): 'keine Auswahl'"
                   (selectionChange)="onTransitChange(scenario, $event.value)"
                   [placeholder]="(transitVariants.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
                   [disabled]="scenario.isBase || !processEditable">
-        <mat-option *ngFor="let variant of transitVariants" [value]="variant">
-          {{variant.label}}
+        <mat-option *ngFor="let variant of transitVariants"
+                    [value]="variant"
+                    [title]="variant.label">
+          {{variant.label}} <ng-container *ngIf="!variant.statistics?.nRelsPlaceCellModevariant">(nicht vorberechnet)</ng-container>
         </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
+<!--  <div *ngIf="!getTransitVariant(scenario)?.statistics?.nRelsPlaceCellModevariant"
+       class="scenario-row">
+    Das gewählte Netz wurde nicht vorberechnet.
+  </div>-->
 </ng-template>
 
 <ng-template #ratingScenario let-scenario="scenario">

@@ -222,12 +222,14 @@
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
         <div class="border-box" style="height: 250px;">
-          <mat-checkbox class="reverse" color="primary"
-                        *ngFor="let infrastructure of allInfrastructures"
-                        (change)="infrastructure.included = $event.checked"
-                        [checked]="infrastructure.included || false">
-            {{infrastructure.name}}
-          </mat-checkbox>
+          <ng-container *ngFor="let infrastructure of allInfrastructures">
+            <mat-checkbox class="reverse" color="primary"
+                          *ngIf="infrastructure.access"
+                          (change)="infrastructure.included = $event.checked"
+                          [checked]="infrastructure.included || false">
+              {{infrastructure.name}}
+            </mat-checkbox>
+          </ng-container>
         </div>
       </div>
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">

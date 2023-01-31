@@ -6,7 +6,7 @@ $app-primary: mat.define-palette($blue-palette, 500);
 $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
-  $font-family: 'Calibri, Candara, Segoe',
+  $font-family: 'Calibri, Helvetica, sans-serif, Candara, Segoe',
     //$headline: mat.define-typography-level(54px, 54px, 400),
     //$title: mat.define-typography-level(28px, 28px, 500),
     //$subheading-2: mat.define-typography-level(26px, 26px, 400),
@@ -130,7 +130,7 @@ h6 {
 html, body { height: 100%; }
 body {
   margin: 0;
-  font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+  font-family: Calibri, Helvetica, sans-serif, Candara, Segoe, "Segoe UI";
   color: $light-black;
   overflow: hidden;
   //letter-spacing: 0.3px;
@@ -675,6 +675,15 @@ mat-form-field.warning  .mat-form-field-flex {
   }
 }
 
+mat-form-field.invalid {
+  .mat-form-field-outline {
+    color: red;
+  }
+  mat-select .mat-select-min-line {
+    color: red !important;
+  }
+}
+
 mat-icon.warning {
   color: $warning;
 }
@@ -1155,6 +1164,10 @@ app-map-controls {
   padding: 10px 5px 5px 10px;
   border: 1px solid #dedede;
   border-radius: 5px;
+}
+
+.sub-select-wrapper.invalid {
+  border-color: red;
 }
 
 .mat-radio-button.mat-radio-disabled {

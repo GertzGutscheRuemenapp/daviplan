@@ -53,7 +53,7 @@ export class HorizontalBarchartComponent extends DiagramComponent implements Aft
       barPadding = 5,
       max = d3.max(data, d => d.value) || 1;
 
-    const height = (barHeight + barPadding) * data.length
+    const height = (barHeight + barPadding) * data.length + this.margin.bottom;
 
     this.svg.attr('viewBox', `0 0 ${this.width!} ${height + this.margin.left + this.margin.right}`);
 
@@ -67,8 +67,8 @@ export class HorizontalBarchartComponent extends DiagramComponent implements Aft
       .call(
         d3.axisBottom(scale)
           .ticks(5)
-          .tickSize(height)
-          .tickFormat(d3.format('d'))
+          .tickSize(height - this.margin.bottom)
+          .tickFormat((d) => d.toLocaleString())
       );
 
     // tooltips

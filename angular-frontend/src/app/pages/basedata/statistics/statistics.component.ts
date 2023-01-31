@@ -252,7 +252,7 @@ export class StatisticsComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
         this.isLoading$.next(true);
-        this.http.delete(`${this.rest.URLS.statistics}${statistics.id}/`
+        this.http.delete(`${this.rest.URLS.statistics}${statistics.id}/?force=true`
         ).subscribe(() => {
           const idx = this.statistics!.indexOf(statistics);
           if (idx > -1) this.statistics!.splice(idx, 1);

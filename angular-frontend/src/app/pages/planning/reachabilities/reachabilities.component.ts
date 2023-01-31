@@ -6,9 +6,9 @@ import { environment } from "../../../../environments/environment";
 import {
   CellResult,
   IndicatorLegendClass,
-  Infrastructure, ModeStatistics,
+  Infrastructure,
+  ModeStatistics,
   Place,
-  RasterCell,
   Scenario,
   Service,
   TransportMode
@@ -42,7 +42,7 @@ type IndicatorType = 'place' | 'cell' | 'next';
 })
 export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
-  activeMode: TransportMode = TransportMode.WALK;
+  activeMode?: TransportMode = TransportMode.WALK;
   indicator: IndicatorType = 'next';
   infrastructures: Infrastructure[] = [];
   places: Place[] = [];
@@ -56,14 +56,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private mapClickSub?: Subscription;
   placesLayer?: VectorLayer;
+  stopsLayer?: VectorLayer;
   year?: number;
   placeReachabilityLayer?: VectorLayer;
   nextPlaceReachabilityLayer?: VectorTileLayer;
   selectedPlaceId?: number;
   pickedCoords?: number[];
-  modeStatistics?: ModeStatistics;
 
-  constructor(private mapService: MapService, private dialog: MatDialog, public cookies: CookieService,
+  constructor(private mapService: MapService, public cookies: CookieService,
               public planningService: PlanningService) { }
 
   ngAfterViewInit(): void {
@@ -75,9 +75,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.infrastructures = infrastructures;
       this.updatePlaces().subscribe();
     });
-    this.planningService.getRoutingStatistics().subscribe(stats => {
-      this.modeStatistics = stats;
-    })
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
       this.updatePlaces().subscribe(() => this.renderReachability());
@@ -89,6 +86,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updatePlaces().subscribe(() => this.renderReachability());
+      // this.updateStops();
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
@@ -108,7 +106,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): Observable<boolean> {
     const observable = new Observable<any>(subscriber => {
-      this.placesLayerGroup?.clear();
+      if (this.placesLayer) {
+        this.placesLayerGroup?.removeLayer(this.placesLayer);
+        this.placesLayer = undefined;
+      }
       if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) {
         subscriber.next(false);
         subscriber.complete();
@@ -119,10 +120,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
         this.places = places;
-        if (this.placesLayer) {
-          this.placesLayerGroup?.removeLayer(this.placesLayer);
-          this.placesLayer = undefined;
-        }
         this.placesLayer = this.placesLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
           id: 'reach-places',
           order: 1,
@@ -153,7 +150,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         });
         this.placesLayer?.setSelectable(this.indicator === 'place');
         this.placesLayer?.addFeatures(places.map(place => {
-          return { id: place.id, geometry: place.geom, properties: { name: place.name } }
+          return { id: place.id, geometry: place.geom, properties: { name: `Standort: ${place.name}` } }
         }));
 
         this.placesLayer?.featuresSelected?.subscribe(features => {
@@ -175,8 +172,45 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  updateStops(): void {
+    const transitVariant = this.activeScenario?.modeVariants.find(mv => mv.mode === TransportMode.TRANSIT);
+    if (this.stopsLayer) {
+      this.placesLayerGroup?.removeLayer(this.stopsLayer);
+      this.stopsLayer = undefined;
+    }
+    if (!transitVariant) return;
+    this.planningService.getTransitStops({ variant: transitVariant['variant'] }).subscribe(stops => {
+      this.stopsLayer = this.placesLayerGroup?.addVectorLayer('Haltestellen', {
+        id: 'reach-places',
+        order: 1,
+        zIndex: 99998,
+        description: 'Haltestellen',
+        radius: 7,
+        style: {
+          fillColor: '#c26f12',
+          strokeColor: 'black',
+          symbol: 'circle'
+        },
+        labelField: 'name',
+        tooltipField: 'name',
+        mouseOver: {
+          enabled: true,
+          cursor: '',
+          style: {
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
+        },
+        labelOffset: { y: 15 }
+      });
+      this.stopsLayer?.addFeatures(stops.map(stop => {
+        return { id: stop.id, geometry: stop.geom, properties: { name: `Haltestelle: ${stop.name}` } }
+      }));;
+    })
+  }
+
   showPlaceReachability(): void {
-    if (this.selectedPlaceId === undefined || !this.activeScenario) return;
+    if (this.selectedPlaceId === undefined || !this.activeScenario || !this.activeMode) return;
     this.updateMapDescription('zur ausgewählten Einrichtung');
 
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode, { scenario: this.activeScenario }).subscribe(cellResults => {
@@ -194,7 +228,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       }
       else {
         style.fillColor = {
-          bins: getIndicatorLegendClasses(this.activeMode)
+          bins: getIndicatorLegendClasses(this.activeMode!)
         };
       }
       if (this.placesLayer && this.selectedPlaceId !== undefined) {
@@ -203,11 +237,11 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       const place = this.places.find(p => p.id === this.selectedPlaceId);
-      this.reachRasterLayer = this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
+      this.reachRasterLayer = this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[this.activeMode!]}`, url,{
         id: 'reachability',
         visible: true,
         order: 0,
-        description: `Erreichbarkeit des gewählten Standorts "${place?.name}" ${modes[this.activeMode]}`,
+        description: `Erreichbarkeit des gewählten Standorts "${place?.name}" ${modes[this.activeMode!]}`,
         style: {
           fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
@@ -225,7 +259,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showCellReachability(): void {
-    if (this.pickedCoords === undefined || !this.activeScenario) return;
+    if (this.pickedCoords === undefined || !this.activeScenario || !this.activeMode) return;
     let indicatorDesc = 'vom gewählten Wohnstandort zu allen Einrichtungen';
     if (this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)
       indicatorDesc += ' <i class="warning">(gefiltert)</i>';
@@ -236,9 +270,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeMarker();
       this.mapControl?.addMarker(cell.geom as Geometry);
       if (!this.activeScenario) return;
-      this.planningService.getCellReachability(cell.cellcode, this.activeMode, { scenario: this.activeScenario }).subscribe(placeResults => {
+      this.planningService.getCellReachability(cell.cellcode, this.activeMode!, { scenario: this.activeScenario }).subscribe(placeResults => {
         this.reachLayerGroup?.clear();
-        const valueBins = modeBins[this.activeMode];
+        const valueBins = modeBins[this.activeMode!];
         let style: ValueStyle = {};
 
         if (placeResults.legend) {
@@ -248,7 +282,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         }
         else {
           style.fillColor = {
-            bins: getIndicatorLegendClasses(this.activeMode)
+            bins: getIndicatorLegendClasses(this.activeMode!)
           };
         }
 
@@ -257,7 +291,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           visible: true,
           order: 0,
           zIndex: 99999,
-          description: `Erreichbarkeit der Angebote vom gesetzten Wohnstandort aus (${modes[this.activeMode]})`,
+          description: `Erreichbarkeit der Angebote vom gesetzten Wohnstandort aus (${modes[this.activeMode!]})`,
           radius: 7,
           style: {
             fillColor: 'green',
@@ -284,7 +318,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showNextPlaceReachabilities(): void {
-    if (!this.year || !this.activeService || !this.activeScenario) return;
+    if (!this.year || !this.activeService || !this.activeScenario || !this.activeMode) return;
     const _this = this;
     let indicatorDesc = `von allen Wohnstandorten zum jeweils nächsten Angebot`;
     if (this.planningService.getPlaceFilters(this.activeInfrastructure).length > 0)
@@ -312,15 +346,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       }
       else {
         style.fillColor = {
-          bins: getIndicatorLegendClasses(_this.activeMode)
+          bins: getIndicatorLegendClasses(_this.activeMode!)
         };
       }
 
-      _this.nextPlaceReachabilityLayer = _this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[_this.activeMode]}`, url,{
+      _this.nextPlaceReachabilityLayer = _this.reachLayerGroup?.addVectorTileLayer( `Wegezeit ${modes[_this.activeMode!]}`, url,{
         id: 'reachability',
         visible: true,
         order: 0,
-        description: `Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot (${modes[_this.activeMode]})`,
+        description: `Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot (${modes[_this.activeMode!]})`,
         style: {
           fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
@@ -370,13 +404,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  changeMode(mode: TransportMode): void {
+  changeMode(mode: TransportMode | undefined): void {
     this.activeMode = mode;
     this.cookies.set('planning-mode', mode);
     this.renderReachability();
   }
 
   renderReachability(): void {
+    this.reachLayerGroup?.clear();
+    if (!this.activeMode) return;
     switch (this.indicator) {
       case 'place':
         this.showPlaceReachability();
@@ -399,7 +435,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(indicatorDesc?: string): void {
     let desc = `${this.activeScenario?.name}<br>
                   Erreichbarkeit "${this.activeService?.name}" ${this.year}<br>`;
-    if (indicatorDesc) desc += `<b>Wegzeit ${(this.activeMode !== TransportMode.WALK)? 'mit dem ': ''}${modes[this.activeMode]} ${indicatorDesc}</b>`
+    if (indicatorDesc) desc += `<b>Wegzeit ${(this.activeMode !== TransportMode.WALK)? 'mit dem ': ''}${modes[this.activeMode!]} ${indicatorDesc}</b>`
     this.mapControl?.setDescription(desc);
   }
 
