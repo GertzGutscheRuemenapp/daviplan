@@ -232,7 +232,8 @@ export class RestCacheService {
           features.forEach((area: Area) => {
             const geometry = wktToGeom(area.geometry as string,
               {targetProjection: targetProjection, ewkt: true});
-            area.geometry = geometry;
+            if (geometry)
+              area.geometry = geometry;
             // if (geometry.getCoordinates().length === 0) return;
             try {
               const poly = turf.multiPolygon((geometry as MultiPolygon).getCoordinates());
@@ -408,7 +409,8 @@ export class RestCacheService {
         if (!(stop.geom instanceof Geometry)) {
           const geometry = wktToGeom(stop.geom as string,
             { targetProjection: targetProjection, ewkt: true });
-          stop.geom = geometry;
+          if (geometry)
+            stop.geom = geometry;
         }
       })
       return stops;

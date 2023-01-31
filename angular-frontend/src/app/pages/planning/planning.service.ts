@@ -186,7 +186,8 @@ export class PlanningService extends RestCacheService {
           if (!(place.geom instanceof Geometry)) {
             const geometry = wktToGeom(place.geom as string,
               { targetProjection: targetProjection, ewkt: true });
-            place.geom = geometry;
+            if (geometry)
+              place.geom = geometry;
           }
         })
         postprocess(places);

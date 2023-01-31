@@ -8,7 +8,7 @@ import {
   FieldType,
   PlaceField, LogEntry
 } from "../../../rest-interfaces";
-import * as fileSaver from "file-saver";
+import * as fileSaver from "file-saver-es";
 import { RestAPI } from "../../../rest-api";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { HttpClient } from "@angular/common/http";

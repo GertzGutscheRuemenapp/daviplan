@@ -32,7 +32,7 @@
                   <p>Der Fortschritt der Abfrage wird Ihnen in der Box „Datenhistorie“ angezeigt. Die eingelesenen Daten können Sie anschließend in der Box „Bereits eingelesene Daten“ als Tabelle, Karte oder Diagramm betrachten.</p>
                   <p>Der Online-Abruf steht nur zur Verfügung, wenn die Einteilung der Altersgruppen im Administrationsbereich nicht gegenüber der Standardeinstellung (Alterseinteilung der Regionalstatistik) verändert wurde.</p>"
                   [subtitle]="'Abruf der Regionalstatistik'"
-                  [disabled]="(isProcessing$ | async) || years.length === 0 || !popLevel || !popLevel.isDefaultPopLevel || popLevel?.areaCount === 0">
+                  [disabled]="(isProcessing$ | async) || years.length === 0 || !popLevel || !popLevel.isDefaultPopLevel || popLevel.areaCount === 0">
     <ng-container *ngIf="!(popService.isLoading$ | async)">
       <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
         <label>
@@ -80,7 +80,7 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Ergänzte/korrigierte Einwohnerdaten hochladen'"
-                    [disabled]="(isProcessing$ | async) || years.length === 0 || realYears.length === 0 || !popLevel || popLevel?.areaCount === 0"
+                    [disabled]="(isProcessing$ | async) || years.length === 0 || realYears.length === 0 || !popLevel || popLevel.areaCount === 0"
                     infoText="<p>Sollten Sie Lücken in den Daten finden, einzelne Werte korrigieren wollen oder keine Daten online abrufen können oder wollen, können Sie Einwohnerdaten auch händisch eingeben.</p>
                     <p>Laden Sie sich hierzu über die Schaltfläche „Vorlage herunterladen“ eine Excel-Vorlage herunter. Diese enthält alle bereits per Online-Abruf oder frühere Eintragungen bereits in daviplan verfügbaren Einwohnerdaten. Um eine Vorlage zu erzeugen, muss die Liste „Jahre mit Vergangenheitsdaten” mindestens ein Jahr beinhalten.“</p>
                     <p>Öffnen Sie die heruntergeladene Vorlage in Excel und nehmen Sie dort Ihre Eintragungen vor. Laden Sie anschließend immer diese gesamte Vorlage inkl. Ihrer Änderungen hoch.</p>
@@ -110,7 +110,7 @@
   <app-input-card [title]="'Bereits importierte Einwohnerdaten'"
                   [topRightHelp]="true"
                   width="1170px"
-                  [disabled]="(isProcessing$ | async) || years.length === 0 || !popLevel || popLevel?.areaCount === 0"
+                  [disabled]="(isProcessing$ | async) || years.length === 0 || !popLevel || popLevel.areaCount === 0"
                   infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Einwohnerdaten der zurückliegenden Jahre anzusehen.</p>
                   <ol type='1'>
                     <li>Sie können sich alle Daten in einer Tabellenansicht ansehen</li>
