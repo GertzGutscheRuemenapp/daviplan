@@ -15,12 +15,12 @@ RUN apt-get -y update \
 RUN git clone https://github.com/GertzGutscheRuemenapp/bule_datentool.git /datentool
 
 RUN npm i npm@latest -g
-RUN npm i -g @angular/cli@13
+RUN npm i -g @angular/cli@14
 
 # bundle the frontend scripts
 WORKDIR /datentool/angular-frontend
-RUN npm install
-RUN ng build --stats_json --build-optimizer
+RUN npm i
+RUN ng build --stats-json --build-optimizer
 RUN rm -R node_modules/tmp
 
 WORKDIR /datentool
