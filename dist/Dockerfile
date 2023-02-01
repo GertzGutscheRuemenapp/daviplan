@@ -19,7 +19,7 @@ RUN npm i -g @angular/cli@13
 
 # bundle the frontend scripts
 WORKDIR /datentool/angular-frontend
-RUN npm install --force
+RUN npm install
 RUN ng build --stats_json --build-optimizer
 RUN rm -R node_modules/tmp
 
