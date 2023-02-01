@@ -68,6 +68,7 @@ if hosts:
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -81,7 +82,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
     'django_filters',
-    'channels',
     'django_q'
 ]
 
