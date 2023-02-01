@@ -13,7 +13,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import * as fileSaver from "file-saver";
+import * as fileSaver from "file-saver-es";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { environment } from "../../../../environments/environment";
@@ -105,7 +105,8 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
       else {
         this.http.patch<ModeVariant>(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/`, attributes
         ).subscribe(variant => {
-          Object.assign(this.selectedVariant, variant);
+          if (this.selectedVariant)
+            Object.assign(this.selectedVariant, variant);
           dialogRef.close();
         }, (error) => {
           showAPIError(error, this.dialog);

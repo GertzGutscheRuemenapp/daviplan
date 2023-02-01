@@ -105,9 +105,9 @@
         <mat-divider [inset]="true" style="margin: 10px 0; width: 100%;"></mat-divider>
       </ng-container>
       <div *ngIf="activeService">
-        {{activeService.name}} ({{(activeService?.hasCapacity)? 'Kapazität ': ''}}{{year}}):<br>
-        <b *ngIf="activeService?.hasCapacity">{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>
-        <b *ngIf="!activeService?.hasCapacity">{{(place.capacity)? 'Ja': 'Nein'}}</b>
+        {{activeService.name}} ({{(activeService.hasCapacity)? 'Kapazität ': ''}}{{year}}):<br>
+        <b *ngIf="activeService.hasCapacity">{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>
+        <b *ngIf="!activeService.hasCapacity">{{(place.capacity)? 'Ja': 'Nein'}}</b>
         <mat-divider [inset]="true" style="margin: 10px 0; width: 100%;"></mat-divider>
         {{activeService.name}}<br>(gesamter Betrachtungszeitraum):
         <table *ngVar="getCapacities(place) as capacities" style="margin-top: 10px;">

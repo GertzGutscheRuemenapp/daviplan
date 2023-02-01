@@ -21,7 +21,7 @@ import {
   VectorLayerOptions, ServiceLayerOptions, LayerOptions, VectorTileLayerOptions
 } from "./layers";
 import { CookieService } from "../helpers/cookies.service";
-import { saveAs } from "file-saver";
+import { saveAs } from "file-saver-es";
 
 interface MapLayerGroupOptions {
   order?: number,
@@ -156,7 +156,7 @@ export class MapService {
         observables.push(this.fetchInternalLayers(options?.reset));
       if (options?.external)
         observables.push(this.fetchExternalLayers({ reset: options?.reset, active: options?.active }));
-      forkJoin(...observables).subscribe((merged: MapLayerGroup[]) => {
+      forkJoin(...observables).subscribe((merged: MapLayerGroup[][]) => {
         // @ts-ignore
         const flatGroups: MapLayerGroup[] = [].concat.apply([], merged);
         subscriber.next(flatGroups);
@@ -516,8 +516,11 @@ export class MapControl {
             wkt = wktSplit[1];
 
       const feature = format.readFeature(wkt);
-      feature.getGeometry().transform(epsg, `EPSG:${this.srid}`);
-      this.map?.map.getView().fit(feature.getGeometry().getExtent());
+      const geom = feature.getGeometry();
+      if (geom) {
+        geom.transform(epsg, `EPSG:${this.srid}`);
+        this.map?.map.getView().fit(geom.getExtent());
+      }
     })
   }
 

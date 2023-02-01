@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit, TemplateRef, ViewChild } f
 import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
-import * as fileSaver from 'file-saver';
+import * as fileSaver from 'file-saver-es';
 import {
   AgeGroup,
   Area,

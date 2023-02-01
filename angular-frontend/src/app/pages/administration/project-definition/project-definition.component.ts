@@ -299,8 +299,11 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           wkt = wktSplit[1];
 
         let feature = format.readFeature(wkt);
-        feature.getGeometry().transform(epsg, `EPSG:${this.previewMapControl?.srid}`);
-        this.projectGeom = feature.getGeometry();
+        const geom = feature.getGeometry();
+        if (geom) {
+          geom.transform(epsg, `EPSG:${this.previewMapControl?.srid}`);
+          this.projectGeom = geom as MultiPolygon;
+        }
         const source = previewLayer.getSource();
         source.clear();
         source.addFeature(feature);
@@ -593,7 +596,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     if (projectGeom instanceof Polygon)
       // @ts-ignore
       projectGeom = new MultiPolygon([projectGeom.getCoordinates()]);
-    return projectGeom;
+    return projectGeom as MultiPolygon;
   }
 
   /**

@@ -22,7 +22,7 @@ import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tr
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { BehaviorSubject, Subscription } from "rxjs";
-import * as fileSaver from "file-saver";
+import * as fileSaver from "file-saver-es";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { VectorLayer } from "../../../map/layers";
 
