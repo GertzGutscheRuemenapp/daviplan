@@ -76,12 +76,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'datentool_backend',
+    'daphne',
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
     'django_filters',
-    'channels',
     'django_q'
 ]
 

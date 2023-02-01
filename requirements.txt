@@ -29,6 +29,8 @@ packaging
 cryptography
 channels==3.*
 channels_redis
+#channels["daphne"]
+daphne==4.*
 routingpy
 django_q
 matplotlib
