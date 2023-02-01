@@ -68,6 +68,7 @@ if hosts:
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,7 +77,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'datentool_backend',
-    'daphne',
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
