@@ -3,7 +3,7 @@
   <label *ngIf="label">{{label}}</label>
   <ng-container *ngFor="let modeItem of modes | keyvalue">
     <ng-container *ngVar="Number(modeItem.key) as mode">
-      <div [title]="modeStatus[mode]?.message? modeItem.value + ': ' + modeStatus[mode].message: modeItem.value"
+      <div [title]="modeStatus[mode]?.message? modeItem.value + ': ' + modeStatus[mode]?.message: modeItem.value"
            [style.cursor]="modeStatus[mode]?.enabled? 'pointer': 'not-allowed'">
         <div (click)="changeMode(mode)"
              [ngClass]="{ 'selected': mode === selectedMode }"

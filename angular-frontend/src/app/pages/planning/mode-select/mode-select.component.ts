@@ -23,13 +23,13 @@ modes[TransportMode.TRANSIT] = 'ÖPNV';
   templateUrl: './mode-select.component.html',
   styleUrls: ['./mode-select.component.scss']
 })
-export class ModeSelectComponent implements OnDestroy{
+export class ModeSelectComponent implements OnInit, OnDestroy{
   @Input() label?: string;
   @Output() modeChanged = new EventEmitter<TransportMode | undefined>();
   TransportMode = TransportMode;
   modes = modes;
   Number = Number;
-  modeStatus: Record<number, { enabled: boolean, message: string }> = {};
+  modeStatus: Record<number, { enabled: boolean, message: string } | undefined> = {};
   scenario?: Scenario;
   selectedMode?: TransportMode;
   private subscriptions: Subscription[] = [];
@@ -39,6 +39,9 @@ export class ModeSelectComponent implements OnDestroy{
   }
 
   constructor(private planningService: PlanningService, private cdRef: ChangeDetectorRef) {
+  }
+
+  ngOnInit(): void {
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.scenario = scenario;
       this.verifyModes();

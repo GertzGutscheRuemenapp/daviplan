@@ -305,7 +305,7 @@ class PopulationIndicatorMixin:
         rasterpop = self.get_rasterpop()
 
         demand_rates = self.get_demand_rates(scenario_id, service_id)
-        if not demand_rates and not demand_is_uniform:
+        if (not demand_rates and not demand_is_uniform) or rasterpop.count() == 0:
             return None, ()
 
         q_pop, p_pop = rasterpop.values('id', 'cell_id', 'age_group_id',
