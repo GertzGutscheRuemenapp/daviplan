@@ -104,7 +104,6 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setupEditLevelCard(): void {
     this.editArealevelCard?.dialogOpened.subscribe(ok => {
-      console.log(this.activeLevel);
       this.editLevelForm.reset({
         name: this.activeLevel?.name,
         labelField: this.activeLevel?.labelField,

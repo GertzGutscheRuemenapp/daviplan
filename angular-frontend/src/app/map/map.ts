@@ -17,13 +17,13 @@ import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
 import { fromExtent } from 'ol/geom/Polygon';
 import { transform } from 'ol/proj';
-import { saveAs } from 'file-saver';
+import { saveAs } from 'file-saver-es';
 import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import RenderFeature from "ol/render/Feature";
 import CircleStyle from "ol/style/Circle";
-import { MapLayer, TileLayer, VectorLayer } from "./layers";
+import { FeatureLike } from "ol/Feature";
 
 export class OlMap {
   target: string;
@@ -39,7 +39,7 @@ export class OlMap {
   mapProjection: string;
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
-  tooltipFeature?: Feature<any>;
+  tooltipFeature?: FeatureLike;
   // emits all selected features
   // selected = new EventEmitter<{ layer: MapLayer, selected: Feature<any>[], deselected: Feature<any>[] }>();
   selected = new EventEmitter<{ layer: OlLayer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
@@ -59,8 +59,8 @@ export class OlMap {
     });
 
     let controls = (options.showDefaultControls) ? DefaultControls().extend([
-        new ScaleLine({}),
-      ]) : DefaultControls({ zoom : false, //attribution : false,
+      new ScaleLine({}),
+    ]) : DefaultControls({ zoom : false, //attribution : false,
     })
 
     this.map = new Map({
@@ -103,7 +103,7 @@ export class OlMap {
 
   zoomToExtent(name: string): void{
     const layer = this.layers[name],
-          source = layer.getSource();
+      source = layer.getSource();
     this.map.getView().fit(source.getExtent());
   }
 
@@ -149,7 +149,7 @@ export class OlMap {
         attributions: attributions,
         attributionsCollapsible: false,
         crossOrigin: '*'
-    })
+      })
 
     let layer = new OlTileLayer({
       opacity: (options.opacity != undefined) ? options.opacity: 1,
@@ -256,7 +256,7 @@ export class OlMap {
       this.tileOverlays[layer.get('name')] = new VectorTileLayer({
         map: this.map,
         renderMode: 'vector',
-        source: layer.getSource(),
+        source: layer.getSource() || undefined,
         style: function (feature) {
           if (feature.getId() === hoveredFeatId) {
             return hoverStyle;
@@ -268,7 +268,7 @@ export class OlMap {
       this.map.on('pointermove', event => {
         const selectionLayer = this.tileOverlays[layer.get('name')];
         if (!selectionLayer) return;
-        layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
+        layer.getFeatures(event.pixel).then((features: FeatureLike[]) => {
           if (features.length === 0) {
             hoveredFeatId = undefined;
             selectionLayer.changed();
@@ -405,10 +405,10 @@ export class OlMap {
     const _this = this;
     if (this.layers[name] != null) this.removeLayer(name);
     let sourceOpt = options?.url? {
-        format: new GeoJSON(),
-        url: (options?.url)? options?.url: undefined,
-        strategy: (options?.url)? bboxStrategy: undefined,
-      }: {};
+      format: new GeoJSON(),
+      url: (options?.url)? options?.url: undefined,
+      strategy: (options?.url)? bboxStrategy: undefined,
+    }: {};
     let source = new VectorSource(sourceOpt);
     const styleFunc = function(feature: any) {
       if (options?.labelField && layer.get('showLabel')){// && _this.view.getZoom()! > 10) {
@@ -511,10 +511,10 @@ export class OlMap {
     strokeColor?: string,
     strokeWidth?: number,
     styleFunc?: ((d: any) => any),
-/*    valueMap?: {
-      field: string,
-      values: Record<string, number>
-    },*/
+    /*    valueMap?: {
+          field: string,
+          values: Record<string, number>
+        },*/
   }){
     // avoid setting map interactions if nothing is defined to set anyway
     if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor)) return;
@@ -560,7 +560,7 @@ export class OlMap {
       if (!layer.getVisible()) return;
       const overlay = this.overlays[layer.get('name')];
       if ((!overlay || !overlay.getVisible()) && !layer.get('showTooltip')) return;
-      layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
+      layer.getFeatures(event.pixel).then((features: FeatureLike[]) => {
         if (options.fillColor || options.strokeColor) {
           if (overlay && overlay.getVisible()) {
             overlay.getSource().clear();
@@ -605,7 +605,7 @@ export class OlMap {
 
   addFeatures(layername: string, features: Feature<any>[]){
     const layer = this.layers[layername],
-          source = layer.getSource();
+      source = layer.getSource();
     features.forEach(feature => {
       source.addFeature(feature);
     })
@@ -632,7 +632,7 @@ export class OlMap {
 
   getFeature(layerName: string, id: string | number){
     const layer = this.layers[layerName],
-          features = layer.getSource().getFeatures();
+      features = layer.getSource().getFeatures();
     for (let i = 0; i < features.length; i++){
       const feature = features[i];
       if (feature.getId() == id) return feature
@@ -642,7 +642,7 @@ export class OlMap {
 
   selectFeatures(layerName: string, ids: string[] | number[] | Feature<any>[], options?: { silent?: boolean, clear?: boolean }){
     const layer = this.layers[layerName],
-          select = layer.get('select');
+      select = layer.get('select');
 
     let features: Feature<any>[] = [];
     if (options?.clear)
@@ -667,7 +667,7 @@ export class OlMap {
 
   deselectAllFeatures(layerName: string){
     const layer = this.layers[layerName],
-          select = layer.get('select');
+      select = layer.get('select');
     if (select)
       select.getFeatures().clear();
   }

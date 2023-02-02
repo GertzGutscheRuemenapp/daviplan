@@ -27,8 +27,9 @@ openpyxl
 matrixconverters
 packaging
 cryptography
-channels==3.*
+channels==4.*
 channels_redis
+channels[daphne]
 routingpy
 django_q
 matplotlib

@@ -80,13 +80,13 @@
         <div class="order-controls">
           <button mat-icon-button
                   title="In der Sortierung eins nach oben"
-                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel?.isPreset || activeLevel === customAreaLevels[0]"
+                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel.isPreset || activeLevel === customAreaLevels[0]"
                   (click)="moveSelected('up')">
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
                   title="In der Sortierung eins nach unten"
-                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel?.isPreset || activeLevel === customAreaLevels[customAreaLevels.length - 1]"
+                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel.isPreset || activeLevel === customAreaLevels[customAreaLevels.length - 1]"
                   (click)="moveSelected('down')">
             <mat-icon>expand_more</mat-icon>
           </button>
@@ -129,7 +129,7 @@
       <table *ngIf="activeLevel">
         <tr>
           <td i18n>Name</td>
-          <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.name}}</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel.name}}</td>
         </tr>
         <tr>
           <td i18n>ID-Feld</td>
@@ -140,7 +140,7 @@
         <tr>
           <td i18n>Beschriftung</td>
           <td [style.color]="activeLevel.isPreset? 'grey': ''">
-            {{activeLevel?.labelField || '-'}}
+            {{activeLevel.labelField || '-'}}
           </td>
         </tr>
         <tr>
@@ -149,7 +149,7 @@
             <div *ngIf="activeLevel?.symbol"
                  style="margin-bottom: -5px;"
                  class="symbol square"
-                 [style.backgroundColor]="activeLevel?.symbol?.strokeColor">
+                 [style.backgroundColor]="activeLevel.symbol?.strokeColor">
             </div>
             <div *ngIf="!activeLevel?.symbol">
               keine Darstellung
