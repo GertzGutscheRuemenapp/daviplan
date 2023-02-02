@@ -3,12 +3,12 @@
   <label *ngIf="label">{{label}}</label>
   <ng-container *ngFor="let modeItem of modes | keyvalue">
     <ng-container *ngVar="Number(modeItem.key) as mode">
-      <div [title]="modeStatus[mode].message? modeItem.value + ': ' + modeStatus[mode].message: modeItem.value"
-           [style.cursor]="modeStatus[mode].enabled? 'pointer': 'not-allowed'">
+      <div [title]="modeStatus[mode]?.message? modeItem.value + ': ' + modeStatus[mode].message: modeItem.value"
+           [style.cursor]="modeStatus[mode]?.enabled? 'pointer': 'not-allowed'">
         <div (click)="changeMode(mode)"
              [ngClass]="{ 'selected': mode === selectedMode }"
-             [style.pointer-events]="modeStatus[mode].enabled? '': 'none'">
-          <div [ngClass]="{ 'inverted': mode === selectedMode, 'disabled': !modeStatus[mode].enabled }"
+             [style.pointer-events]="modeStatus[mode]?.enabled? '': 'none'">
+          <div [ngClass]="{ 'inverted': mode === selectedMode, 'disabled': !modeStatus[mode]?.enabled }"
                class="mini-fab-icon primary">
             <ng-container *ngIf="mode === TransportMode.WALK || Number(modeItem.key) === TransportMode.BIKE">
               <mat-icon *ngIf="mode === TransportMode.WALK"
