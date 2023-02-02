@@ -27,8 +27,8 @@ export class MainNavComponent implements OnInit{
 
   menuItems: { name: string, url: string }[] = [];
 
-  constructor(private settingsService: SettingsService, private breakpointObserver: BreakpointObserver,
-              private auth: AuthService, private dialog: MatDialog, private router: Router, private rest: RestCacheService) { }
+  constructor(private settingsService: SettingsService, private auth: AuthService, private dialog: MatDialog,
+              private router: Router, private rest: RestCacheService) { }
 
   ngOnInit(): void {
     this.settingsService.siteSettings$.subscribe(settings => {

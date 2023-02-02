@@ -24,19 +24,29 @@
     </a>
   </span>
   <span class="fill-space"></span>
-<span class="page-links" fxShow="true" fxHide.lt-md="true">
-  <button mat-button routerLink="/impressum"> Impressum </button>
-  <button mat-button routerLink="/datenschutz"> Datenschutz </button>
-</span>
-  <button mat-button [matMenuTriggerFor]="profileMenu">
-    <mat-icon>person_outline</mat-icon>
-    {{(user)? user.username: 'Profil'}}
+  <button mat-icon-button fxHide.gt-md="true" mat-button [matMenuTriggerFor]="collapseMenu">
+    <mat-icon>menu</mat-icon>
   </button>
-  <mat-menu #profileMenu>
+  <mat-menu #collapseMenu>
+    <a mat-menu-item routerLink="/impressum">Impressum</a>
+    <a mat-menu-item routerLink="/datenschutz">Datenschutz</a>
     <a mat-menu-item *ngIf="!user" routerLink="/login">Login</a>
     <a mat-menu-item *ngIf="user" (click)="showProfile()">Profil</a>
     <a mat-menu-item *ngIf="user" (click)="logout()" href="">Logout</a>
   </mat-menu>
+  <span fxHide.lt-lg="true">
+    <button mat-button routerLink="/impressum"> Impressum </button>
+    <button mat-button routerLink="/datenschutz"> Datenschutz </button>
+    <button mat-button [matMenuTriggerFor]="profileMenu">
+      <mat-icon>person_outline</mat-icon>
+      {{(user)? user.username: 'Profil'}}
+    </button>
+    <mat-menu #profileMenu>
+      <a mat-menu-item *ngIf="!user" routerLink="/login">Login</a>
+      <a mat-menu-item *ngIf="user" (click)="showProfile()">Profil</a>
+      <a mat-menu-item *ngIf="user" (click)="logout()" href="">Logout</a>
+    </mat-menu>
+  </span>
 </mat-toolbar>
 <mat-sidenav-container fxFlexFill>
   <mat-sidenav class="main-collapse" color="primary"
@@ -50,8 +60,6 @@
          [routerLinkActiveOptions]="{exact: false}">
         {{item.name}}
       </a>
-      <a mat-button routerLink="/impressum"> Impressum </a>
-      <a mat-button routerLink="/datenschutz"> Datenschutz</a>
     </div>
   </mat-sidenav>
   <mat-sidenav-content fxFlexFill>

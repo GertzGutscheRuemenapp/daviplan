@@ -1,4 +1,4 @@
-@import "~src/styles";
+@import "src/styles";
 
 .mat-sidenav-container {
   position: fixed;
@@ -105,7 +105,7 @@
  }
 }
 
-@media only screen and (max-width: 75em) {
+@media only screen and (max-width: 90em) {
   .page-links {
     a {
       font-size: 20px !important;
