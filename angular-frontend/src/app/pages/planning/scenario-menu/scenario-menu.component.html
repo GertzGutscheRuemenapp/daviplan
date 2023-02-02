@@ -28,7 +28,11 @@
            class="scenario-card">
         <div class="scenario-card-header"
              (click)="setScenario(scenario)">
-          <div [style.width]="(!scenario.isBase && processEditable)? 'calc(100% - 30px)': '100%'">{{ scenario.name }}</div>
+          <div style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+               [title]="scenario.name"
+               [style.width]="(!scenario.isBase && processEditable)? 'calc(100% - 30px)': '100%'">
+            {{ scenario.name }}
+          </div>
           <ng-container *ngIf="!scenario.isBase && processEditable">
             <button mat-icon-button color="primary"
                     class="small"
@@ -197,7 +201,7 @@
          *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
       <div title='{{planningService.activeService.name || "-"}}'> Angebot für Leistung ({{planningService.activeYear}})</div>
       <div style="margin-top: -5px;">{{planningService.activeService.name}}</div>
-      <table>
+      <table style="line-height: 120%;">
         <tr title="{{capInScenario?.nPlaces}} {{planningService.activeService.facilityPluralUnit}}">
           <td style="width: 1%;">
             {{planningService.activeService.facilityPluralUnit}}:
@@ -223,7 +227,7 @@
         </tr>
       </table>
     </div>
-    <ng-template #plusminus0><ng-container *ngIf="!scenario.isBase">(±0)</ng-container></ng-template>
+    <ng-template #plusminus0><ng-container *ngIf="!scenario.isBase">(unverändert)</ng-container></ng-template>
   </ng-container>
 </ng-template>
 
