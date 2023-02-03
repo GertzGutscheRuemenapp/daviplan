@@ -575,69 +575,159 @@ export class MapControl {
     this.map?.setCursor(cur);
   }
 
-  exportMapAsPNG(): void {
-    this.map?.savePNG();
+  saveMapAsPNG(): void {
+    this.map?.saveAsPNG();
   }
 
-  exportLegend(): void {
-    let entries: ({fillColor?: string, strokeColor?: string, symbol?: string, text: string, shiftX: number, textStyle?: string} | undefined)[] = [];
-    this.layerGroups.filter(g => !g.external).forEach(group => {
-      group.children.filter(l => (l instanceof VectorLayer) && l.visible).forEach(l => {
-        const layer = l as VectorLayer;
-        if (layer.legend?.entries) {
-          entries.push({ text: layer.name, shiftX: 0, textStyle: 'bold' });
-          entries = entries.concat(layer.legend!.entries.map(e => {
-            return { fillColor: e.color, strokeColor: e.strokeColor, symbol: (layer.style?.symbol === 'line')? 'square': 'circle', text: e.label, shiftX: 20 }
-          }));
-        }
-        else {
-          entries.push({ fillColor: layer.style?.fillColor, strokeColor: layer.style?.strokeColor,
-                         symbol: layer.style?.symbol, text: layer.name, shiftX: 20, textStyle: 'bold' });
-        }
-        // empty row
-        entries.push(undefined);
-      })
+  printMap(): void {
+    if (!this.map)
+      return;
+    const mapData = this.map.exportCanvas().toDataURL();
+    this.exportLegendCanvas().subscribe(legendCanvas => {
+      const legendData = legendCanvas.toDataURL();
+      let html  = '<html><head><title></title></head>';
+      html += '<body style="width: 100%; padding: 0; margin: 0;"';
+      html += ' onload="window.focus(); window.print(); window.close()">';
+      html += `<img style="max-height: 1200px;" src="${mapData}"/>`;
+      html += `<img style="background-color: white;" src="${legendData}"/>`;
+      html += '</body></html>';
+      const printWindow = window.open('', 'to_print', 'width=2000,height=1200')!;
+
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
     })
-    const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = (entries.length + 1) * 20;
-    const ctx = canvas.getContext("2d")!;
-    entries.forEach((entry, i) => {
-      if (!entry) return;
-      if (entry.fillColor || entry.strokeColor) {
-        ctx.beginPath();
-        if (entry.symbol === 'circle')
-          ctx.arc(17 + entry.shiftX, 17 + (i * 20), 7, 0, 2 * Math.PI);
-        else if (entry.symbol === 'line') {
-          ctx.moveTo(10 + entry.shiftX, 17 + (i * 20));
-          ctx.lineTo(25 + entry.shiftX, 17 + (i * 20));
-          ctx.lineWidth = 3;
-        }
-        else
-          ctx.rect(10 + entry.shiftX, 10 + (i * 20), 15, 15);
-        if (entry.fillColor) {
-          ctx.fillStyle = entry.fillColor;
-          ctx.fill();
-        }
-        if (entry.strokeColor) {
-          ctx.strokeStyle = entry.strokeColor;
-          ctx.stroke();
-        }
+  }
+
+  saveLegendAsPng(): void {
+    this.exportLegendCanvas().subscribe(canvas => {
+      if (navigator.hasOwnProperty('msSaveBlob')) {
+        // link download attribute does not work on MS browsers
+        // @ts-ignore
+        navigator.msSaveBlob(canvas.msToBlob(), filename);
+      } else {
+        saveAs(canvas.toDataURL(), 'Legende.png');
       }
-      let font = `${entry.textStyle? entry.textStyle + ' ': ''}12px sans-serif`;
-      if (entry.textStyle)
-        font += ` `;
-      ctx.font = font;
-      ctx.fillStyle = 'black';
-      ctx.fillText(entry.text, 35 + entry.shiftX, 22 + (i * 20));
+    });
+  }
+
+  exportLegendCanvas(): Observable<HTMLCanvasElement> {
+    const observable = new Observable<HTMLCanvasElement>(subscriber => {
+      let entries: ({ fillColor?: string, strokeColor?: string, symbol?: string, text: string, shiftX: number, textStyle?: string } | undefined)[] = [];
+      let wmsEntries: { text: string, url: string }[] = [];
+      this.layerGroups.forEach(group => {
+        group.children.filter(l => l.visible).forEach(layer => {
+          if (layer instanceof VectorLayer) {
+            const vl = layer as VectorLayer;
+            if (layer.legend?.entries) {
+              entries.push({ text: layer.name, shiftX: 0, textStyle: 'bold' });
+              entries = entries.concat(vl.legend!.entries.map(e => {
+                return {
+                  fillColor: e.color,
+                  strokeColor: e.strokeColor,
+                  symbol: (vl.style?.symbol === 'line') ? 'square' : 'circle',
+                  text: e.label,
+                  shiftX: 40
+                }
+              }));
+            } else {
+              entries.push({
+                fillColor: vl.style?.fillColor, strokeColor: vl.style?.strokeColor,
+                symbol: vl.style?.symbol, text: vl.name, shiftX: 20, textStyle: 'bold'
+              });
+            }
+            // empty row
+            entries.push(undefined);
+          }
+         else if (layer instanceof WMSLayer) {
+            const wmsl = layer as WMSLayer;
+            if (wmsl.legendUrl)
+              wmsEntries.push({ text: wmsl.name, url: wmsl.legendUrl })
+          }
+        })
+      })
+      this.renderExternalSources(wmsEntries.map(e => e.url)).subscribe(images => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = (entries.length + 1) * 20 + Object.values(images).reduce((acc, image) => acc + (image?.height? 20 + image.height: 0), 0);
+        const ctx = canvas.getContext("2d")!;
+        let yPos = 0;
+        function addText(x: number, y: number, text: string, style?: string){
+          let font = `${style? style + ' ': ''}12px sans-serif`;
+          if (style)
+            font += ` `;
+          ctx.font = font;
+          ctx.fillStyle = 'black';
+          ctx.fillText(text, x, y);
+        }
+        entries.forEach(entry => {
+          if (!entry) return;
+          if (entry.fillColor || entry.strokeColor) {
+            ctx.beginPath();
+            if (entry.symbol === 'circle')
+              ctx.arc(17 + entry.shiftX, 17 + yPos, 7, 0, 2 * Math.PI);
+            else if (entry.symbol === 'line') {
+              ctx.moveTo(10 + entry.shiftX, 17 + yPos);
+              ctx.lineTo(25 + entry.shiftX, 17 + yPos);
+              ctx.lineWidth = 3;
+            }
+            else
+              ctx.rect(10 + entry.shiftX, 10 + yPos, 15, 15);
+            if (entry.fillColor) {
+              ctx.fillStyle = entry.fillColor;
+              ctx.fill();
+            }
+            if (entry.strokeColor) {
+              ctx.strokeStyle = entry.strokeColor;
+              ctx.stroke();
+            }
+          }
+          addText(35 + entry.shiftX, 22 + yPos, entry.text, entry.textStyle);
+          yPos += 30;
+        })
+        wmsEntries.forEach(entry => {
+          const image = images[entry.url];
+          if (image) {
+            addText(35, 22 + yPos, entry.text, 'bold');
+            ctx.drawImage(image, 55, 35 + yPos);
+            yPos += 40 + image.height;
+          }
+        })
+        subscriber.next(canvas);
+        subscriber.complete();
+      });
     })
-    if (navigator.hasOwnProperty('msSaveBlob')) {
-      // link download attribute does not work on MS browsers
-      // @ts-ignore
-      navigator.msSaveBlob(mapCanvas.msToBlob(), filename);
-    } else {
-      saveAs(canvas.toDataURL(), 'Legende.png');
-    }
+    return observable;
+  }
+
+  private renderExternalSources(urls: string[]): Observable<Record<string, HTMLImageElement | undefined>> {
+    const observable = new Observable<Record<string, HTMLImageElement | undefined>>(subscriber => {
+      const images: Record<string, HTMLImageElement | undefined> = {};
+      let nImgLoaded = 0;
+      function progress() {
+        nImgLoaded++;
+        if (nImgLoaded >= urls.length) {
+          subscriber.next(images);
+          subscriber.complete();
+        }
+      };
+      if (urls.length === 0) {
+        progress();
+      }
+      urls.forEach(url => {
+        const img = new Image();
+        img.onerror = function() {
+          progress();
+        }
+        img.onload = function() {
+          images[url] = img;
+          progress();
+        }
+        img.crossOrigin = 'anonymous';
+        img.src = url;
+      })
+    });
+    return observable;
   }
 
   exportTitleToClipboard(): void {
