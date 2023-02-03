@@ -588,10 +588,10 @@ export class MapControl {
       let html  = '<html><head><title></title></head>';
       html += '<body style="width: 100%; padding: 0; margin: 0;"';
       html += ' onload="window.focus(); window.print(); window.close()">';
-      html += `<img src="${mapData}"/>`;
-      html += `<img src="${legendData}"/>`;
+      html += `<img style="max-height: 1200px;" src="${mapData}"/>`;
+      html += `<img style="background-color: white;" src="${legendData}"/>`;
       html += '</body></html>';
-      const printWindow = window.open('', 'to_print', 'width=1000,height=600')!;
+      const printWindow = window.open('', 'to_print', 'width=2000,height=1200')!;
 
       printWindow.document.open();
       printWindow.document.write(html);
