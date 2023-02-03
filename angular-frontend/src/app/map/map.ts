@@ -762,7 +762,7 @@ export class OlMap {
     return mapCanvas;
   }
 
-  savePNG(filename= 'map.png'): void {
+  saveAsPNG(filename= 'map.png'): void {
     this.map.once('rendercomplete', evt => {
       const mapCanvas = this.exportCanvas();
       if (navigator.hasOwnProperty('msSaveBlob')) {
@@ -774,21 +774,6 @@ export class OlMap {
       }
     });
     this.map.renderSync();
-  }
-
-  print(): void {
-    const mapCanvas = this.exportCanvas();
-    const data = mapCanvas.toDataURL();
-
-    let html  = '<html><head><title></title></head>';
-    html += '<body style="width: 100%; padding: 0; margin: 0;"';
-    html += ' onload="window.focus(); window.print(); window.close()">';
-    html += `<img src="${data}"/></body></html>`;
-    const printWindow = window.open('', 'to_print', 'width=1000,height=600')!;
-
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
   }
 
 }

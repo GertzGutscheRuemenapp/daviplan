@@ -52,12 +52,12 @@ export class MapControlsComponent implements AfterViewInit {
   }
 
   exportPNG(): void {
-    this.mapControl?.exportMapAsPNG();
+    this.mapControl?.saveMapAsPNG();
   }
 
   exportLegend(): void {
     // showMessage('Noch nicht implementiert', this.dialog);
-    this.mapControl?.exportLegend();
+    this.mapControl?.saveLegendAsPng();
   }
 
   copyTitle(): void {
@@ -65,7 +65,7 @@ export class MapControlsComponent implements AfterViewInit {
   }
 
   print(): void {
-    this.mapControl?.map?.print();
+    this.mapControl?.printMap();
   }
 
   toggle(): void {

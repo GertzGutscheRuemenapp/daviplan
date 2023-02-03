@@ -575,27 +575,72 @@ export class MapControl {
     this.map?.setCursor(cur);
   }
 
-  exportMapAsPNG(): void {
-    this.map?.savePNG();
+  saveMapAsPNG(): void {
+    this.map?.saveAsPNG();
   }
 
-  exportLegend(): void {
-    let entries: ({fillColor?: string, strokeColor?: string, symbol?: string, text: string, shiftX: number, textStyle?: string} | undefined)[] = [];
+  printMap(): void {
+    if (!this.map)
+      return;
+    const mapData = this.map.exportCanvas().toDataURL();
+    const legendData = this.exportLegendCanvas().toDataURL();
+
+    let html  = '<html><head><title></title></head>';
+    html += '<body style="width: 100%; padding: 0; margin: 0;"';
+    html += ' onload="window.focus(); window.print(); window.close()">';
+    html += `<img src="${mapData}"/>`;
+    html += `<img src="${legendData}"/>`;
+    html += '</body></html>';
+    const printWindow = window.open('', 'to_print', 'width=1000,height=600')!;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
+
+  saveLegendAsPng(): void {
+    const canvas = this.exportLegendCanvas();
+    if (navigator.hasOwnProperty('msSaveBlob')) {
+      // link download attribute does not work on MS browsers
+      // @ts-ignore
+      navigator.msSaveBlob(canvas.msToBlob(), filename);
+    } else {
+      saveAs(canvas.toDataURL(), 'Legende.png');
+    }
+  }
+
+  exportLegendCanvas(): HTMLCanvasElement {
+    let entries: ({ fillColor?: string, strokeColor?: string, symbol?: string, text: string, shiftX: number, textStyle?: string } | undefined)[] = [];
+    // let wmsEntries: { text: string, url: string }[] = [];
     this.layerGroups.filter(g => !g.external).forEach(group => {
-      group.children.filter(l => (l instanceof VectorLayer) && l.visible).forEach(l => {
-        const layer = l as VectorLayer;
-        if (layer.legend?.entries) {
-          entries.push({ text: layer.name, shiftX: 0, textStyle: 'bold' });
-          entries = entries.concat(layer.legend!.entries.map(e => {
-            return { fillColor: e.color, strokeColor: e.strokeColor, symbol: (layer.style?.symbol === 'line')? 'square': 'circle', text: e.label, shiftX: 20 }
-          }));
+      group.children.filter(l => l.visible).forEach(layer => {
+        if (layer instanceof VectorLayer) {
+          const vl = layer as VectorLayer;
+          if (layer.legend?.entries) {
+            entries.push({ text: layer.name, shiftX: 0, textStyle: 'bold' });
+            entries = entries.concat(vl.legend!.entries.map(e => {
+              return {
+                fillColor: e.color,
+                strokeColor: e.strokeColor,
+                symbol: (vl.style?.symbol === 'line') ? 'square' : 'circle',
+                text: e.label,
+                shiftX: 20
+              }
+            }));
+          } else {
+            entries.push({
+              fillColor: vl.style?.fillColor, strokeColor: vl.style?.strokeColor,
+              symbol: vl.style?.symbol, text: vl.name, shiftX: 20, textStyle: 'bold'
+            });
+          }
+          // empty row
+          entries.push(undefined);
         }
-        else {
-          entries.push({ fillColor: layer.style?.fillColor, strokeColor: layer.style?.strokeColor,
-                         symbol: layer.style?.symbol, text: layer.name, shiftX: 20, textStyle: 'bold' });
-        }
-        // empty row
-        entries.push(undefined);
+/*        else if (layer instanceof WMSLayer) {
+          const wmsl = layer as WMSLayer;
+          if (wmsl.legendUrl)
+            wmsEntries.push({ text: wmsl.name, url: wmsl.legendUrl })
+        }*/
       })
     })
     const canvas = document.createElement('canvas');
@@ -631,13 +676,7 @@ export class MapControl {
       ctx.fillStyle = 'black';
       ctx.fillText(entry.text, 35 + entry.shiftX, 22 + (i * 20));
     })
-    if (navigator.hasOwnProperty('msSaveBlob')) {
-      // link download attribute does not work on MS browsers
-      // @ts-ignore
-      navigator.msSaveBlob(mapCanvas.msToBlob(), filename);
-    } else {
-      saveAs(canvas.toDataURL(), 'Legende.png');
-    }
+    return canvas;
   }
 
   exportTitleToClipboard(): void {
