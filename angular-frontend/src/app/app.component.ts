@@ -13,14 +13,16 @@ import { AuthService } from "./auth.service";
 export class AppComponent {
 
   constructor(private settings: SettingsService, router: Router, dialog: MatDialog, authService: AuthService) {
-    authService.refreshToken().subscribe();
+    // initialize authentication cycle by refreshing access token
+    if (authService.hasPreviousLogin())
+      authService.refreshToken().subscribe();
     // auto apply site settings when new ones were fetched
     settings.siteSettings$.subscribe(settings => {
       this.settings.applySiteSettings(settings);
     })
     router.events.pipe(
       tap(() => {
-        // close all dialogs on page change
+        // close all dialogs on page change (esp. help dialogs)
         dialog.closeAll();
       })
     ).subscribe();

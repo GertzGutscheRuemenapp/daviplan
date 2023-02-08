@@ -19,22 +19,32 @@ interface Token {
 }
 
 @Injectable({ providedIn: 'root' })
+/**
+ * token authentication service to login and verify user at backend API
+ * access token is regularly rotated (access token lifetime is defined in backend)
+ *
+ */
 export class AuthService {
   user$ = new BehaviorSubject<User | undefined>(undefined);
   private timer?: Subscription;
 
   constructor(private rest: RestAPI, private http: HttpClient, private router: Router, private route: ActivatedRoute) { }
 
-  setLocalStorage(token: Token) {
+  private setLocalStorage(token: Token) {
     localStorage.setItem('accessToken', token.access);
     localStorage.setItem('refreshToken', token.refresh);
   }
 
-  clearLocalStorage() {
+  private clearLocalStorage() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
   }
 
+  /**
+   * login at backend API with given credentials (username and password)
+   *
+   * @param credentials
+   */
   login(credentials: { username: string; password: string }): Observable<Token> {
     let query = this.http.post<Token>(this.rest.URLS.token, credentials)
       .pipe(
@@ -47,6 +57,10 @@ export class AuthService {
       return query;
   }
 
+  /**
+   * log out at backend, token will be removed
+   * redirects to login page
+   */
   logout(): void {
     this.clearLocalStorage();
     this.stopTokenTimer();
@@ -62,6 +76,9 @@ export class AuthService {
     this.router.navigateByUrl('/login');
   }
 
+  /**
+   * get user information (cached)
+   */
   getCurrentUser(): Observable<User | undefined> {
     return this.user$.pipe(
       switchMap(user => {
@@ -79,6 +96,9 @@ export class AuthService {
     );
   }
 
+  /**
+   * fetch user information from backend
+   */
   fetchCurrentUser(): Observable<User | undefined> {
     return this.http.get<User>(this.rest.URLS.currentUser)
       .pipe(
@@ -92,6 +112,15 @@ export class AuthService {
       );
   }
 
+  hasPreviousLogin(): boolean {
+    const refreshToken = localStorage.getItem('refreshToken');
+    return !!refreshToken;
+  }
+
+  /**
+   * refresh the access token with the refresh token
+   * initiates the next refresh cycle
+   */
   refreshToken(): Observable<Token> {
     const refreshToken = localStorage.getItem('refreshToken');
     return this.http.post<Token>(
@@ -104,6 +133,7 @@ export class AuthService {
     );
   }
 
+  // get remaining time before access token expires
   private getTokenRemainingTime() {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
@@ -114,6 +144,7 @@ export class AuthService {
     return expires.getTime() - Date.now();
   }
 
+  // auto refresh access token after it is expired
   private startTokenTimer() {
     const timeout = this.getTokenRemainingTime();
     if (this.timer || !timeout) this.stopTokenTimer();
@@ -134,10 +165,12 @@ export class AuthService {
 }
 
 @Injectable()
+/**
+ * Interceptor adds (rotated) token verification to http calls (required by backend API)
+ */
 export class TokenInterceptor implements HttpInterceptor {
   private refreshingInProgress: boolean = false;
   private accessTokenSubject: Subject<string> = new ReplaySubject<string>();
-
   constructor( private authService: AuthService, private router: Router) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -207,6 +240,12 @@ export class TokenInterceptor implements HttpInterceptor {
 }
 
 @Injectable({ providedIn: 'root' })
+/**
+ * protects routes based on user permissions
+ * by default blocks all calls if user is not logged in
+ * pass "data" property with entry "expectedRole" (value: admin or dataEditor) to block route from other users
+ * role admin includes access to dataEditor pages
+ */
 export class AuthGuard implements CanActivate {
   constructor(private authService: AuthService,
               private router: Router) { }
