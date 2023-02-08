@@ -5,7 +5,9 @@ import { environment } from "../environments/environment";
   providedIn: 'root'
 })
 export class RestAPI {
+  // backend API url depending on environment (productive or development)
   public readonly API_ENDPOINT = environment.apiPath;
+  // backend REST urls to specific resources
   public readonly URLS = {
     token: `${ this.API_ENDPOINT }/token/`,
     refreshToken: `${ this.API_ENDPOINT }/token/refresh/`,
@@ -52,5 +54,4 @@ export class RestAPI {
     modeStatistics: `${ this.API_ENDPOINT }/matrixstatistics/`,
     logs: `${ this.API_ENDPOINT }/logs/`
   }
-  // ToDo: functions with generalized HTTP calls in here
 }

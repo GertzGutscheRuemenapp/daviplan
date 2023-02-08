@@ -30,6 +30,13 @@ class RegStatAgeGroup:
         return (f'ALT{age_to_str(self.from_age, length=3)}'
                 f'B{age_to_str(self.to_age + 1)}')
 
+    def get_model(self):
+        try:
+            return AgeGroup.objects.get(from_age=self.from_age,
+                                        to_age=self.to_age)
+        except AgeGroup.DoesNotExist:
+            return
+
     def __eq__(self, other: Union['RegStatAgeGroup', AgeGroup]) -> bool:
         # if other age surpasses custom "infinite" value
         # take the "infinite" value
@@ -92,15 +99,3 @@ class RegStatAgeGroups:
             if ag.code == code:
                 return ag
         return None
-
-    @classmethod
-    def as_series(cls) -> pd.Series:
-        """return as pandas.Series"""
-        return pd.Series(range(1, 18),
-                         index=[repr(ag) for ag in cls.agegroups],
-                         name='age_group_id')
-
-
-regstatgenders = pd.Series([1, 2],
-                           index=['GESM', 'GESW'],
-                           name='gender_id')

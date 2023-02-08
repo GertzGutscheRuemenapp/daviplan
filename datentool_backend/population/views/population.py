@@ -34,8 +34,8 @@ from datentool_backend.population.models import (
     AreaCell,
     Year
     )
-from datentool_backend.demand.constants import RegStatAgeGroups, regstatgenders
-from datentool_backend.demand.models import AgeGroup
+from datentool_backend.demand.constants import RegStatAgeGroups
+from datentool_backend.demand.models import AgeGroup, Gender
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
                                                  drop_constraints,
@@ -329,7 +329,7 @@ class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
         logger.info('Bevölkerungsdaten für die Jahre '
                     f'{", ".join(years.astype("str"))} gefunden')
         logger.info('Verarbeite Bevölkerungsdaten')
-        regstatagegroups = RegStatAgeGroups.as_series()
+
         area_ids = pd.DataFrame(
             areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
         area_ids.name = 'area_id'
@@ -358,10 +358,23 @@ class PopulationViewSet(RunProcessMixin, viewsets.ModelViewSet):
             year2population[year.year] = population.id
 
         y2p = pd.Series(year2population, name='population_id')
+
+        agegroups = [(group.code, group.get_model().id)
+                     for group in RegStatAgeGroups.agegroups]
+        df_agegroups = pd.DataFrame(
+            agegroups, columns=['code', 'age_group_id']).set_index('code')
+
+        genders = [(g.name, g.id) for g in Gender.objects.all()]
+        df_genders = pd.DataFrame(
+            genders, columns=['name', 'gender_id'])
+        df_genders['name'].replace(['männlich', 'weiblich'], ['GESM', 'GESW'],
+                                   inplace=True)
+        df_genders.set_index('name', inplace=True)
+
         # add gender_id, agegroup_id, area_id and population_id
         df_population = df_population\
-            .merge(regstatgenders, left_on='GES', right_index=True)\
-            .merge(regstatagegroups, left_on='ALTX20', right_index=True)\
+            .merge(df_genders, left_on='GES', right_index=True)\
+            .merge(df_agegroups, left_on='ALTX20', right_index=True)\
             .merge(area_ids, left_on='AGS', right_index=True)\
             .merge(y2p, left_on='year', right_index=True)\
             .rename(columns={'inhabitants': 'value', })\

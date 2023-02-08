@@ -42,11 +42,16 @@ import { map, tap } from "rxjs/operators";
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * service for querying the backend API for specific resources (POST and GET)
+ *
+ */
 export class RestCacheService {
-  // ToDo: get functions with cached values instead of BehaviorSubjects
-
+  // storage for received backend data; key is a (generic)
   private genericCache: Record<string, Record<string, any>> = {};
+  // specific storage for processed areas
   private areaCache: Record<number, Area[]> = {};
+  // blas
   isLoading$ = new BehaviorSubject<boolean>(false);
   private _isLoading = false;
   private loadCount = 0;
