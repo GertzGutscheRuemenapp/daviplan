@@ -124,7 +124,7 @@ class Command(BaseCommand):
         raster = Raster.objects.create(name='LAEA-Raster')
         PopulationRaster.objects.create(raster=raster,
                                         name='Zensus-2011-Raster',
-                                        filename='Zensus2011Einwohner100_LAEA3035.tif',
+                                        filename='Zensus2011Einwohner200_LAEA3035.tif',
                                         default=True)
 
         AgeGroup.objects.all().delete()
