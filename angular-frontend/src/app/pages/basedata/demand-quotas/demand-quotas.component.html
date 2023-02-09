@@ -28,7 +28,7 @@
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
                            (click)="activeService = service; onServiceChange();"
-                           [selected]="(service.id === activeService?.id)">
+                           [selected]="activeService && (service.id === activeService.id)">
             <div class="option-text">{{service.name}}</div>
           </mat-list-option>
           <mat-divider></mat-divider>
@@ -70,7 +70,7 @@
         <mat-selection-list #demandSetSelection [multiple]="false" id="quota-select" >
           <mat-list-option *ngFor="let demandRateSet of demandRateSets"
                            (click)="activeDemandRateSet = demandRateSet; onDemandRateSetChange();"
-                           [selected]="(demandRateSet.id === activeDemandRateSet?.id)"
+                           [selected]="activeDemandRateSet && (demandRateSet.id === activeDemandRateSet.id)"
                            [ngClass]="{'star-option': demandRateSet.isDefault}"
                            [title]="demandRateSet.name + (demandRateSet.isDefault? ' (Annahme für Trendfortschreibung)': '')">
             <div class="option-text">{{demandRateSet.name}}</div>

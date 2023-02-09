@@ -23,7 +23,7 @@
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
                            (click)="activeService = service; onServiceChange();"
-                           [selected]="(service.id === activeService?.id)">
+                           [selected]="activeService && (service.id === activeService.id)">
             <div class="option-text">{{service.name}}</div>
           </mat-list-option>
           <mat-divider></mat-divider>

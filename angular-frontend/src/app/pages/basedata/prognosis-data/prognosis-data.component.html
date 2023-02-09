@@ -68,7 +68,7 @@
                           id="prognosis-select">
         <mat-list-option *ngFor="let prognosis of prognoses"
                          (click)="activePrognosis = prognosis; onPrognosisChange();"
-                         [selected]="(prognosis === activePrognosis)">
+                         [selected]="activePrognosis && (prognosis.id === activePrognosis.id)">
           <div class="option-text">{{prognosis.name}}</div>
           <mat-icon *ngIf="prognosis.isDefault"
                     style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">

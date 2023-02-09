@@ -35,11 +35,10 @@
                   <p>Optional können Sie mehrere ÖPNV-Netze definieren, z.B. um unterschiedliche Zeiträume (Tageszeiten, Werktags, Wochenende) oder Planungsvarianten (aktueller Fahrplan, zukünftiger Fahrplan) abzubilden.</p>
                   <p>Wenn Sie mehrere Netze definiert haben, müssen Sie eines als Standardannahme auswählen. Dieses ÖPNV-Netz liegt dann allen automatisch generierten Szenarien „Trendfortschreibung“ im Anwendungsbereich „Infrastrukturplanung“ zugrunde.</p>">
     <mat-selection-list [multiple]="false"
-                        class="categorized"
                         id="mode-select">
       <mat-list-option *ngFor="let variant of variants"
                        (click)="selectVariant(variant);"
-                       [selected]="(selectedVariant?.id === variant.id)">
+                       [selected]="selectedVariant && (selectedVariant.id === variant.id)">
         <div class="option-text">{{variant.label}}</div>
         <mat-icon *ngIf="variant.isDefault" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
       </mat-list-option>

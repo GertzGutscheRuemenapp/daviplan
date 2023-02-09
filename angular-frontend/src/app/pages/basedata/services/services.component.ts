@@ -62,6 +62,8 @@ export class ServicesComponent implements OnInit, AfterViewInit {
     this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
+      if (this.infrastructures.length > 0)
+        this.serviceForm.reset({ infrastructure: this.infrastructures[0].id })
       this.isLoading$.next(false);
       if (infrastructures.length === 0) return;
       const services = infrastructures[0].services || [];
@@ -185,9 +187,6 @@ export class ServicesComponent implements OnInit, AfterViewInit {
         closeOnConfirm: false
       }
     });
-    dialogRef.afterOpened().subscribe(() => {
-      this.serviceForm.reset();
-    })
     dialogRef.componentInstance.confirmed.subscribe(() => {
       // display errors for all fields even if not touched
       this.serviceForm.markAllAsTouched();

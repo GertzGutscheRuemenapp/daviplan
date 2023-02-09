@@ -96,6 +96,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
         this.http.post<ModeVariant>(this.rest.URLS.modevariants, attributes
         ).subscribe(variant => {
           this.variants.push(variant);
+          this.selectedVariant = variant;
           dialogRef.close();
         }, (error) => {
           showAPIError(error, this.dialog);
