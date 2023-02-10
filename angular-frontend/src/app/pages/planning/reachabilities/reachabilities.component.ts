@@ -106,10 +106,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): Observable<boolean> {
     const observable = new Observable<any>(subscriber => {
-      if (this.placesLayer) {
-        this.placesLayerGroup?.removeLayer(this.placesLayer);
-        this.placesLayer = undefined;
-      }
       if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) {
         subscriber.next(false);
         subscriber.complete();
@@ -119,6 +115,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.planningService.getPlaces({
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
+        this.placesLayerGroup?.clear();
         this.places = places;
         this.placesLayer = this.placesLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
           id: 'reach-places',
