@@ -130,8 +130,8 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                     # other mode variants automatically
                     network = Network(is_default=True)
                     modes2create = [m for m in
-                                       [Mode.WALK, Mode.BIKE, Mode.CAR]
-                                       if m != self.mode]
+                                    [Mode.WALK, Mode.BIKE, Mode.CAR]
+                                    if m != self.mode]
                     network.save(modes2create=modes2create)
                 self.network = network
 
