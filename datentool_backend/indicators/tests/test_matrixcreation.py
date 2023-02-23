@@ -7,6 +7,8 @@ logger = logging.getLogger(name='test')
 
 import pandas as pd
 from test_plus import APITestCase
+
+from django.db import connection
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.gis.geos import Point
@@ -74,6 +76,10 @@ class TestMatrixCreation(CreateTestdataMixin,
         walk = ModeVariantFactory(mode=Mode.WALK, network=network)
         car = ModeVariantFactory(mode=Mode.CAR, network=network)
         bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
+
+        add_matrixcellplace_partition(walk.pk)
+        add_matrixcellplace_partition(car.pk)
+        add_matrixcellplace_partition(bike.pk)
 
         data = {'variants': [walk.pk, car.pk, bike.pk],
                 'drop_constraints': False,
@@ -513,3 +519,11 @@ class TestMatrixCreation(CreateTestdataMixin,
                              {self.transit.pk: 34, })
         self.assertDictEqual(data['n_rels_stop_stop_modevariant'],
                              {self.transit.pk: 88412, })
+
+
+def add_matrixcellplace_partition(mode_id: int):
+    connection.schema_editor().add_list_partition(
+        model=MatrixCellPlace,
+        name=f"mode_{mode_id}",
+        values=[mode_id],
+    )
