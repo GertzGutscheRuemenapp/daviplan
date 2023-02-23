@@ -6,6 +6,9 @@ from django.db import models
 from django.db.models import Count
 from django.contrib.gis.db import models as gis_models
 
+from psqlextra.types import PostgresPartitioningMethod
+from psqlextra.models import PostgresPartitionedModel
+
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.utils.copy_postgres import DirectCopyManager
@@ -84,7 +87,10 @@ class MatrixMixin:
         raise NotImplementedError('To be defined in the subclass')
 
 
-class MatrixCellPlace(MatrixMixin, DatentoolModelMixin, models.Model):
+class MatrixCellPlace(MatrixMixin,
+                      PostgresPartitionedModel,
+                      DatentoolModelMixin,
+                      models.Model):
     """Reachabliliy Matrix between raster cell and place with a mode variante"""
     _statistic: str = 'n_rels_place_cell'
 
@@ -99,8 +105,12 @@ class MatrixCellPlace(MatrixMixin, DatentoolModelMixin, models.Model):
                                        on_delete=models.SET_NULL,
                                        related_name='mcp_access_variant')
 
+    class PartitioningMeta:
+        method = PostgresPartitioningMethod.LIST
+        key = ["variant_id"]
+
+
     class Meta:
-        unique_together = ['variant', 'access_variant', 'cell', 'place']
         constraints = [
             models.UniqueConstraint(
                 name='variant_accessvariant_cell_place_uniq',
