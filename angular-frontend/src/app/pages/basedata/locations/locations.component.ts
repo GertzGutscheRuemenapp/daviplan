@@ -73,7 +73,7 @@ export class LocationsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
       this.fieldTypes = fieldTypes;
       this.restService.getInfrastructures().subscribe(infrastructures => {
-        this.infrastructures = infrastructures;
+        this.infrastructures = infrastructures.filter(i => i.access);
         this.isLoading$.next(false);
       })
     })

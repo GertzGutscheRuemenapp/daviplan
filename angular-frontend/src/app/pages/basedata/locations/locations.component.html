@@ -24,7 +24,7 @@
 <!--        ngmodel does not work here as it always returns arrays even ig multiple=false-->
       <mat-list-option *ngFor="let infrastructure of infrastructures"
                        (click)="selectedInfrastructure = infrastructure; onInfrastructureChange();"
-                       [selected]="(infrastructure.id === selectedInfrastructure?.id)">
+                       [selected]="selectedInfrastructure && (infrastructure.id === selectedInfrastructure.id)">
         <div class="option-text">{{infrastructure.name}}</div>
       </mat-list-option>
     </mat-selection-list>

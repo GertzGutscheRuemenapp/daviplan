@@ -23,7 +23,7 @@
         <mat-list-option *ngFor="let user of users"
                          [value]="user"
                          (click)="onSelect(user)"
-                         [selected]="(selectedUser && (user.id === selectedUser.id))">
+                         [selected]="selectedUser && (user.id === selectedUser.id)">
           <mat-icon *ngIf="!user.isSuperuser" class="material-icons-outlined" mat-list-icon>person</mat-icon>
           <mat-icon *ngIf="user.isSuperuser" class="material-icons-outlined"  mat-list-icon>admin_panel_settings</mat-icon>
           <div mat-line>{{ user.username }}</div>

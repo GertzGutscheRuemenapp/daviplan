@@ -62,7 +62,7 @@ export class DemandQuotasComponent implements OnInit, AfterViewInit {
     this.restService.getGenders().subscribe(genders => this.genders = genders);
     this.restService.getAgeGroups().subscribe(ageGroups => this.ageGroups = ageGroups);
     this.restService.getInfrastructures().subscribe(infrastructures => {
-      this.infrastructures = infrastructures || [];
+      this.infrastructures = infrastructures.filter(i => i.access);
       this.isLoading$.next(false);
       if (infrastructures.length === 0) return;
       const services = infrastructures[0].services || [];
