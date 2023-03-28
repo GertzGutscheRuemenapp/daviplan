@@ -13,6 +13,18 @@ import psqlextra.models.partitioned
 import psqlextra.types
 
 
+def reset_matrix_statistics(apps, schema_editor):
+    """Reset the ModeVariantStatistics"""
+    # We can't import the ModeVariantStatistic model directly as it may be a newer
+    # version than this migration expects. We use the historical version.
+    ModeVariantStatistic = apps.get_model('datentool_backend', 'ModeVariantStatistic')
+    for statistic in ModeVariantStatistic.objects.all():
+        statistic.n_rels_place_cell = 0
+        statistic.n_rels_place_stop = 0
+        statistic.n_rels_stop_cell = 0
+        statistic.n_rels_stop_stop = 0
+        statistic.save()
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -20,6 +32,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # delete existing Matrix Models
         migrations.DeleteModel(
             name='MatrixCellPlace',
         ),
@@ -33,6 +46,10 @@ class Migration(migrations.Migration):
             name='MatrixCellStop',
         ),
 
+        # Reset the ModeVariantStatistics
+        migrations.RunPython(reset_matrix_statistics),
+
+        # add Matrix Tables as Partitioned Tables
         psqlextra.backend.migrations.operations.create_partitioned_model.PostgresCreatePartitionedModel(
             name='MatrixCellPlace',
             fields=[
