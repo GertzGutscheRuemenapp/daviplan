@@ -462,20 +462,6 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(blank=True, related_name='shared_with_users', to='datentool_backend.profile'),
         ),
         migrations.CreateModel(
-            name='PlaceUploadLog',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('text', models.TextField()),
-                ('infrastructure', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.infrastructure')),
-                ('user', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.profile')),
-            ],
-            options={
-                'abstract': False,
-            },
-            bases=(datentool_backend.base.NamedModel, models.Model),
-        ),
-        migrations.CreateModel(
             name='PlaceField',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -566,20 +552,6 @@ class Migration(migrations.Migration):
             name='mode_variant',
             field=models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.modevariant'),
         ),
-        migrations.CreateModel(
-            name='CapacityUploadLog',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('text', models.TextField()),
-                ('service', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.service')),
-                ('user', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.profile')),
-            ],
-            options={
-                'abstract': False,
-            },
-            bases=(datentool_backend.base.NamedModel, models.Model),
-        ),
         migrations.AddField(
             model_name='capacity',
             name='place',
@@ -594,20 +566,6 @@ class Migration(migrations.Migration):
             model_name='capacity',
             name='service',
             field=models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.service'),
-        ),
-        migrations.CreateModel(
-            name='AreaUploadLog',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('text', models.TextField()),
-                ('level', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.arealevel')),
-                ('user', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.profile')),
-            ],
-            options={
-                'abstract': False,
-            },
-            bases=(datentool_backend.base.NamedModel, models.Model),
         ),
         migrations.CreateModel(
             name='AreaPopulationAgeGender',
@@ -725,11 +683,9 @@ class Migration(migrations.Migration):
                 ('minutes', models.FloatField()),
                 ('cell', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='cell_place', to='datentool_backend.rastercell')),
                 ('place', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='place_cell', to='datentool_backend.place')),
-                ('variant', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.modevariant')),
+                ('access_variant', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='mcp_access_variant', to='datentool_backend.modevariant')),
+                ('variant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant')),
             ],
-            options={
-                'unique_together': {('variant', 'cell', 'place')},
-            },
             bases=(datentool_backend.base.DatentoolModelMixin, models.Model),
         ),
         migrations.CreateModel(
@@ -739,11 +695,8 @@ class Migration(migrations.Migration):
                 ('minutes', models.FloatField()),
                 ('cell', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='cell_stop', to='datentool_backend.rastercell')),
                 ('stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='stop_cell', to='datentool_backend.stop')),
-                ('variant', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.modevariant')),
+                ('access_variant', models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mcs_access_variant', to='datentool_backend.modevariant')),
             ],
-            options={
-                'unique_together': {('variant', 'cell', 'stop')},
-            },
             bases=(datentool_backend.base.DatentoolModelMixin, models.Model),
         ),
         migrations.CreateModel(
@@ -753,11 +706,8 @@ class Migration(migrations.Migration):
                 ('minutes', models.FloatField()),
                 ('place', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='place_stop', to='datentool_backend.place')),
                 ('stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='stop_place', to='datentool_backend.stop')),
-                ('variant', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.modevariant')),
+                ('access_variant', models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mps_access_variant', to='datentool_backend.modevariant')),
             ],
-            options={
-                'unique_together': {('variant', 'place', 'stop')},
-            },
         ),
         migrations.CreateModel(
             name='MatrixStopStop',
@@ -768,9 +718,6 @@ class Migration(migrations.Migration):
                 ('to_stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='to_stop', to='datentool_backend.stop')),
                 ('variant', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.modevariant')),
             ],
-            options={
-                'unique_together': {('variant', 'from_stop', 'to_stop')},
-            },
         ),
         migrations.AddField(
             model_name='areacell',
@@ -845,31 +792,6 @@ class Migration(migrations.Migration):
             ],
             bases=(datentool_backend.base.NamedModel, models.Model),
         ),
-        migrations.RemoveField(
-            model_name='capacityuploadlog',
-            name='service',
-        ),
-        migrations.RemoveField(
-            model_name='capacityuploadlog',
-            name='user',
-        ),
-        migrations.RemoveField(
-            model_name='placeuploadlog',
-            name='infrastructure',
-        ),
-        migrations.RemoveField(
-            model_name='placeuploadlog',
-            name='user',
-        ),
-        migrations.DeleteModel(
-            name='AreaUploadLog',
-        ),
-        migrations.DeleteModel(
-            name='CapacityUploadLog',
-        ),
-        migrations.DeleteModel(
-            name='PlaceUploadLog',
-        ),
         migrations.CreateModel(
             name='ProcessState',
             fields=[
@@ -921,21 +843,6 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
         ),
         migrations.AlterField(
-            model_name='matrixcellstop',
-            name='variant',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
-        ),
-        migrations.AlterField(
-            model_name='matrixplacestop',
-            name='variant',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
-        ),
-        migrations.AlterField(
-            model_name='matrixstopstop',
-            name='variant',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
-        ),
-        migrations.AlterField(
             model_name='scenariomode',
             name='variant',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
@@ -965,42 +872,6 @@ class Migration(migrations.Migration):
             name='infrastructure',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.infrastructure'),
         ),
-        migrations.AlterUniqueTogether(
-            name='matrixcellplace',
-            unique_together=set(),
-        ),
-        migrations.AlterUniqueTogether(
-            name='matrixcellstop',
-            unique_together=set(),
-        ),
-        migrations.AlterUniqueTogether(
-            name='matrixplacestop',
-            unique_together=set(),
-        ),
-        migrations.AddField(
-            model_name='matrixcellplace',
-            name='access_variant',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='mcp_access_variant', to='datentool_backend.modevariant'),
-        ),
-        migrations.AddField(
-            model_name='matrixcellstop',
-            name='access_variant',
-            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mcs_access_variant', to='datentool_backend.modevariant'),
-        ),
-        migrations.AddField(
-            model_name='matrixplacestop',
-            name='access_variant',
-            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mps_access_variant', to='datentool_backend.modevariant'),
-        ),
-        migrations.AlterField(
-            model_name='matrixstopstop',
-            name='variant',
-            field=models.ForeignKey(default=datentool_backend.modes.models.get_default_transit_variant, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant'),
-        ),
-        migrations.AlterUniqueTogether(
-            name='matrixcellplace',
-            unique_together={('variant', 'access_variant', 'cell', 'place')},
-        ),
         migrations.AddConstraint(
             model_name='matrixcellplace',
             constraint=models.UniqueConstraint(fields=('variant', 'access_variant', 'cell', 'place'), name='variant_accessvariant_cell_place_uniq'),
@@ -1008,14 +879,6 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='matrixcellplace',
             constraint=models.UniqueConstraint(condition=models.Q(('access_variant__isnull', True)), fields=('variant', 'cell', 'place'), name='variant_noaccessvariant_cell_place_uniq'),
-        ),
-        migrations.RemoveField(
-            model_name='matrixcellstop',
-            name='variant',
-        ),
-        migrations.RemoveField(
-            model_name='matrixplacestop',
-            name='variant',
         ),
         migrations.AlterUniqueTogether(
             name='matrixcellstop',
@@ -1028,10 +891,6 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='matrixstopstop',
             unique_together={('from_stop', 'to_stop')},
-        ),
-        migrations.RemoveField(
-            model_name='matrixstopstop',
-            name='variant',
         ),
         migrations.AddField(
             model_name='placefield',
