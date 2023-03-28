@@ -1,5 +1,5 @@
 from typing import List
-from django.db import models
+from django.db import models, connection
 
 from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin, )
@@ -119,6 +119,8 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                 # else set this as default (so there is always a default one)
                 except ModeVariant.DoesNotExist:
                     self.is_default = True
+
+
         else:
             # for non-transit-modes, if no network is defined,
             # take or create the default network
@@ -137,10 +139,38 @@ class ModeVariant(DatentoolModelMixin, models.Model):
 
         super().save(*args, **kwargs)
 
+        from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                         MatrixCellStop,
+                                                         MatrixPlaceStop,
+                                                         MatrixStopStop)
+        for model in [MatrixCellPlace,
+                      MatrixCellStop,
+                      MatrixPlaceStop,
+                      MatrixStopStop]:
+            connection.schema_editor().add_list_partition(
+            model=model,
+            name=f"mode_{self.pk}",
+            values=[self.pk],
+            )
+
     def delete(self, **kwargs):
         # deleting transit variant marked as default -> mark another one
         # transit variant (so there always is one default set if there are
         # any at all)
+
+        from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                         MatrixCellStop,
+                                                         MatrixPlaceStop,
+                                                         MatrixStopStop)
+        for model in [MatrixCellPlace,
+                      MatrixCellStop,
+                      MatrixPlaceStop,
+                      MatrixStopStop]:
+            connection.schema_editor().delete_partition(
+            model=model,
+            name=f"mode_{self.pk}",
+            )
+
         if self.mode == Mode.TRANSIT and self.is_default:
             new_default = ModeVariant.objects.filter(
                 mode=Mode.TRANSIT).exclude(id=self.id).first()

@@ -192,7 +192,8 @@ class TravelTimeRouterMixin:
             access_variant_id=access_variant.pk,
             places=places)
         self.write_results_to_database(logger, qs, df_ps, drop_constraints,
-                                       ignore_columns=['transit_variant_id'])
+                                       #ignore_columns=['transit_variant_id'],
+                                       )
 
         # calculate time from stop to cell
         matrix_cell_stop = MatrixCellStopRouter()
@@ -225,7 +226,8 @@ class TravelTimeRouterMixin:
             access_variant_id=access_variant.pk,
         )
         self.write_results_to_database(logger, qs, df_cs, drop_constraints,
-                                       ignore_columns=['transit_variant_id'])
+                                       #ignore_columns=['transit_variant_id'],
+                                       )
 
         logger.info('Berechne Gesamtreisezeiten...')
 
@@ -669,7 +671,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
             else:
                 df = pd.concat(dataframes)
                 self.write_results_to_database(logger, queryset, df, drop_constraints,
-                                               ignore_columns=['transit_variant_id'])
+                                               #ignore_columns=['transit_variant_id'],
+                                               )
 
         except RoutingError as err:
             msg = str(err)

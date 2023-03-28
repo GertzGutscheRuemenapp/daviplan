@@ -660,17 +660,22 @@ class Migration(migrations.Migration):
             name='network',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.network'),
         ),
-        migrations.CreateModel(
+        psqlextra.backend.migrations.operations.create_partitioned_model.PostgresCreatePartitionedModel(
             name='MatrixStopStop',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('minutes', models.FloatField()),
                 ('from_stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='from_stop', to='datentool_backend.stop')),
                 ('to_stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='to_stop', to='datentool_backend.stop')),
+                ('variant_id', models.IntegerField()),
             ],
-            bases=(datentool_backend.indicators.models.MatrixMixin, models.Model),
+            partitioning_options={
+                'method': psqlextra.types.PostgresPartitioningMethod['LIST'],
+                'key': ['variant_id'],
+            },
+            bases=(datentool_backend.indicators.models.MatrixMixin, psqlextra.models.partitioned.PostgresPartitionedModel),
         ),
-        migrations.CreateModel(
+        psqlextra.backend.migrations.operations.create_partitioned_model.PostgresCreatePartitionedModel(
             name='MatrixPlaceStop',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -678,10 +683,15 @@ class Migration(migrations.Migration):
                 ('access_variant', models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mps_access_variant', to='datentool_backend.modevariant')),
                 ('place', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='place_stop', to='datentool_backend.place')),
                 ('stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='stop_place', to='datentool_backend.stop')),
+                ('transit_variant_id', models.IntegerField()),
             ],
-            bases=(datentool_backend.indicators.models.MatrixMixin, models.Model),
+            partitioning_options={
+                'method': psqlextra.types.PostgresPartitioningMethod['LIST'],
+                'key': ['transit_variant_id'],
+            },
+            bases=(datentool_backend.indicators.models.MatrixMixin, psqlextra.models.partitioned.PostgresPartitionedModel),
         ),
-        migrations.CreateModel(
+        psqlextra.backend.migrations.operations.create_partitioned_model.PostgresCreatePartitionedModel(
             name='MatrixCellStop',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -689,8 +699,13 @@ class Migration(migrations.Migration):
                 ('access_variant', models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mcs_access_variant', to='datentool_backend.modevariant')),
                 ('cell', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='cell_stop', to='datentool_backend.rastercell')),
                 ('stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='stop_cell', to='datentool_backend.stop')),
+                ('transit_variant_id', models.IntegerField()),
             ],
-            bases=(datentool_backend.indicators.models.MatrixMixin, datentool_backend.base.DatentoolModelMixin, models.Model),
+            partitioning_options={
+                'method': psqlextra.types.PostgresPartitioningMethod['LIST'],
+                'key': ['transit_variant_id'],
+            },
+            bases=(datentool_backend.indicators.models.MatrixMixin, datentool_backend.base.DatentoolModelMixin, psqlextra.models.partitioned.PostgresPartitionedModel),
         ),
         migrations.AddField(
             model_name='matrixcellplace',
@@ -841,15 +856,15 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='matrixstopstop',
-            unique_together={('from_stop', 'to_stop')},
+            unique_together={('variant_id', 'from_stop', 'to_stop')},
         ),
         migrations.AlterUniqueTogether(
             name='matrixplacestop',
-            unique_together={('access_variant', 'place', 'stop')},
+            unique_together={('transit_variant_id', 'access_variant', 'place', 'stop')},
         ),
         migrations.AlterUniqueTogether(
             name='matrixcellstop',
-            unique_together={('access_variant', 'cell', 'stop')},
+            unique_together={('transit_variant_id', 'access_variant', 'cell', 'stop')},
         ),
         migrations.AddConstraint(
             model_name='matrixcellplace',

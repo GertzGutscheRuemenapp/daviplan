@@ -193,6 +193,7 @@ def read_traveltime_matrix(excel_or_visum_filepath, variant_id) -> pd.DataFrame:
                   left_on='to_stop', right_index=True)
 
     df = df[['from_stop_id', 'to_stop_id', 'minutes']]
+    df['variant_id'] = variant_id
     return df
 
 

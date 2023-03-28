@@ -236,6 +236,7 @@ class PlaceSerializer(serializers.ModelSerializer):
             inplace=True)
         MatrixPlaceStop.add_n_rels_for_variant(variant.pk, len(df_ps))
 
+        df_ps['transit_variant_id'] = variant.pk
         # add the access times to the database
         MatrixPlaceStopRouter.save_df(df_ps,
                                       MatrixPlaceStop,
