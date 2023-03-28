@@ -42,10 +42,11 @@ class Migration(migrations.Migration):
                 ('variant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='datentool_backend.modevariant')),
                 ('cell', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='cell_place', to='datentool_backend.rastercell')),
                 ('place', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='place_cell', to='datentool_backend.place')),
+                ('partition_id', ArrayField(models.IntegerField(), size=2, help_text='Partition key using (variant, place__infrastructure_id)')),
             ],
             partitioning_options={
                 'method': psqlextra.types.PostgresPartitioningMethod['LIST'],
-                'key': ['variant_id'],
+                'key': ['partition_id'],
             },
             bases=(datentool_backend.indicators.models.MatrixMixin, datentool_backend.base.DatentoolModelMixin, psqlextra.models.partitioned.PostgresPartitionedModel),
         ),
@@ -114,10 +115,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='matrixcellplace',
-            constraint=models.UniqueConstraint(fields=('variant', 'access_variant', 'cell', 'place'), name='variant_accessvariant_cell_place_uniq'),
+            constraint=models.UniqueConstraint(fields=('partition_id', 'access_variant', 'cell', 'place'), name='variant_accessvariant_cell_place_uniq'),
         ),
         migrations.AddConstraint(
             model_name='matrixcellplace',
-            constraint=models.UniqueConstraint(condition=models.Q(('access_variant__isnull', True)), fields=('variant', 'cell', 'place'), name='variant_noaccessvariant_cell_place_uniq'),
+            constraint=models.UniqueConstraint(condition=models.Q(('access_variant__isnull', True)), fields=('partition_id', 'cell', 'place'), name='variant_noaccessvariant_cell_place_uniq'),
         ),
     ]

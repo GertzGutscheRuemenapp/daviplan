@@ -37,6 +37,44 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
         except ObjectDoesNotExist:
             return ''
 
+    def save(self, *args, **kwargs):
+        """
+        create table partitions for the Matrices
+        referring to places of this infrastructure
+        """
+
+        super().save(*args, **kwargs)
+
+        from datentool_backend.indicators.models import (ModeVariant,
+                                                         MatrixPlaceStop,
+                                                         MatrixCellPlace)
+        for model in [MatrixCellPlace,
+                      MatrixPlaceStop]:
+            for variant in ModeVariant.objects.all():
+                connection.schema_editor().add_list_partition(
+                    model=model,
+                    name=f"mode_{variant.pk}_infrastructure_{self.pk}",
+                    values=[[variant.pk, self.pk]],
+                )
+
+    def delete(self, *args, **kwargs):
+        """
+        Delete the table partitions referencing this infrastructure
+        before deleting the infrastructure
+        """
+        from datentool_backend.indicators.models import (ModeVariant,
+                                                         MatrixPlaceStop,
+                                                         MatrixCellPlace)
+        for model in [MatrixCellPlace,
+                      MatrixPlaceStop]:
+            for variant in ModeVariant.objects.all():
+                connection.schema_editor().delete_partition(
+                    model=model,
+                    name=f"mode_{variant.pk}_infrastructure_{self.pk}",
+                )
+
+        super().delete(*args, **kwargs)
+
 
 class InfrastructureAccess(models.Model):
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)

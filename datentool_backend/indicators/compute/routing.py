@@ -121,7 +121,15 @@ class TravelTimeRouterMixin:
                     queryset = self.get_filtered_queryset(variant_ids=[variant.pk],
                                                           access_variant_id=av_id,
                                                           places=places)
-                    self.write_results_to_database(logger, queryset, df, drop_constraints)
+                    df, ignore_columns = self.add_partition_key(
+                        df,
+                        variant_id=variant.pk,
+                        places=df.place_id)
+                    self.write_results_to_database(logger,
+                                                   queryset,
+                                                   df,
+                                                   drop_constraints,
+                                                   ignore_columns=ignore_columns)
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'
@@ -613,6 +621,27 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
 
         return query, params
 
+    @staticmethod
+    def add_partition_key(df: pd.DataFrame,
+                          variant_id: int,
+                          places: List[int]) -> Tuple[pd.DataFrame, List[str]]:
+        """add the partition key"""
+        df['variant_id'] = variant_id
+
+        # add infrastructure_id
+        places_infra = pd.DataFrame(Place.objects.filter(id__in=places)
+                                    .values('id', 'infrastructure_id'))\
+            .rename(columns={'id': 'place_id'},)\
+            .set_index('place_id')
+
+        df = df.merge(places_infra, right_index=True, left_on='place_id')
+        partition_keys = df[['variant_id',
+                             'infrastructure_id']].values
+        df['partition_id'] = [f"{{{key[0]},{key[1]}}}" for key in partition_keys]
+
+        ignore_columns = ['infrastructure_id']
+        return df, ignore_columns
+
 
 class AccessTimeRouterMixin(TravelTimeRouterMixin):
 
@@ -694,8 +723,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
         else:
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
 
-    def add_partition_key(self,
-                          df: pd.DataFrame,
+    @staticmethod
+    def add_partition_key(df: pd.DataFrame,
                           transit_variant_id: int,
                           places: List[int]) -> Tuple[pd.DataFrame, List[str]]:
         """add the partition key"""
@@ -783,8 +812,8 @@ class MatrixCellStopRouter(AccessTimeRouterMixin):
         params = (speed, variant, max_distance)
         return query, params
 
-    def add_partition_key(self,
-                          df: pd.DataFrame,
+    @staticmethod
+    def add_partition_key(df: pd.DataFrame,
                           transit_variant_id: int,
                           **kwargs) -> Tuple[pd.DataFrame, List[str]]:
         """add the partition key"""
@@ -876,8 +905,8 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
         params = (speed, variant, p_places, max_distance)
         return query, params
 
-    def add_partition_key(self,
-                          df: pd.DataFrame,
+    @staticmethod
+    def add_partition_key(df: pd.DataFrame,
                           transit_variant_id: int,
                           places: List[int]) -> Tuple[pd.DataFrame, List[str]]:
         """add the partition key"""

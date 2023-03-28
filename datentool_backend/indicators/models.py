@@ -104,20 +104,23 @@ class MatrixCellPlace(MatrixMixin,
                                        null=True,
                                        on_delete=models.SET_NULL,
                                        related_name='mcp_access_variant')
+    partition_id = ArrayField(models.IntegerField(),
+                              size=2,
+                              help_text='Partition key using (variant, place__infrastructure_id)')
 
     class PartitioningMeta:
         method = PostgresPartitioningMethod.LIST
-        key = ["variant_id"]
+        key = ["partition_id"]
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 name='variant_accessvariant_cell_place_uniq',
-                fields=('variant', 'access_variant', 'cell', 'place')
+                fields=('partition_id', 'access_variant', 'cell', 'place')
             ),
             models.UniqueConstraint(
                 name='variant_noaccessvariant_cell_place_uniq',
-                fields=('variant', 'cell', 'place'),
+                fields=('partition_id', 'cell', 'place'),
                 condition=models.Q(access_variant__isnull=True)
             )
         ]
@@ -129,6 +132,11 @@ class MatrixCellPlace(MatrixMixin,
     def _get_n_rels(cls, variant: ModeVariant) -> int:
         qs = cls.objects.filter(variant=variant)
         return qs.count()
+
+    def save(self, **kwargs):
+        self.partition_id = [self.variant_id, self.place.infrastructure_id]
+        return super().save(**kwargs)
+
 
 
 class MatrixCellStop(MatrixMixin,
@@ -208,7 +216,7 @@ class MatrixPlaceStop(MatrixMixin,
         return qs.count()
 
     def save(self, **kwargs):
-        self.partition_id = [self.stop.variant_id, self.access_variant_id, self.place.infrastructure_id]
+        self.partition_id = [self.stop.variant_id, self.place.infrastructure_id]
         return super().save(**kwargs)
 
 

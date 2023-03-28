@@ -143,8 +143,7 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                                                          MatrixCellStop,
                                                          MatrixPlaceStop,
                                                          MatrixStopStop)
-        for model in [MatrixCellPlace,
-                      MatrixCellStop,
+        for model in [MatrixCellStop,
                       MatrixStopStop]:
             connection.schema_editor().add_list_partition(
                 model=model,
@@ -152,11 +151,13 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                 values=[self.pk],
             )
         for infrastructure in Infrastructure.objects.all():
-            connection.schema_editor().add_list_partition(
-                model=MatrixPlaceStop,
-                name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}",
-                values=[[self.pk, infrastructure.pk]],
-            ),
+            for model in [MatrixCellPlace,
+                          MatrixPlaceStop]:
+                connection.schema_editor().add_list_partition(
+                    model=model,
+                    name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}",
+                    values=[[self.pk, infrastructure.pk]],
+                ),
 
 
     def delete(self, **kwargs):
@@ -168,18 +169,20 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                                                          MatrixCellStop,
                                                          MatrixPlaceStop,
                                                          MatrixStopStop)
-        for model in [MatrixCellPlace,
-                      MatrixCellStop,
-                       MatrixStopStop]:
+        for model in [MatrixCellStop,
+                      MatrixStopStop]:
             connection.schema_editor().delete_partition(
                 model=model,
                 name=f"mode_{self.pk}",
             )
+
         for infrastructure in Infrastructure.objects.all():
-            connection.schema_editor().delete_partition(
-                model=MatrixPlaceStop,
-                name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}",
-            )
+            for model in [MatrixCellPlace,
+                          MatrixPlaceStop]:
+                connection.schema_editor().delete_partition(
+                    model=model,
+                    name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}",
+                )
 
         if self.mode == Mode.TRANSIT and self.is_default:
             new_default = ModeVariant.objects.filter(

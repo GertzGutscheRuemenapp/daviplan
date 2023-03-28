@@ -199,6 +199,12 @@ class PlaceSerializer(serializers.ModelSerializer):
         else:
             df = pd.DataFrame(columns=['place_id', 'cell_id', 'minutes',
                                        'access_variant_id', 'variant_id'])
+
+        df, ignore_columns = MatrixCellPlaceRouter.add_partition_key(
+            df,
+            variant_id=variant.pk,
+            places=places.values_list('id'))
+        df.drop(ignore_columns, axis=1, inplace=True)
         return df
 
     def get_transit_df(self,
@@ -236,7 +242,13 @@ class PlaceSerializer(serializers.ModelSerializer):
             inplace=True)
         MatrixPlaceStop.add_n_rels_for_variant(variant.pk, len(df_ps))
 
-        df_ps['transit_variant_id'] = variant.pk
+        df_ps, ignore_columns = MatrixPlaceStopRouter.add_partition_key(
+            df_ps,
+            transit_variant_id=variant.pk,
+            places=places.values_list('id'))
+        df_ps.drop(ignore_columns, axis=1, inplace=True)
+
+        #df_ps['transit_variant_id'] = variant.pk
         # add the access times to the database
         MatrixPlaceStopRouter.save_df(df_ps,
                                       MatrixPlaceStop,
@@ -250,6 +262,14 @@ class PlaceSerializer(serializers.ModelSerializer):
             max_direct_walktime=DEFAULT_MAX_DIRECT_WALKTIME,
             places=places.values_list('id', flat=True),
             id_columns=MatrixCellPlaceRouter.columns)
+
+        df, ignore_columns = MatrixCellPlaceRouter.add_partition_key(
+            df,
+            variant_id=variant.pk,
+            places=places.values_list('id'))
+
+        df.drop(ignore_columns, axis=1, inplace=True)
+
         return df
 
 
