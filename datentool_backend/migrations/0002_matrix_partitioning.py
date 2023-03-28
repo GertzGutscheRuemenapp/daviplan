@@ -6,6 +6,7 @@ import datentool_backend.modes.models
 import datentool_backend.utils.protect_cascade
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.postgres.fields import ArrayField
 import psqlextra.backend.migrations.operations.add_default_partition
 import psqlextra.backend.migrations.operations.create_partitioned_model
 import psqlextra.models.partitioned
@@ -75,11 +76,11 @@ class Migration(migrations.Migration):
                 ('access_variant', models.ForeignKey(default=datentool_backend.modes.models.get_default_access_variant, on_delete=django.db.models.deletion.CASCADE, related_name='mps_access_variant', to='datentool_backend.modevariant')),
                 ('place', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='place_stop', to='datentool_backend.place')),
                 ('stop', models.ForeignKey(on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, related_name='stop_place', to='datentool_backend.stop')),
-                ('transit_variant_id', models.IntegerField()),
+                ('partition_id', ArrayField(models.IntegerField(), size=2, help_text='Partition key using (stop__variant_id, place__infrastructure_id)')),
             ],
             partitioning_options={
                 'method': psqlextra.types.PostgresPartitioningMethod['LIST'],
-                'key': ['transit_variant_id'],
+                'key': ['partition_id'],
             },
             bases=(datentool_backend.indicators.models.MatrixMixin, psqlextra.models.partitioned.PostgresPartitionedModel),
         ),
@@ -105,7 +106,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='matrixplacestop',
-            unique_together={('transit_variant_id', 'access_variant', 'place', 'stop')},
+            unique_together={('partition_id', 'access_variant', 'place', 'stop')},
         ),
         migrations.AlterUniqueTogether(
             name='matrixcellstop',

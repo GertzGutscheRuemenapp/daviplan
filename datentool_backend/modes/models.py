@@ -145,13 +145,19 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                                                          MatrixStopStop)
         for model in [MatrixCellPlace,
                       MatrixCellStop,
-                      MatrixPlaceStop,
                       MatrixStopStop]:
             connection.schema_editor().add_list_partition(
-            model=model,
-            name=f"mode_{self.pk}",
-            values=[self.pk],
+                model=model,
+                name=f"mode_{self.pk}",
+                values=[self.pk],
             )
+        for infrastructure in Infrastructure.objects.all():
+            connection.schema_editor().add_list_partition(
+                model=MatrixPlaceStop,
+                name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}",
+                values=[[self.pk, infrastructure.pk]],
+            ),
+
 
     def delete(self, **kwargs):
         # deleting transit variant marked as default -> mark another one
@@ -164,11 +170,15 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                                                          MatrixStopStop)
         for model in [MatrixCellPlace,
                       MatrixCellStop,
-                      MatrixPlaceStop,
-                      MatrixStopStop]:
+                       MatrixStopStop]:
             connection.schema_editor().delete_partition(
-            model=model,
-            name=f"mode_{self.pk}",
+                model=model,
+                name=f"mode_{self.pk}",
+            )
+        for infrastructure in Infrastructure.objects.all():
+            connection.schema_editor().delete_partition(
+                model=MatrixPlaceStop,
+                name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}",
             )
 
         if self.mode == Mode.TRANSIT and self.is_default:

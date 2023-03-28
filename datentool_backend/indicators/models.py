@@ -5,6 +5,7 @@ import pandas as pd
 from django.db import models
 from django.db.models import Count
 from django.contrib.gis.db import models as gis_models
+from django.contrib.postgres.fields import ArrayField
 
 from psqlextra.types import PostgresPartitioningMethod
 from psqlextra.models import PostgresPartitionedModel
@@ -186,14 +187,17 @@ class MatrixPlaceStop(MatrixMixin,
                                        default=get_default_access_variant,
                                        on_delete=models.CASCADE,
                                        related_name='mps_access_variant')
-    transit_variant_id = models.IntegerField()
+    partition_id = ArrayField(
+        models.IntegerField(),
+        size=3,
+        help_text='Partition key using (stop__variant_id, place__infrastructure_id)')
 
     class PartitioningMeta:
         method = PostgresPartitioningMethod.LIST
-        key = ["transit_variant_id"]
+        key = ["partition_id"]
 
     class Meta:
-        unique_together = ['transit_variant_id', 'access_variant', 'place', 'stop']
+        unique_together = ['partition_id', 'access_variant', 'place', 'stop']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
@@ -204,7 +208,7 @@ class MatrixPlaceStop(MatrixMixin,
         return qs.count()
 
     def save(self, **kwargs):
-        self.transit_variant_id = self.stop.variant_id
+        self.partition_id = [self.stop.variant_id, self.access_variant_id, self.place.infrastructure_id]
         return super().save(**kwargs)
 
 
