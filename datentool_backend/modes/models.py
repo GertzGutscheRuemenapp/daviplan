@@ -157,7 +157,7 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                     model=model,
                     name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}",
                     values=[[self.pk, infrastructure.pk]],
-                ),
+                )
 
 
     def delete(self, **kwargs):

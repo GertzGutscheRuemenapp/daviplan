@@ -197,7 +197,7 @@ class MatrixPlaceStop(MatrixMixin,
                                        related_name='mps_access_variant')
     partition_id = ArrayField(
         models.IntegerField(),
-        size=3,
+        size=2,
         help_text='Partition key using (stop__variant_id, place__infrastructure_id)')
 
     class PartitioningMeta:

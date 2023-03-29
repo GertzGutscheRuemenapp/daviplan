@@ -4,7 +4,7 @@ import datentool_backend.base
 import datentool_backend.indicators.models
 import datentool_backend.modes.models
 import datentool_backend.utils.protect_cascade
-from django.db import migrations, models
+from django.db import migrations, models, connection
 import django.db.models.deletion
 from django.contrib.postgres.fields import ArrayField
 import psqlextra.backend.migrations.operations.add_default_partition
@@ -24,6 +24,34 @@ def reset_matrix_statistics(apps, schema_editor):
         statistic.n_rels_stop_cell = 0
         statistic.n_rels_stop_stop = 0
         statistic.save()
+
+
+def add_matrix_partitions(apps, schema_editor):
+    """Add Matrix Partitions"""
+    ModeVariant = apps.get_model('datentool_backend', 'ModeVariant')
+    Infrastructure = apps.get_model('datentool_backend', 'Infrastructure')
+    MatrixCellPlace = apps.get_model('datentool_backend', 'MatrixCellPlace')
+    MatrixCellStop = apps.get_model('datentool_backend', 'MatrixCellStop')
+    MatrixPlaceStop = apps.get_model('datentool_backend', 'MatrixPlaceStop')
+    MatrixStopStop = apps.get_model('datentool_backend', 'MatrixStopStop')
+
+    for variant in ModeVariant.objects.all():
+        for model in [MatrixCellStop,
+                      MatrixStopStop]:
+            connection.schema_editor().add_list_partition(
+                model=model,
+                name=f"mode_{variant.pk}",
+                values=[variant.pk],
+            )
+
+        for infrastructure in Infrastructure.objects.all():
+            for model in [MatrixCellPlace,
+                          MatrixPlaceStop]:
+                connection.schema_editor().add_list_partition(
+                    model=model,
+                    name=f"mode_{variant.pk}_infrastructure_{infrastructure.pk}",
+                    values=[[variant.pk, infrastructure.pk]],
+                )
 
 class Migration(migrations.Migration):
 
@@ -138,4 +166,7 @@ class Migration(migrations.Migration):
             model_name='matrixcellplace',
             constraint=models.UniqueConstraint(condition=models.Q(('access_variant__isnull', True)), fields=('partition_id', 'cell', 'place'), name='variant_noaccessvariant_cell_place_uniq'),
         ),
+
+        # Add Table Partitions for Matrix Tables
+        migrations.RunPython(add_matrix_partitions),
     ]
