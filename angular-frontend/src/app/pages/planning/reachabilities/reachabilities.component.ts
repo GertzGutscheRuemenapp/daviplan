@@ -266,8 +266,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
       this.mapControl?.removeMarker();
       this.mapControl?.addMarker(cell.geom as Geometry);
-      if (!this.activeScenario) return;
-      this.planningService.getCellReachability(cell.cellcode, this.activeMode!, { scenario: this.activeScenario }).subscribe(placeResults => {
+      if (!this.activeScenario || !this.activeService) return;
+      this.planningService.getCellReachability(this.activeService, cell.cellcode, this.activeMode!, { scenario: this.activeScenario }).subscribe(placeResults => {
         this.reachLayerGroup?.clear();
         const valueBins = modeBins[this.activeMode!];
         let style: ValueStyle = {};
