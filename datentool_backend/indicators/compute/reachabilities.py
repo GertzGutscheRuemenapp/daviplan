@@ -89,9 +89,14 @@ class ReachabilityCell(ModeVariantMixin, ComputeIndicator):
         if not variant:
             return []
 
+        service_id = self.data.get('service')
+        #service = Service.objects.get(id=service_id)
+        #partition_id = [variant.id, service.infrastructure_id]
         cell_code = self.data.get('cell_code')
         places = MatrixCellPlace.objects.filter(variant=variant,
-                                                cell__cellcode=cell_code)
+                                                cell__cellcode=cell_code,
+                                                #partition_id=partition_id,
+                                                )
         places = places.values('place_id', 'minutes')\
             .annotate(id=F('place_id'), value=F('minutes'))
         return places
