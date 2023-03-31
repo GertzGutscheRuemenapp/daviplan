@@ -252,7 +252,7 @@ class TravelTimeRouterMixin:
             df = self.calculate_transit_traveltime(
                 access_variant=access_variant,
                 transit_variant=variant,
-                places=[place],
+                places=[place.id],
                 max_direct_walktime=max_direct_walktime,
                 id_columns=['place_id', 'cell_id'],
             )
@@ -497,20 +497,27 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
             access_variant=access_variant,
             )
         if places:
-            qs = qs.filter(place_id__in=places)
+            infrastructure_ids = Place.objects\
+                .filter(id__in=places)\
+                .order_by('infrastructure_id')\
+                .distinct('infrastructure_id')\
+                .values_list('infrastructure_id', flat=True)
+            partition_ids = [[transit_variant.id, infrastructure_id]
+                             for infrastructure_id in infrastructure_ids]
+            qs = qs.filter(place_id__in=places,
+                           partition_id__in=partition_ids)
 
         q_placestop, p_placestop = qs.query.sql_with_params()
 
 
         # travel time cell to stop
         q_cellstop, p_cellstop = MatrixCellStop.objects.filter(
-            stop__variant=transit_variant,
+            transit_variant_id=transit_variant.id,
             access_variant=access_variant).query.sql_with_params()
 
         # travel time between stops
         q_stopstop, p_stopstop = MatrixStopStop.objects.filter(
-            from_stop__variant=transit_variant,
-            to_stop__variant=transit_variant,
+            variant_id=transit_variant.id,
             ).query.sql_with_params()
 
         # direct traveltime by foot (or other access mode), if it is shorter than max_direct_walktime
