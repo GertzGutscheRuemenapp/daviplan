@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, connection
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.functions import Lower
 

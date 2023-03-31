@@ -212,7 +212,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
     @staticmethod
     def calc(router_class: TravelTimeRouterMixin,
              variant_ids: List[int],
-             places: List[int],
+             place_ids: List[int],
              drop_constraints: bool,
              logger: logging.Logger,
              max_distance: float = None,
@@ -223,7 +223,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
              ):
         router = router_class()
         router.calc(variant_ids,
-                    places,
+                    place_ids,
                     drop_constraints,
                     logger,
                     max_distance,
@@ -296,7 +296,7 @@ class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
                 return Response({'Fehler': error_msg},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        places = request.data.get('places')
+        place_ids = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
         msg_start = 'Routenberechnung gestartet'
@@ -309,7 +309,7 @@ class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
                                       message_sync=msg_end,
                                       router_class=self.router,
                                       variant_ids=variant_ids,
-                                      places=places,
+                                      place_ids=place_ids,
                                       max_distance=max_distance,
                                       max_access_distance=max_access_distance,
                                       access_variant_id=access_variant_id,
@@ -371,7 +371,7 @@ class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
 
         variant_ids = [transit_variant_id]
 
-        places = request.data.get('places')
+        place_ids = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
         msg_start = 'Routenberechnung gestartet'
@@ -384,7 +384,7 @@ class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
                                       router_class=self.router,
                                       variant_ids=variant_ids,
                                       drop_constraints=drop_constraints,
-                                      places=places,
+                                      place_ids=place_ids,
                                       max_distance=max_distance,
                                       max_access_distance=max_access_distance,
                                       access_variant_id=access_variant_id,

@@ -43,7 +43,7 @@ class TravelTimeRouterMixin:
 
     def calc(self,
              variant_ids: List[int],
-             places: List[int],
+             place_ids: List[int],
              drop_constraints: bool,
              logger: logging.Logger,
              max_distance: float=None,
@@ -78,7 +78,7 @@ class TravelTimeRouterMixin:
                     df = self.prepare_and_calc_transit_traveltimes(
                         logger,
                         access_variant,
-                        places,
+                        place_ids,
                         max_access_distance,
                         drop_constraints,
                         variant,
@@ -92,26 +92,27 @@ class TravelTimeRouterMixin:
                         df = self.calculate_airdistance_traveltimes(
                             variant,
                             max_distance=max_distance_mode,
-                            places=places,
+                            place_ids=place_ids,
                             logger=logger,
                         )
                         dataframes.append(df)
                         dataframes_variant.append(df)
                     else:
-                        if not places:
-                            places = Place.objects.values_list('id', flat=True)
+                        if not place_ids:
+                            place_ids = Place.objects.values_list('id', flat=True)
                         chunk_size = 100
-                        for i in range(0, len(places), chunk_size):
-                            place_part = places[i:i+chunk_size]
+                        for i in range(0, len(place_ids), chunk_size):
+                            place_part_ids = place_ids[i:i+chunk_size]
+
                             df = self.calc_routed_traveltimes(
                                 variant,
                                 max_distance=max_distance_mode,
                                 logger=logger,
-                                places=place_part)
+                                place_ids=place_part_ids)
                             dataframes.append(df)
                             dataframes_variant.append(df)
-                            logger.info(f'{min((i+chunk_size), len(places)):n}/'
-                                        f'{len(places):n} Orten berechnet')
+                            logger.info(f'{min((i+chunk_size), len(place_ids)):n}/'
+                                        f'{len(place_ids):n} Orten berechnet')
 
                 if dataframes_variant:
                     df = pd.concat(dataframes_variant)
@@ -120,11 +121,11 @@ class TravelTimeRouterMixin:
                         df = df.astype(dtype={'access_variant_id': 'Int64' ,})
                     queryset = self.get_filtered_queryset(variant_ids=[variant.pk],
                                                           access_variant_id=av_id,
-                                                          places=places)
+                                                          place_ids=place_ids)
                     df, ignore_columns = self.add_partition_key(
                         df,
                         variant_id=variant.pk,
-                        places=df.place_id)
+                        place_ids=df.place_id)
                     self.write_results_to_database(logger,
                                                    queryset,
                                                    df,
@@ -178,7 +179,7 @@ class TravelTimeRouterMixin:
     def prepare_and_calc_transit_traveltimes(self,
                                              logger: logging.Logger,
                                              access_variant: ModeVariant,
-                                             places: List[int],
+                                             place_ids: List[int],
                                              max_distance: float,
                                              drop_constraints: bool,
                                              variant: ModeVariant,
@@ -189,7 +190,7 @@ class TravelTimeRouterMixin:
         df_ps = matrix_place_stop.calc_routed_traveltimes(
             variant=access_variant,
             transit_variant=variant,
-            places=places,
+            place_ids=place_ids,
             max_distance=max_distance,
             logger=logger,
         )
@@ -198,11 +199,11 @@ class TravelTimeRouterMixin:
         df_ps, ignore_columns = matrix_place_stop.add_partition_key(
             df_ps,
             transit_variant_id=variant.pk,
-            places=df_ps.place_id)
+            place_ids=df_ps.place_id)
         qs = matrix_place_stop.get_filtered_queryset(
             variant_ids=[variant.pk],
             access_variant_id=access_variant.pk,
-            places=places)
+            place_ids=place_ids)
         self.write_results_to_database(logger, qs, df_ps, drop_constraints,
                                        ignore_columns=ignore_columns,
                                        )
@@ -245,22 +246,22 @@ class TravelTimeRouterMixin:
 
         logger.info('Berechne Gesamtreisezeiten...')
 
-        if not places:
-            places = Place.objects.all()
+        if not place_ids:
+            place_ids = Place.objects.values_list('id', flat=True)
         dataframes = []
-        for i, place in enumerate(places):
+        for i, place_id in enumerate(place_ids):
             df = self.calculate_transit_traveltime(
                 access_variant=access_variant,
                 transit_variant=variant,
-                places=[place.id],
+                place_ids=[place_id],
                 max_direct_walktime=max_direct_walktime,
                 id_columns=['place_id', 'cell_id'],
             )
             dataframes.append(df)
             c = i + 1
-            if not c % 100 or c == len(places):
+            if not c % 100 or c == len(place_ids):
                 logger.info(f'Gesamtreisezeiten zu {c:n}/'
-                            f'{len(places):n} Orten berechnet')
+                            f'{len(place_ids):n} Orten berechnet')
         df_res = pd.concat(dataframes)
         return df_res
 
@@ -432,7 +433,7 @@ class TravelTimeRouterMixin:
     def calculate_transit_traveltime(transit_variant: ModeVariant,
                                      access_variant: ModeVariant,
                                      max_direct_walktime: float,
-                                     places: List[int],
+                                     place_ids: List[int],
                                      id_columns: List[str],
                                      **kwargs) -> pd.DataFrame:
         raise NotImplementedError()
@@ -451,7 +452,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
     def get_filtered_queryset(self,
                               variant_ids: List[int],
                               access_variant_id: int=None,
-                              places: List[int] = None,
+                              place_ids: List[int] = None,
                               **kwargs) -> QuerySet:
         mode_variants = ModeVariant.objects.filter(id__in=variant_ids)
         private_transport_variants = [variant.pk
@@ -461,14 +462,14 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
         qs = MatrixCellPlace.objects.filter(Q(variant__in=private_transport_variants) |
                                             Q(variant__in=transit_variants,
                                               access_variant_id=access_variant_id))
-        if places:
-            qs = qs.filter(place_id__in=places)
+        if place_ids:
+            qs = qs.filter(place_id__in=place_ids)
         return qs
 
-    def get_sources(self, places, **kwargs):
+    def get_sources(self, place_ids, **kwargs):
         sources = Place.objects.all()
-        if places:
-            sources = sources.filter(id__in=places)
+        if place_ids:
+            sources = sources.filter(id__in=place_ids)
         sources = sources\
             .annotate(wgs=Transform('geom', 4326))\
             .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
@@ -488,7 +489,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
     def calculate_transit_traveltime(transit_variant: ModeVariant,
                                      access_variant: ModeVariant,
                                      max_direct_walktime: float,
-                                     places: List[int],
+                                     place_ids: List[int],
                                      id_columns=['place_id', 'cell_id'],
                                      **kwargs) -> pd.DataFrame:
         # travel time place to stop
@@ -496,15 +497,15 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
             stop__variant=transit_variant,
             access_variant=access_variant,
             )
-        if places:
+        if place_ids:
             infrastructure_ids = Place.objects\
-                .filter(id__in=places)\
+                .filter(id__in=place_ids)\
                 .order_by('infrastructure_id')\
                 .distinct('infrastructure_id')\
                 .values_list('infrastructure_id', flat=True)
             partition_ids = [[transit_variant.id, infrastructure_id]
                              for infrastructure_id in infrastructure_ids]
-            qs = qs.filter(place_id__in=places,
+            qs = qs.filter(place_id__in=place_ids,
                            partition_id__in=partition_ids)
 
         q_placestop, p_placestop = qs.query.sql_with_params()
@@ -525,8 +526,8 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
             variant=access_variant,
             minutes__lt=max_direct_walktime,
         )
-        if places:
-            qs = qs.filter(place_id__in=places)
+        if place_ids:
+            qs = qs.filter(place_id__in=place_ids)
 
         q_cellplace, p_cellplace = qs.query.sql_with_params()
 
@@ -579,7 +580,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
     def get_airdistance_query(self,
                               speed: float,
                               max_distance: float,
-                              places: List[int] = [],
+                              place_ids: List[int] = [],
                               **kwargs) -> str:
         """
         returns a query and its parameters to calculate the air distance
@@ -587,7 +588,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
         ----------
         speed: float
         max_distance: float
-        places: List[int], optional
+        place_ids: List[int], optional
 
         Returns
         -------
@@ -599,8 +600,8 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
         rcp_tbl = RasterCellPopulation._meta.db_table
         place_tbl = Place._meta.db_table
 
-        places = self.get_sources(places=places)
-        p_places = list(places.values_list('id', flat=True))
+        place_ids = self.get_sources(place_ids=place_ids)
+        p_places = list(place_ids.values_list('id', flat=True))
 
         query = f'''SELECT
         p.id AS place_id,
@@ -631,12 +632,12 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
     @staticmethod
     def add_partition_key(df: pd.DataFrame,
                           variant_id: int,
-                          places: List[int]) -> Tuple[pd.DataFrame, List[str]]:
+                          place_ids: List[int]) -> Tuple[pd.DataFrame, List[str]]:
         """add the partition key"""
         df['variant_id'] = variant_id
 
         # add infrastructure_id
-        places_infra = pd.DataFrame(Place.objects.filter(id__in=places)
+        places_infra = pd.DataFrame(Place.objects.filter(id__in=place_ids)
                                     .values('id', 'infrastructure_id'))\
             .rename(columns={'id': 'place_id'},)\
             .set_index('place_id')
@@ -654,7 +655,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
 
     def calc(self,
              variant_ids: List[int],
-             places: List[int],
+             place_ids: List[int],
              drop_constraints: bool,
              logger: logging.Logger,
              max_distance: float=None,
@@ -671,41 +672,41 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
         try:
             queryset = self.get_filtered_queryset(variant_ids=variant_ids,
                                                   access_variant_id=access_variant_id,
-                                                  places=places)
+                                                  place_ids=place_ids)
             logger.info('Berechne Zugangszeiten zu Haltestellen von '
                         f'{Mode(transit_variant.mode).name} mit '
                         f'{Mode(access_variant.mode).name}')
             max_distance_mode = float(max_access_distance or
                                       MODE_MAX_DISTANCE[access_variant.mode])
 
-            if not places:
-                places = Place.objects.values_list('id', flat=True)
+            if not place_ids:
+                place_ids = Place.objects.values_list('id', flat=True)
 
             if air_distance_routing:
                 df = self.calculate_airdistance_traveltimes(
                     access_variant,
                     transit_variant=transit_variant,
                     max_distance=max_distance_mode,
-                    places=places,
+                    place_ids=place_ids,
                     logger=logger,
                 )
                 df.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
                 dataframes.append(df)
             else:
                 chunk_size = 100
-                for i in range(0, len(places), chunk_size):
-                    place_part = places[i:i + chunk_size]
+                for i in range(0, len(place_ids), chunk_size):
+                    place_part = place_ids[i:i + chunk_size]
                     df = self.calc_routed_traveltimes(
                         access_variant,
                         transit_variant=transit_variant,
                         max_distance=max_distance_mode,
                         logger=logger,
-                        places=place_part)
+                        place_ids=place_part)
                     df.rename(columns={'variant_id': 'access_variant_id',}, inplace=True)
 
                     dataframes.append(df)
-                    logger.info(f'{min((i+chunk_size), len(places)):n}/'
-                                f'{len(places):n} Orten berechnet')
+                    logger.info(f'{min((i+chunk_size), len(place_ids)):n}/'
+                                f'{len(place_ids):n} Orten berechnet')
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'
@@ -715,7 +716,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                 df, ignore_columns = self.add_partition_key(
                     df,
                     transit_variant_id=transit_variant.pk,
-                    places=places)
+                    place_ids=place_ids)
                 self.write_results_to_database(logger,
                                                queryset,
                                                df,
@@ -733,7 +734,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
     @staticmethod
     def add_partition_key(df: pd.DataFrame,
                           transit_variant_id: int,
-                          places: List[int]) -> Tuple[pd.DataFrame, List[str]]:
+                          place_ids: List[int]) -> Tuple[pd.DataFrame, List[str]]:
         """add the partition key"""
         raise NotImplemented('To be defined in the subclass')
 
@@ -745,7 +746,7 @@ class MatrixCellStopRouter(AccessTimeRouterMixin):
                               variant_ids: List[int],
                               access_variant_id: int,
                               **kwargs) -> QuerySet:
-        return MatrixCellStop.objects.filter(stop__variant_id__in=variant_ids,
+        return MatrixCellStop.objects.filter(transit_variant_id__in=variant_ids,
                                              access_variant_id=access_variant_id)
 
     def get_sources(self,
@@ -835,18 +836,18 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
     def get_filtered_queryset(self,
                               variant_ids: List[int],
                               access_variant_id: int,
-                              places: List[int] = None,
+                              place_ids: List[int] = None,
                               **kwargs) -> QuerySet:
         qs = MatrixPlaceStop.objects.filter(stop__variant_id__in=variant_ids,
                                             access_variant_id=access_variant_id)
-        if places:
-            qs = qs.filter(place_id__in=places)
+        if place_ids:
+            qs = qs.filter(place_id__in=place_ids)
         return qs
 
-    def get_sources(self, places, **kwargs) -> Place:
+    def get_sources(self, place_ids, **kwargs) -> Place:
         sources = Place.objects.all()
-        if places:
-            sources = sources.filter(id__in=places)
+        if place_ids:
+            sources = sources.filter(id__in=place_ids)
         sources = sources\
             .annotate(wgs=Transform('geom', 4326))\
             .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
@@ -866,7 +867,7 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
                               speed: float,
                               max_distance: float,
                               variant:int,
-                              places: List[int] = [],
+                              place_ids: List[int] = [],
                               **kwargs,
                               ) -> Tuple[str, tuple]:
         """
@@ -876,7 +877,7 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
         speed: float
         max_distance: float
         variant: int: the transit-variant of the stops
-        places: List[int], optional
+        place_ids: List[int], optional
 
         Returns
         -------
@@ -887,8 +888,8 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
         place_tbl = Place._meta.db_table
         stop_tbl = Stop._meta.db_table
 
-        places = self.get_sources(places=places)
-        p_places = list(places.values_list('id', flat=True))
+        place_ids = self.get_sources(place_ids=place_ids)
+        p_places = list(place_ids.values_list('id', flat=True))
 
         query = f'''SELECT
         p.id AS place_id,
@@ -915,12 +916,12 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
     @staticmethod
     def add_partition_key(df: pd.DataFrame,
                           transit_variant_id: int,
-                          places: List[int]) -> Tuple[pd.DataFrame, List[str]]:
+                          place_ids: List[int]) -> Tuple[pd.DataFrame, List[str]]:
         """add the partition key"""
         df['transit_variant_id'] = transit_variant_id
 
         # add infrastructure_id
-        places_infra = pd.DataFrame(Place.objects.filter(id__in=places)
+        places_infra = pd.DataFrame(Place.objects.filter(id__in=place_ids)
                                     .values('id', 'infrastructure_id'))\
             .rename(columns={'id': 'place_id'},)\
             .set_index('place_id')

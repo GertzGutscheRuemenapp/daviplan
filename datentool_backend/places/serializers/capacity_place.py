@@ -203,7 +203,7 @@ class PlaceSerializer(serializers.ModelSerializer):
         df, ignore_columns = MatrixCellPlaceRouter.add_partition_key(
             df,
             variant_id=variant.pk,
-            places=places.values_list('id'))
+            place_ids=places.values_list('id'))
         df.drop(ignore_columns, axis=1, inplace=True)
         return df
 
@@ -245,7 +245,7 @@ class PlaceSerializer(serializers.ModelSerializer):
         df_ps, ignore_columns = MatrixPlaceStopRouter.add_partition_key(
             df_ps,
             transit_variant_id=variant.pk,
-            places=places.values_list('id'))
+            place_ids=places.values_list('id'))
         df_ps.drop(ignore_columns, axis=1, inplace=True)
 
         #df_ps['transit_variant_id'] = variant.pk
@@ -260,13 +260,13 @@ class PlaceSerializer(serializers.ModelSerializer):
             transit_variant=variant,
             access_variant=access_variant,
             max_direct_walktime=DEFAULT_MAX_DIRECT_WALKTIME,
-            places=places.values_list('id', flat=True),
+            place_ids=places.values_list('id', flat=True),
             id_columns=MatrixCellPlaceRouter.columns)
 
         df, ignore_columns = MatrixCellPlaceRouter.add_partition_key(
             df,
             variant_id=variant.pk,
-            places=places.values_list('id'))
+            place_ids=places.values_list('id'))
 
         df.drop(ignore_columns, axis=1, inplace=True)
 

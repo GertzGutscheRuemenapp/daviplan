@@ -169,8 +169,9 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                                                          MatrixCellStop,
                                                          MatrixPlaceStop,
                                                          MatrixStopStop)
-        for model in [MatrixCellStop,
-                      MatrixStopStop]:
+        for model in [MatrixStopStop,
+                      MatrixCellStop,
+                      ]:
             connection.schema_editor().delete_partition(
                 model=model,
                 name=f"mode_{self.pk}",
