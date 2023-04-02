@@ -38,6 +38,7 @@ from datentool_backend.utils.permissions import (
 from datentool_backend.utils.routers import (OSRMRouter,
                                              assert_routers_are_running)
 from datentool_backend.utils.raw_delete import delete_chunks
+from datentool_backend.utils.partitions import truncate_partition_table
 
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
@@ -129,12 +130,8 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         df = read_traveltime_matrix(excel_or_visum_filepath, variant_id)
 
         # delete existing matrix entries if exist
-        qs = MatrixStopStop.objects\
-            .select_related('from_stop')\
-            .select_related('to_stop')\
-            .filter(Q(from_stop__variant=variant_id) |
-                    Q(to_stop__variant=variant_id))
-        delete_chunks(qs, logger)
+        name = f"mode_{variant_id}"
+        truncate_partition_table(MatrixStopStop, name)
 
         model = MatrixStopStop
         model_name = model._meta.object_name

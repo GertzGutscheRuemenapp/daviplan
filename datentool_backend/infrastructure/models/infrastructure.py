@@ -6,6 +6,7 @@ from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
+from datentool_backend.utils.partitions import add_partition, truncate_partition_table
 
 from datentool_backend.area.models import (FieldType, MapSymbol)
 from datentool_backend.user.models import Profile
@@ -51,11 +52,9 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
         for model in [MatrixCellPlace,
                       MatrixPlaceStop]:
             for variant in ModeVariant.objects.all():
-                connection.schema_editor().add_list_partition(
-                    model=model,
-                    name=f"mode_{variant.pk}_infrastructure_{self.pk}",
-                    values=[[variant.pk, self.pk]],
-                )
+                name = f"mode_{variant.pk}_infrastructure_{self.pk}"
+                values = [variant.pk, self.pk]
+                add_partition(model, name, values)
 
     def delete(self, *args, **kwargs):
         """
@@ -68,10 +67,8 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
         for model in [MatrixCellPlace,
                       MatrixPlaceStop]:
             for variant in ModeVariant.objects.all():
-                connection.schema_editor().delete_partition(
-                    model=model,
-                    name=f"mode_{variant.pk}_infrastructure_{self.pk}",
-                )
+                name = f"mode_{variant.pk}_infrastructure_{self.pk}"
+                truncate_partition_table(model, name)
 
         super().delete(*args, **kwargs)
 

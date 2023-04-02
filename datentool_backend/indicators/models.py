@@ -138,10 +138,13 @@ class MatrixCellPlace(MatrixMixin,
         return super().save(**kwargs)
 
 
+class MatrixStopStopCopyManager(DirectCopyManager):
+    """"""
+
 
 class MatrixCellStop(MatrixMixin,
-                      PostgresPartitionedModel,
-                      DatentoolModelMixin):
+                     PostgresPartitionedModel,
+                     DatentoolModelMixin):
     """Reachabliliy Matrix between raster cell and stop with a mode variante"""
     _statistic: str = 'n_rels_stop_cell'
     _variant_col = 'transit_variant_id'
@@ -167,7 +170,7 @@ class MatrixCellStop(MatrixMixin,
         unique_together = ['transit_variant_id', 'access_variant', 'cell', 'stop']
 
     objects = models.Manager()
-    copymanager = DirectCopyManager()
+    copymanager = MatrixStopStopCopyManager()
 
     @classmethod
     def _get_n_rels(cls, variant: ModeVariant) -> int:
