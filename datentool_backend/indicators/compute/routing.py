@@ -40,6 +40,7 @@ class RoutingError(Exception):
 
 class TravelTimeRouterMixin:
     columns: List[str] = []
+    partition_columns: List[str] = []
 
     def calc(self,
              variant_ids: List[int],
@@ -90,7 +91,7 @@ class TravelTimeRouterMixin:
                     av_id = None
                     if air_distance_routing:
                         df = self.calculate_airdistance_traveltimes(
-                            variant,
+                            access_variant=variant,
                             max_distance=max_distance_mode,
                             place_ids=place_ids,
                             logger=logger,
@@ -391,10 +392,10 @@ class TravelTimeRouterMixin:
         chunk_size = 20000
         dataframes = []
         for i in range(0, len(destinations), chunk_size):
-            # don't know a better way to keep querysets instead of lists when
-            # splitting a queryset but by filtering by ids, might be inefficient
+            # splitting a queryset by filtering by ids
             dest_part = destinations.filter(
                 id__in=destinations.values_list('id')[i:i+chunk_size])
+            # key-columns except the last column (partition_id)
             df = self.route(variant,
                             sources,
                             dest_part,
@@ -405,27 +406,28 @@ class TravelTimeRouterMixin:
         return pd.concat(dataframes)
 
     def calculate_airdistance_traveltimes(self,
-                                          variant: ModeVariant,
+                                          access_variant: ModeVariant,
                                           max_distance: float,
                                           logger: logging.Logger,
+                                          transit_variant_id: int = None,
                                           **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
         logger.info('start calculation of air-distance matrix')
-        speed = MODE_SPEED[variant.mode]
+        speed = MODE_SPEED[access_variant.mode]
 
-        query, params = self.get_airdistance_query(speed=speed,
+        query, params = self.get_airdistance_query(access_variant_id=access_variant.id,
+                                                   speed=speed,
                                                    max_distance=max_distance,
+                                                   transit_variant_id=transit_variant_id,
                                                    **kwargs)
 
         with connection.cursor() as cursor:
             cursor.execute(query, params)
-            columns = self.columns + ['minutes']
+            columns = self.columns + self.partition_columns + ['minutes']
             df = pd.DataFrame(cursor.fetchall(),
                               columns=columns)
 
         logger.info('calculation of air-distance matrix finished')
-
-        df['variant_id'] = variant.id
 
         return df
 
@@ -439,15 +441,29 @@ class TravelTimeRouterMixin:
         raise NotImplementedError()
 
     def get_airdistance_query(self,
-                              variant: ModeVariant,
+                              access_variant: int,
                               speed: float,
                               max_distance: float,
+                              transit_variant: int = None,
                               **kwargs) -> str:
         raise NotImplementedError()
+
+    @staticmethod
+    def add_partition_key(df: pd.DataFrame, **args) -> Tuple[pd.DataFrame, List[str]]:
+        """
+        add the partition id to the Dataframe
+
+        Returns
+        -------
+        the dataframe including the partition_id and a list of column names
+        to ignore when uploading the Dataframe to the database
+        """
+        raise NotImplementedError('To be defined in the subclass')
 
 
 class MatrixCellPlaceRouter(TravelTimeRouterMixin):
     columns = ['place_id', 'cell_id']
+    partition_columns = ['variant_id', 'partition_id']
 
     def get_filtered_queryset(self,
                               variant_ids: List[int],
@@ -578,6 +594,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
         return df
 
     def get_airdistance_query(self,
+                              access_variant_id: int,
                               speed: float,
                               max_distance: float,
                               place_ids: List[int] = [],
@@ -606,6 +623,8 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
         query = f'''SELECT
         p.id AS place_id,
         c.id AS cell_id,
+        %s AS variant_id,
+        ARRAY[%s, p.infrastructure_id] AS partition_id,
         st_distance(c."pnt_25832", p."pnt_25832") / %s * (60.0/1000) AS minutes
         FROM
         (SELECT
@@ -618,14 +637,15 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
         (SELECT p.id,
         p.geom,
         st_transform(p.geom, 25832) AS pnt_25832,
-        cosd(st_y(st_transform(p.geom, 4326))) AS kf
+        cosd(st_y(st_transform(p.geom, 4326))) AS kf,
+        p.infrastructure_id
         FROM "{place_tbl}" AS p
         WHERE p.id = ANY(%s)) AS p
         WHERE c.id = r.cell_id
         AND st_dwithin(c."pnt", p."geom", %s / p.kf)
         '''
 
-        params = (speed, p_places, max_distance)
+        params = (access_variant_id, access_variant_id, speed, p_places, max_distance)
 
         return query, params
 
@@ -684,8 +704,8 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
 
             if air_distance_routing:
                 df = self.calculate_airdistance_traveltimes(
-                    access_variant,
-                    transit_variant=transit_variant,
+                    access_variant=access_variant,
+                    transit_variant_id=transit_variant.id,
                     max_distance=max_distance_mode,
                     place_ids=place_ids,
                     logger=logger,
@@ -741,6 +761,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
 
 class MatrixCellStopRouter(AccessTimeRouterMixin):
     columns = ['stop_id', 'cell_id']
+    partition_columns = ['transit_variant_id', 'access_variant_id']
 
     def get_filtered_queryset(self,
                               variant_ids: List[int],
@@ -776,7 +797,8 @@ class MatrixCellStopRouter(AccessTimeRouterMixin):
     def get_airdistance_query(self,
                               speed: float,
                               max_distance: float,
-                              variant: int,
+                              access_variant_id: int,
+                              transit_variant_id: int,
                               **kwargs) -> str:
         """
         returns a query and its parameters to calculate the air distance
@@ -799,6 +821,8 @@ class MatrixCellStopRouter(AccessTimeRouterMixin):
         query = f'''SELECT
         c.id AS cell_id,
         s.id AS stop_id,
+        %s AS variant_id,
+        %s AS transit_variant_id,
         st_distance(c."pnt_25832", s."pnt_25832") / %s * (6.0/1000) AS minutes
         FROM
         (SELECT
@@ -817,7 +841,11 @@ class MatrixCellStopRouter(AccessTimeRouterMixin):
         WHERE c.id = r.cell_id
         AND st_dwithin(c."pnt", s."geom", %s * s.kf)
         '''
-        params = (speed, variant, max_distance)
+        params = (access_variant_id,
+                  transit_variant_id,
+                  speed,
+                  transit_variant_id,
+                  max_distance)
         return query, params
 
     @staticmethod
@@ -832,6 +860,7 @@ class MatrixCellStopRouter(AccessTimeRouterMixin):
 
 class MatrixPlaceStopRouter(AccessTimeRouterMixin):
     columns = ['place_id', 'stop_id']
+    partition_columns = ['partition_id']
 
     def get_filtered_queryset(self,
                               variant_ids: List[int],
@@ -866,7 +895,8 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
     def get_airdistance_query(self,
                               speed: float,
                               max_distance: float,
-                              variant:int,
+                              access_variant_id:int,
+                              transit_variant_id:int,
                               place_ids: List[int] = [],
                               **kwargs,
                               ) -> Tuple[str, tuple]:
@@ -876,7 +906,7 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
         ----------
         speed: float
         max_distance: float
-        variant: int: the transit-variant of the stops
+        transit_variant_id: int: the transit-variant of the stops
         place_ids: List[int], optional
 
         Returns
@@ -894,6 +924,8 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
         query = f'''SELECT
         p.id AS place_id,
         s.id AS stop_id,
+        %s AS variant_id,
+        ARRAY[%s, p.infrastructure_id] AS partition_id,
         st_distance(p."pnt_25832", p."pnt_25832") / %s * (6.0/1000) AS minutes
         FROM
         (SELECT
@@ -905,12 +937,18 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
         (SELECT p.id,
         p.geom,
         st_transform(p.geom, 25832) AS pnt_25832,
-        cosd(st_y(st_transform(p.geom, 4326))) AS kf
+        cosd(st_y(st_transform(p.geom, 4326))) AS kf,
+        p.infrastructure_id
         FROM "{place_tbl}" AS p
         WHERE p.id = ANY(%s)) AS p
         WHERE st_dwithin(s."geom", p."geom", %s * p.kf)
         '''
-        params = (speed, variant, p_places, max_distance)
+        params = (access_variant_id,
+                  transit_variant_id,
+                  speed,
+                  transit_variant_id,
+                  p_places,
+                  max_distance)
         return query, params
 
     @staticmethod
