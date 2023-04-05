@@ -51,8 +51,13 @@ class MaxPlaceReachability(ModeVariantMixin, ServiceIndicator):
         if not variant:
             return []
 
+        service = Service.objects.get(id=service_id)
+        partition_id = [variant.id, service.infrastructure_id]
+
         places = self.get_places_with_capacities(service_id, year, scenario_id)
-        cells_places = MatrixCellPlace.objects.filter(variant=variant, place__in=places)
+        cells_places = MatrixCellPlace.objects.filter(variant=variant,
+                                                      place__in=places,
+                                                      partition_id=partition_id)
 
         q_cp, p_cp = cells_places.query.sql_with_params()
 

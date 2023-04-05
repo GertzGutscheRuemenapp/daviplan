@@ -5,7 +5,7 @@ from datentool_backend.indicators.compute.base import (ComputeIndicator,
 from datentool_backend.modes.models import Mode, ModeVariant
 from datentool_backend.places.models import ScenarioMode
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.places.models import Place, Capacity
+from datentool_backend.places.models import Place, Capacity, Service
 
 
 class ModeVariantMixin:
@@ -63,7 +63,9 @@ class ReachabilityPlace(ModeVariantMixin, ComputeIndicator):
             return []
 
         place = Place.objects.get(id=self.data.get('place'))
-        cells = MatrixCellPlace.objects.filter(variant=variant.id, place=place)
+        cells = MatrixCellPlace.objects.filter(
+            variant=variant.id, place=place,
+            partition_id=[variant.id, place.infrastructure_id])
         cells = cells.annotate(cell_code=F('cell__cellcode'), value=F('minutes'))
         return cells
 
@@ -87,9 +89,14 @@ class ReachabilityCell(ModeVariantMixin, ComputeIndicator):
         if not variant:
             return []
 
+        service_id = self.data.get('service')
+        service = Service.objects.get(id=service_id)
+        partition_id = [variant.id, service.infrastructure_id]
         cell_code = self.data.get('cell_code')
         places = MatrixCellPlace.objects.filter(variant=variant,
-                                                cell__cellcode=cell_code)
+                                                cell__cellcode=cell_code,
+                                                partition_id=partition_id,
+                                                )
         places = places.values('place_id', 'minutes')\
             .annotate(id=F('place_id'), value=F('minutes'))
         return places
@@ -111,10 +118,13 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
     def compute(self):
         mode = self.data.get('mode', Mode.WALK)
         service_ids = self.data.get('services')
+        services = Service.objects.filter(id__in=service_ids)
         year = self.data.get('year')
         scenario_id = self.data.get('scenario')
         variant = self.get_mode_variant(mode, scenario_id)
         place_id = self.data.get('places')
+        partition_ids = [[variant.id, service.infrastructure_id] for service in services]
+
         if not variant:
             return []
 
@@ -132,7 +142,8 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
 
         place_ids = capacities.distinct('place_id').values_list('place_id', flat=True)
         mcp = MatrixCellPlace.objects.filter(variant=variant,
-                                             place__in=place_ids)
+                                             place__in=place_ids,
+                                             partition_id__in=partition_ids)
         cells = mcp.values('cell_id')\
             .annotate(value=Min('minutes'))\
             .annotate(cell_code=F('cell__cellcode'))

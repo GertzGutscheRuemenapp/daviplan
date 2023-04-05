@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, connection
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.functions import Lower
 
@@ -6,6 +6,7 @@ from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
+from datentool_backend.utils.partitions import add_partition, truncate_partition_table
 
 from datentool_backend.area.models import (FieldType, MapSymbol)
 from datentool_backend.user.models import Profile
@@ -36,6 +37,40 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
             return self.placefield_set.get(is_label=True).name
         except ObjectDoesNotExist:
             return ''
+
+    def save(self, *args, **kwargs):
+        """
+        create table partitions for the Matrices
+        referring to places of this infrastructure
+        """
+
+        super().save(*args, **kwargs)
+
+        from datentool_backend.indicators.models import (ModeVariant,
+                                                         MatrixPlaceStop,
+                                                         MatrixCellPlace)
+        for model in [MatrixCellPlace,
+                      MatrixPlaceStop]:
+            for variant in ModeVariant.objects.all():
+                name = f"mode_{variant.pk}_infrastructure_{self.pk}"
+                values = [variant.pk, self.pk]
+                add_partition(model, name, values)
+
+    def delete(self, *args, **kwargs):
+        """
+        Delete the table partitions referencing this infrastructure
+        before deleting the infrastructure
+        """
+        from datentool_backend.indicators.models import (ModeVariant,
+                                                         MatrixPlaceStop,
+                                                         MatrixCellPlace)
+        for model in [MatrixCellPlace,
+                      MatrixPlaceStop]:
+            for variant in ModeVariant.objects.all():
+                name = f"mode_{variant.pk}_infrastructure_{self.pk}"
+                truncate_partition_table(model, name)
+
+        super().delete(*args, **kwargs)
 
 
 class InfrastructureAccess(models.Model):

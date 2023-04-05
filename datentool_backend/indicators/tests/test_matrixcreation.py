@@ -7,6 +7,7 @@ logger = logging.getLogger(name='test')
 
 import pandas as pd
 from test_plus import APITestCase
+
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.gis.geos import Point

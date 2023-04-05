@@ -18,6 +18,7 @@ from datentool_backend.indicators.compute.reachabilities import (
     reachability_bins_by_mode,
     reachability_colors,
 )
+from datentool_backend.utils.partitions import add_partition
 
 
 class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
@@ -73,9 +74,12 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def create_traveltime_matrix(cls):
         """create traveltime matrix between all cells and places"""
         variant = ModeVariantFactory(mode=Mode.WALK, is_default=True)
+        infrastructure_id = cls.service1.infrastructure.pk
+        name = f"mode_{variant.pk}_infrastructure_{infrastructure_id}"
+        add_partition(MatrixCellPlace, name, [variant.pk, infrastructure_id])
         mcs = MatrixCellPlaceRouter()
         logger = logging.getLogger('routing')
-        df = mcs.calculate_airdistance_traveltimes(variant=variant,
+        df = mcs.calculate_airdistance_traveltimes(access_variant=variant,
                                                    max_distance=5000,
                                                    logger=logger)
         cellplaces = [MatrixCellPlace(**row.to_dict()) for i, row in df.iterrows()]
@@ -339,6 +343,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             query_params = {
                 'cell_code': rastercell.cellcode,
                 'mode': variant.mode,
+                'service': self.service1.pk,
             }
             url = reverse(url_key)
             response = self.post(url, data=query_params, extra={'format': 'json'})

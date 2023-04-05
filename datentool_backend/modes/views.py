@@ -21,6 +21,7 @@ from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata)
 from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 from datentool_backend.utils.raw_delete import delete_chunks
+from datentool_backend.utils.partitions import truncate_partition_table
 
 from datentool_backend.site.models import ProjectSetting
 from datentool_backend.indicators.models import (MatrixCellStop,
@@ -29,6 +30,8 @@ from datentool_backend.indicators.models import (MatrixCellStop,
                                                  MatrixCellPlace,
                                                  Stop,
                                                  )
+from datentool_backend.infrastructure.models import Infrastructure
+
 
 from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
@@ -53,46 +56,36 @@ class ModeVariantViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelVie
                                           message_async=msg_start,
                                           message_sync=msg_end,
                                           ret_status=status.HTTP_204_NO_CONTENT,
-                                          variant=instance)
+                                          variant_id=instance.pk)
         instance.delete()
         return response
 
 
-def delete_depending_matrices(variant: ModeVariant,
+def delete_depending_matrices(variant_id: int,
                               logger: logging.Logger,
                               only_with_stops: bool = False):
     """
     Delete the depending objects in the matrices
     in the database first to improve performance
     """
+    name = f"mode_{variant_id}"
+    for model in [MatrixCellStop,
+                  MatrixStopStop]:
+        truncate_partition_table(model, name)
 
-    qs = MatrixCellStop.objects\
-        .select_related('stop')\
-        .filter(stop__variant=variant)
-    delete_chunks(qs, logger)
-
-    qs = MatrixPlaceStop.objects\
-        .select_related('stop')\
-        .filter(Q(stop__variant=variant)
-                | Q(access_variant=variant))
-    delete_chunks(qs, logger)
+    for infrastructure in Infrastructure.objects.all():
+        name = f"mode_{variant_id}_infrastructure_{infrastructure.pk}"
+        for model in [MatrixCellPlace,
+                      MatrixPlaceStop]:
+            truncate_partition_table(model, name)
 
     if not only_with_stops:
         qs = MatrixCellPlace.objects\
-            .filter(Q(variant=variant)
-                    | Q(access_variant=variant))
+            .filter(access_variant=variant_id)
         delete_chunks(qs, logger)
 
-    qs = MatrixStopStop.objects\
-        .select_related('from_stop')\
-        .select_related('to_stop')\
-        .filter(Q(from_stop__variant=variant) |
-                Q(to_stop__variant=variant))
-    delete_chunks(qs, logger)
-
-    qs = Stop.objects\
-        .filter(variant=variant)
-    delete_chunks(qs, logger)
+    res = Stop.objects.filter(variant=variant_id).delete()
+    logger.info(f'{res[0]} stops deleted')
 
 _l_i = 0
 

@@ -461,8 +461,8 @@ export class RestCacheService {
     return this.getCachedData<{ values: CellResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityPlace, { params: params, method: 'POST', reset: options?.reset, key: options?.scenario?.id?.toString() });
   }
 
-  getCellReachability(cellCode: string, mode: TransportMode, options?: { scenario?: Scenario, reset?: boolean }): Observable<{ values: PlaceResult[], legend: IndicatorLegendClass[] }>{
-    let params: any = { mode: mode, cell_code: cellCode };
+  getCellReachability(service: Service, cellCode: string, mode: TransportMode, options?: { scenario?: Scenario, reset?: boolean }): Observable<{ values: PlaceResult[], legend: IndicatorLegendClass[] }>{
+    let params: any = { mode: mode, cell_code: cellCode, service: service.id };
     if (options?.scenario && !options.scenario.isBase) params.scenario = options.scenario.id;
     return this.getCachedData<{ values: PlaceResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityCell, { params: params, method: 'POST', reset: options?.reset, key: options?.scenario?.id?.toString() });
   }

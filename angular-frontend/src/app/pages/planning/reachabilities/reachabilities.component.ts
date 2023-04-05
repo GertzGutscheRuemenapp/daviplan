@@ -106,10 +106,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): Observable<boolean> {
     const observable = new Observable<any>(subscriber => {
-      if (this.placesLayer) {
-        this.placesLayerGroup?.removeLayer(this.placesLayer);
-        this.placesLayer = undefined;
-      }
       if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) {
         subscriber.next(false);
         subscriber.complete();
@@ -119,6 +115,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.planningService.getPlaces({
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
+        this.placesLayerGroup?.clear();
         this.places = places;
         this.placesLayer = this.placesLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
           id: 'reach-places',
@@ -269,8 +266,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
       this.mapControl?.removeMarker();
       this.mapControl?.addMarker(cell.geom as Geometry);
-      if (!this.activeScenario) return;
-      this.planningService.getCellReachability(cell.cellcode, this.activeMode!, { scenario: this.activeScenario }).subscribe(placeResults => {
+      if (!this.activeScenario || !this.activeService) return;
+      this.planningService.getCellReachability(this.activeService, cell.cellcode, this.activeMode!, { scenario: this.activeScenario }).subscribe(placeResults => {
         this.reachLayerGroup?.clear();
         const valueBins = modeBins[this.activeMode!];
         let style: ValueStyle = {};

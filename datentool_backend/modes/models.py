@@ -3,6 +3,9 @@ from django.db import models
 
 from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin, )
+from datentool_backend.utils.partitions import (add_partition,
+                                                truncate_partition_table,
+                                                delete_partition_table, )
 from datentool_backend.infrastructure.models import Infrastructure
 
 
@@ -119,6 +122,8 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                 # else set this as default (so there is always a default one)
                 except ModeVariant.DoesNotExist:
                     self.is_default = True
+
+
         else:
             # for non-transit-modes, if no network is defined,
             # take or create the default network
@@ -137,17 +142,59 @@ class ModeVariant(DatentoolModelMixin, models.Model):
 
         super().save(*args, **kwargs)
 
+        from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                         MatrixCellStop,
+                                                         MatrixPlaceStop,
+                                                         MatrixStopStop)
+
+        # add partitions with mode-variant as partition key
+        name = f"mode_{self.pk}"
+        values = self.pk
+        for model in [MatrixCellStop,
+                      MatrixStopStop]:
+            add_partition(model, name, values)
+
+        # add partitions with [mode-variant, infrastructure] as partition key
+        for infrastructure in Infrastructure.objects.all():
+            name = f"mode_{self.pk}_infrastructure_{infrastructure.pk}"
+            values = [self.pk, infrastructure.pk]
+            for model in [MatrixCellPlace,
+                          MatrixPlaceStop]:
+                add_partition(model, name, values)
+
     def delete(self, **kwargs):
-        # deleting transit variant marked as default -> mark another one
-        # transit variant (so there always is one default set if there are
-        # any at all)
+        """
+        deleting transit variant marked as default -> mark another one
+        transit variant (so there always is one default set if there are
+        any at all)
+        """
+
+        from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                         MatrixCellStop,
+                                                         MatrixPlaceStop,
+                                                         MatrixStopStop)
+
+        #name = f"mode_{self.pk}"
+        #for model in [MatrixCellStop,
+                      #MatrixStopStop,
+                      #]:
+            #delete_partition_table(model, name)
+
+        #for infrastructure in Infrastructure.objects.all():
+            #name=f"mode_{self.pk}_infrastructure_{infrastructure.pk}"
+            #for model in [MatrixCellPlace,
+                          #MatrixPlaceStop]:
+                #delete_partition_table(model, name)
+
         if self.mode == Mode.TRANSIT and self.is_default:
             new_default = ModeVariant.objects.filter(
                 mode=Mode.TRANSIT).exclude(id=self.id).first()
             if new_default:
                 new_default.is_default = True
                 new_default.save()
-        return super().delete(**kwargs)
+        res = super().delete(**kwargs)
+
+        return res
 
     def get_n_rels(self, matname: str):
         """get the number of relations for the specified matrix"""

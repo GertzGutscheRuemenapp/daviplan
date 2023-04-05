@@ -5,6 +5,10 @@ import pandas as pd
 from django.db import models
 from django.db.models import Count
 from django.contrib.gis.db import models as gis_models
+from django.contrib.postgres.fields import ArrayField
+
+from psqlextra.types import PostgresPartitioningMethod
+from psqlextra.models import PostgresPartitionedModel
 
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
@@ -84,7 +88,9 @@ class MatrixMixin:
         raise NotImplementedError('To be defined in the subclass')
 
 
-class MatrixCellPlace(MatrixMixin, DatentoolModelMixin, models.Model):
+class MatrixCellPlace(MatrixMixin,
+                      PostgresPartitionedModel,
+                      DatentoolModelMixin):
     """Reachabliliy Matrix between raster cell and place with a mode variante"""
     _statistic: str = 'n_rels_place_cell'
 
@@ -98,17 +104,23 @@ class MatrixCellPlace(MatrixMixin, DatentoolModelMixin, models.Model):
                                        null=True,
                                        on_delete=models.SET_NULL,
                                        related_name='mcp_access_variant')
+    partition_id = ArrayField(models.IntegerField(),
+                              size=2,
+                              help_text='Partition key using (variant, place__infrastructure_id)')
+
+    class PartitioningMeta:
+        method = PostgresPartitioningMethod.LIST
+        key = ["partition_id"]
 
     class Meta:
-        unique_together = ['variant', 'access_variant', 'cell', 'place']
         constraints = [
             models.UniqueConstraint(
                 name='variant_accessvariant_cell_place_uniq',
-                fields=('variant', 'access_variant', 'cell', 'place')
+                fields=('partition_id', 'access_variant', 'cell', 'place')
             ),
             models.UniqueConstraint(
                 name='variant_noaccessvariant_cell_place_uniq',
-                fields=('variant', 'cell', 'place'),
+                fields=('partition_id', 'cell', 'place'),
                 condition=models.Q(access_variant__isnull=True)
             )
         ]
@@ -121,8 +133,18 @@ class MatrixCellPlace(MatrixMixin, DatentoolModelMixin, models.Model):
         qs = cls.objects.filter(variant=variant)
         return qs.count()
 
+    def save(self, **kwargs):
+        self.partition_id = [self.variant_id, self.place.infrastructure_id]
+        return super().save(**kwargs)
 
-class MatrixCellStop(MatrixMixin, DatentoolModelMixin, models.Model):
+
+class MatrixStopStopCopyManager(DirectCopyManager):
+    """"""
+
+
+class MatrixCellStop(MatrixMixin,
+                     PostgresPartitionedModel,
+                     DatentoolModelMixin):
     """Reachabliliy Matrix between raster cell and stop with a mode variante"""
     _statistic: str = 'n_rels_stop_cell'
     _variant_col = 'transit_variant_id'
@@ -137,20 +159,31 @@ class MatrixCellStop(MatrixMixin, DatentoolModelMixin, models.Model):
                                        default=get_default_access_variant,
                                        on_delete=models.CASCADE,
                                        related_name='mcs_access_variant')
+    transit_variant_id = models.IntegerField()
+
+
+    class PartitioningMeta:
+        method = PostgresPartitioningMethod.LIST
+        key = ["transit_variant_id"]
 
     class Meta:
-        unique_together = ['access_variant', 'cell', 'stop']
+        unique_together = ['transit_variant_id', 'access_variant', 'cell', 'stop']
 
     objects = models.Manager()
-    copymanager = DirectCopyManager()
+    copymanager = MatrixStopStopCopyManager()
 
     @classmethod
     def _get_n_rels(cls, variant: ModeVariant) -> int:
         qs = cls.objects.filter(stop__variant=variant)
         return qs.count()
 
+    def save(self, **kwargs):
+        self.transit_variant_id = self.stop.variant_id
+        return super().save(**kwargs)
 
-class MatrixPlaceStop(MatrixMixin, models.Model):
+
+class MatrixPlaceStop(MatrixMixin,
+                      PostgresPartitionedModel):
     """Reachabliliy Matrix between a place and stop with a mode variante"""
     _statistic: str = 'n_rels_place_stop'
     _variant_col = 'transit_variant_id'
@@ -165,9 +198,17 @@ class MatrixPlaceStop(MatrixMixin, models.Model):
                                        default=get_default_access_variant,
                                        on_delete=models.CASCADE,
                                        related_name='mps_access_variant')
+    partition_id = ArrayField(
+        models.IntegerField(),
+        size=2,
+        help_text='Partition key using (stop__variant_id, place__infrastructure_id)')
+
+    class PartitioningMeta:
+        method = PostgresPartitioningMethod.LIST
+        key = ["partition_id"]
 
     class Meta:
-        unique_together = ['access_variant', 'place', 'stop']
+        unique_together = ['partition_id', 'access_variant', 'place', 'stop']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
@@ -177,8 +218,13 @@ class MatrixPlaceStop(MatrixMixin, models.Model):
         qs = cls.objects.filter(stop__variant=variant)
         return qs.count()
 
+    def save(self, **kwargs):
+        self.partition_id = [self.stop.variant_id, self.place.infrastructure_id]
+        return super().save(**kwargs)
 
-class MatrixStopStop(MatrixMixin, models.Model):
+
+class MatrixStopStop(MatrixMixin,
+                     PostgresPartitionedModel):
     """Reachabliliy Matrix between a stop and a stop with a mode variante"""
     _statistic: str = 'n_rels_stop_stop'
     _variant_col = 'transit_variant_id'
@@ -189,9 +235,15 @@ class MatrixStopStop(MatrixMixin, models.Model):
     to_stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                                 related_name='to_stop')
     minutes = models.FloatField()
+    variant_id = models.IntegerField()
+
+
+    class PartitioningMeta:
+        method = PostgresPartitioningMethod.LIST
+        key = ["variant_id"]
 
     class Meta:
-        unique_together = ['from_stop', 'to_stop']
+        unique_together = ['variant_id', 'from_stop', 'to_stop']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
@@ -200,6 +252,10 @@ class MatrixStopStop(MatrixMixin, models.Model):
     def _get_n_rels(cls, variant: ModeVariant) -> int:
         qs = cls.objects.filter(from_stop__variant=variant)
         return qs.count()
+
+    def save(self, **kwargs):
+        self.variant_id = self.from_stop.variant_id
+        return super().save(**kwargs)
 
 
 class Router(NamedModel, models.Model):
