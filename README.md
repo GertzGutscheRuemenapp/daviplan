@@ -12,7 +12,7 @@ Code Coverage
 
 ## Software Manuals 
 
-PDFs in german:
+PDFs in german:         
 [Handbuch](https://gis.ggr-planung.de/repos/daviplan/Daviplan_Handbuch.pdf)         
 [Installationsanleitung](https://gis.ggr-planung.de/repos/daviplan/Daviplan_Installationsanleitung.pdf)
 
