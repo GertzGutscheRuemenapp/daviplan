@@ -10,6 +10,11 @@ Code Coverage
 
 [![codecov](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool/branch/main/graph/badge.svg?token=18FTTI6MF5)](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool)
 
+## Software Manuals 
+
+PDFs in german:         
+[Handbuch](https://gis.ggr-planung.de/repos/daviplan/Daviplan_Handbuch.pdf)         
+[Installationsanleitung](https://gis.ggr-planung.de/repos/daviplan/Daviplan_Installationsanleitung.pdf)
 
 ## Setting up a development environment
 
