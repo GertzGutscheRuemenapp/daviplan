@@ -47,11 +47,11 @@ class TravelTimeRouterMixin:
              place_ids: List[int],
              drop_constraints: bool,
              logger: logging.Logger,
-             max_distance: float=None,
-             access_variant_id: int=None,
-             max_access_distance: float=None,
-             max_direct_walktime: float=None,
-             air_distance_routing: bool=False,
+             max_distance: float = None,
+             access_variant_id: int = None,
+             max_access_distance: float = None,
+             max_direct_walktime: float = None,
+             air_distance_routing: bool = False,
              ):
         variant_ids = variant_ids or ModeVariant.objects.values_list('id', flat=True)
         variants = ModeVariant.objects.filter(id__in=variant_ids).order_by('mode')
@@ -664,7 +664,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
 
         df = df.merge(places_infra, right_index=True, left_on='place_id')
         def make_partition_key(row):
-            return f"{{{row['variant_id']},{row['infrastructure_id']}}}"
+            return f"{{{row['variant_id']:0.0f},{row['infrastructure_id']:0.0f}}}"
         df['partition_id'] = df.apply(make_partition_key, axis=1)
 
         ignore_columns = ['infrastructure_id']
@@ -966,7 +966,7 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
 
         df = df.merge(places_infra, right_index=True, left_on='place_id')
         def make_partition_key(row):
-            return f"{{{row['transit_variant_id']},{row['infrastructure_id']}}}"
+            return f"{{{row['transit_variant_id']:0.0f},{row['infrastructure_id']:0.0f}}}"
         df['partition_id'] = df.apply(make_partition_key, axis=1)
 
         ignore_columns = ['transit_variant_id',
