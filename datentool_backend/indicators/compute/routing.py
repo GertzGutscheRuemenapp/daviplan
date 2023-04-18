@@ -663,9 +663,9 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
             .set_index('place_id')
 
         df = df.merge(places_infra, right_index=True, left_on='place_id')
-        partition_keys = df[['variant_id',
-                             'infrastructure_id']].values
-        df['partition_id'] = [f"{{{key[0]},{key[1]}}}" for key in partition_keys]
+        def make_partition_key(row):
+            return f"{{{row['variant_id']},{row['infrastructure_id']}}}"
+        df['partition_id'] = df.apply(make_partition_key, axis=1)
 
         ignore_columns = ['infrastructure_id']
         return df, ignore_columns
@@ -965,10 +965,11 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
             .set_index('place_id')
 
         df = df.merge(places_infra, right_index=True, left_on='place_id')
-        partition_keys = df[['transit_variant_id',
-                             'infrastructure_id']].values
-        df['partition_id'] = [f"{{{key[0]},{key[1]}}}" for key in partition_keys]
+        def make_partition_key(row):
+            return f"{{{row['transit_variant_id']},{row['infrastructure_id']}}}"
+        df['partition_id'] = df.apply(make_partition_key, axis=1)
 
         ignore_columns = ['transit_variant_id',
                           'infrastructure_id']
+
         return df, ignore_columns
