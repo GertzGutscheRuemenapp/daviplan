@@ -12,6 +12,7 @@ services:
       POSTGRES_DB: datentool
     volumes:
       - ./postgres_data:/var/lib/postgresql/data/
+    command: -p 5432
 
   # redis, required for logging and django_q
   redis:
@@ -48,8 +49,7 @@ services:
     # environment variables as requested in django (settings.py)
     environment:
       - DJANGO_SITENAME=datentool
-      # settings file, either datentool.settings for productive use or datentool.settings_dev in development
-      - DJANGO_SETTINGS_MODULE=datentool.settings
+      - ENVIRONMENT=DEV
       - MODE_CAR_HOST=router-car
       - MODE_BIKE_HOST=router-bike
       - MODE_WALK_HOST=router-walk
@@ -59,6 +59,8 @@ services:
       - REDIS_HOST=redis
     env_file: .env
     # network links to access the other containers
+    depends_on:
+      - postgis    
     links:
       - postgis:db
       - router-car:router-car
@@ -66,14 +68,14 @@ services:
       - router-walk:router-walk
       - redis:redis
     # migrate and then run service and a django_q cluster to process background tasks
-    command: bash -c "python /datentool/manage.py migrate --run-syncdb && python /datentool/manage.py collectstatic --no-input && (python /datentool/manage.py qcluster &) && daphne -b 0.0.0.0 -p 8000 datentool.asgi:application"
+    command: /bin/sh -c "/run.sh"
     # the port mapped to outside the container
     ports:
       - "${EXT_PORT}:8000"
-    # restart the container on crash and system restart unless it is willingly stopped (docker-compose down)
+    # restart the container on crash and on system restart unless it is willingly stopped (docker-compose down)
     restart: unless-stopped
     volumes:
-      # directory including the static and medua files
+      # directory including the static and media files
       - ./public:/datentool/public
 
 volumes:

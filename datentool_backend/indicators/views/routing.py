@@ -35,9 +35,7 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  )
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
-from datentool_backend.utils.routers import (OSRMRouter,
-                                             assert_routers_are_running)
-from datentool_backend.utils.raw_delete import delete_chunks
+from datentool_backend.utils.routers import (assert_routers_are_running)
 from datentool_backend.utils.partitions import truncate_partition_table
 
 from datentool_backend.indicators.models import (Stop,

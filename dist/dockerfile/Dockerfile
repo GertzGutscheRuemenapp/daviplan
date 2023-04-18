@@ -34,3 +34,5 @@ ENV SECRET_KEY=1234
 RUN python manage.py collectstatic
 # unset the key
 ENV SECRET_KEY=
+
+COPY run.sh /run.sh
