@@ -30,13 +30,14 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
   entries: LogEntry[] = [];
 
   constructor(private restService: RestCacheService, private cdref: ChangeDetectorRef) {
-    const host = environment.production? window.location.hostname: environment.backend.replace('http://', '');
+    // in local dev the location equals
+    const host = environment.backend? environment.backend.replace('http://', ''): window.location.hostname;
     this.wsURL = `${(environment.production && host.indexOf('localhost') === -1)? 'wss:': 'ws:'}//${host}/ws/log/`;
   }
 
   ngAfterViewInit(): void {
     if (this.fetchOldLogs)
-      this.restService.getLogs({ room: this.room, reset: true }).subscribe(entries => {
+      this.restService.getLogs({ room: this.room, reset: true, level: environment.loglevel }).subscribe(entries => {
         entries.forEach(entry => this.addLogEntry(entry));
         this.cdref.detectChanges();
         this.scrollToBottom(true);
@@ -56,7 +57,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
     this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
     this.chatSocket.onopen = e => this.retries = 0;
     this.chatSocket.onmessage = e => {
-      const logEntry = JSON.parse(e.data)
+      const logEntry = JSON.parse(e.data);
       this.addLogEntry(logEntry);
       this.onMessage.emit(logEntry);
     }
@@ -68,6 +69,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
 
   addLogEntry(entry: LogEntry): void {
     if (!entry.message) return;
+    if (environment.loglevel === 'INFO' && entry.level === 'DEBUG') return;
     if (entry.timestamp)
       // cut off milliseconds
       entry.timestamp = entry.timestamp.split(',')[0];
