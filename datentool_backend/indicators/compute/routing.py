@@ -162,7 +162,7 @@ class TravelTimeRouterMixin:
         """
         Write results of Dataframe to database in chunks
         """
-        logger.info('Schreibe Ergebnisse in die Datenbank')
+        logger.debug('Schreibe Ergebnisse in die Datenbank')
 
         delete_chunks(queryset, logger)
         model = queryset.model
@@ -180,10 +180,10 @@ class TravelTimeRouterMixin:
                          model,
                          drop_constraints=drop_constraints)
             n_inserted = len(chunk)
-            logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}'
+            logger.debug(f'{i + n_inserted:n}/{n_rows:n} {model_name}'
                         '-Einträgen geschrieben')
         msg = (f'{n_rows:n} {model_name}-Einträge geschrieben')
-        logger.info(msg)
+        logger.debug(msg)
 
     def prepare_and_calc_transit_traveltimes(self,
                                              logger: logging.Logger,
