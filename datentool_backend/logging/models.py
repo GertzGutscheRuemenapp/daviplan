@@ -11,3 +11,7 @@ class LogEntry(models.Model):
     level = models.CharField(max_length=30)
     status = models.JSONField(null=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['room', 'level', 'date']),
+        ]

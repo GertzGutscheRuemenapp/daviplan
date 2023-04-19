@@ -5,6 +5,7 @@
 export const environment = {
   production: false,
   loglevel: 'DEBUG',
+  maxLogs: undefined,
   backend: 'http://localhost:8000',
   apiPath: 'http://localhost:8000/api'
 };

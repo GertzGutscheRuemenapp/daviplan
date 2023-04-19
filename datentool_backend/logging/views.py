@@ -20,7 +20,8 @@ class LogViewSet(viewsets.ReadOnlyModelViewSet):
           # only possible options: DEBUG or INFO (DEBUG is everything anyway)
           if level == 'INFO':
                queryset = queryset.filter(level__in=['INFO', 'ERROR'])
-          queryset = queryset.order_by('date')
           if n_last is not None:
-               queryset = queryset[-n_last:]
+               queryset = queryset.order_by('-date')[:int(n_last)][::-1]
+          else:
+               queryset = queryset.order_by('date')
           return queryset

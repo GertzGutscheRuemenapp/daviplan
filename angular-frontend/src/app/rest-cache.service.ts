@@ -121,7 +121,7 @@ export class RestCacheService {
     if (options?.level)
       params.level = options?.level;
     if (options?.nLast)
-      params.nLast = options?.nLast;
+      params.n_last = options?.nLast;
     return this.getCachedData<LogEntry[]>(url, { params, reset: options?.reset});
   }
 
