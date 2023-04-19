@@ -5,10 +5,6 @@ from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin, )
 from datentool_backend.utils.partitions import add_partition
 from datentool_backend.infrastructure.models import Infrastructure
-from datentool_backend.indicators.models import (MatrixCellPlace,
-                                                 MatrixCellStop,
-                                                 MatrixPlaceStop,
-                                                 MatrixStopStop)
 
 
 class Mode(models.IntegerChoices):
@@ -143,6 +139,11 @@ class ModeVariant(DatentoolModelMixin, models.Model):
                 self.network = network
 
         super().save(*args, **kwargs)
+
+        from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                         MatrixCellStop,
+                                                         MatrixPlaceStop,
+                                                         MatrixStopStop)
 
         # add partitions with mode-variant as partition key
         name = f"mode_{self.pk}"
