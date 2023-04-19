@@ -14,9 +14,13 @@ class LogViewSet(viewsets.ReadOnlyModelViewSet):
           queryset = self.queryset
           level = self.request.query_params.get('level')
           room = self.request.query_params.get('room')
+          n_last = self.request.query_params.get('n_last')
           if room is not None:
                queryset = queryset.filter(room=room)
           # only possible options: DEBUG or INFO (DEBUG is everything anyway)
           if level == 'INFO':
                queryset = queryset.filter(level__in=['INFO', 'ERROR'])
+          queryset = queryset.order_by('date')
+          if n_last is not None:
+               queryset = queryset[-n_last:]
           return queryset

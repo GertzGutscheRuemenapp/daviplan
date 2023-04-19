@@ -10,7 +10,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ['*']
 
-# over web-socket
 LOGGING['handlers']['web_socket']['level'] = 'DEBUG'
 
 # cors midleware has to be loaded first

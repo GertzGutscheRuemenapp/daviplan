@@ -37,7 +37,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
 
   ngAfterViewInit(): void {
     if (this.fetchOldLogs)
-      this.restService.getLogs({ room: this.room, reset: true, level: environment.loglevel }).subscribe(entries => {
+      this.restService.getLogs({ room: this.room, reset: true, level: environment.loglevel, nLast: environment.maxLogs }).subscribe(entries => {
         entries.forEach(entry => this.addLogEntry(entry));
         this.cdref.detectChanges();
         this.scrollToBottom(true);

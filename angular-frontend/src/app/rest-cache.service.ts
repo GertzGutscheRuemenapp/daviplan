@@ -113,13 +113,15 @@ export class RestCacheService {
     return observable;
   }
 
-  getLogs(options?: { room?: string, reset?: boolean, level?: string }): Observable<LogEntry[]> {
+  getLogs(options?: { room?: string, reset?: boolean, level?: string, nLast?: number }): Observable<LogEntry[]> {
     const url = this.rest.URLS.logs;
     let params: any = {};
     if (options?.room)
       params.room = options?.room;
     if (options?.level)
       params.level = options?.level;
+    if (options?.nLast)
+      params.nLast = options?.nLast;
     return this.getCachedData<LogEntry[]>(url, { params, reset: options?.reset});
   }
 
