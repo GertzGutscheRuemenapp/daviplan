@@ -47,18 +47,17 @@ class TravelTimeRouterMixin:
              place_ids: List[int],
              drop_constraints: bool,
              logger: logging.Logger,
-             max_distance: float=None,
-             access_variant_id: int=None,
-             max_access_distance: float=None,
-             max_direct_walktime: float=None,
-             air_distance_routing: bool=False,
+             max_distance: float = None,
+             access_variant_id: int = None,
+             max_access_distance: float = None,
+             max_direct_walktime: float = None,
+             air_distance_routing: bool = False,
              ):
         variant_ids = variant_ids or ModeVariant.objects.values_list('id', flat=True)
         variants = ModeVariant.objects.filter(id__in=variant_ids).order_by('mode')
-        dataframes = []
+        routes_found = 0
         try:
             for variant in variants:
-                dataframes_variant = []
                 logger.info('Berechne Reisezeiten für Modus '
                             f'{Mode(variant.mode).name}')
                 max_distance_mode = float(max_distance or
@@ -76,7 +75,7 @@ class TravelTimeRouterMixin:
                     max_direct_walktime = float(max_direct_walktime or
                                                 DEFAULT_MAX_DIRECT_WALKTIME)
 
-                    df = self.prepare_and_calc_transit_traveltimes(
+                    n_calculated = self.prepare_and_calc_transit_traveltimes(
                         logger,
                         access_variant,
                         place_ids,
@@ -85,8 +84,8 @@ class TravelTimeRouterMixin:
                         variant,
                         max_direct_walktime,
                     )
-                    dataframes.append(df)
-                    dataframes_variant.append(df)
+                    routes_found += n_calculated
+
                 else:
                     av_id = None
                     if air_distance_routing:
@@ -96,8 +95,10 @@ class TravelTimeRouterMixin:
                             place_ids=place_ids,
                             logger=logger,
                         )
-                        dataframes.append(df)
-                        dataframes_variant.append(df)
+                        routes_found += len(df)
+                        self.store_to_database(df, variant, av_id,
+                                               place_ids,
+                                               logger, drop_constraints)
                     else:
                         if not place_ids:
                             place_ids = Place.objects.values_list('id', flat=True)
@@ -110,30 +111,14 @@ class TravelTimeRouterMixin:
                                 max_distance=max_distance_mode,
                                 logger=logger,
                                 place_ids=place_part_ids)
-                            dataframes.append(df)
-                            dataframes_variant.append(df)
+                            routes_found += len(df)
                             logger.info(f'{min((i+chunk_size), len(place_ids)):n}/'
                                         f'{len(place_ids):n} Orten berechnet')
+                            self.store_to_database(df, variant, av_id,
+                                                   place_part_ids,
+                                                   logger, drop_constraints)
 
-                if dataframes_variant:
-                    df = pd.concat(dataframes_variant)
-                    # null values in access_type: use nullable integer field
-                    if 'access_variant_id' in df.columns:
-                        df = df.astype(dtype={'access_variant_id': 'Int64' ,})
-                    queryset = self.get_filtered_queryset(variant_ids=[variant.pk],
-                                                          access_variant_id=av_id,
-                                                          place_ids=place_ids)
-                    df, ignore_columns = self.add_partition_key(
-                        df,
-                        variant_id=variant.pk,
-                        place_ids=df.place_id)
-                    self.write_results_to_database(logger,
-                                                   queryset,
-                                                   df,
-                                                   drop_constraints,
-                                                   ignore_columns=ignore_columns)
-
-            if not dataframes:
+            if not routes_found:
                 msg = 'Keine Routen gefunden'
                 raise RoutingError(msg)
 
@@ -143,6 +128,29 @@ class TravelTimeRouterMixin:
             raise Exception(msg)
         else:
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
+
+    def store_to_database(self,
+                          df: pd.DataFrame,
+                          variant: ModeVariant,
+                          av_id: int,
+                          place_ids: List[int],
+                          logger: logging.Logger,
+                          drop_constraints: bool):
+        """Store Dataframe to Database"""
+        if 'access_variant_id' in df.columns:
+            df = df.astype(dtype={'access_variant_id': 'Int64' ,})
+        queryset = self.get_filtered_queryset(variant_ids=[variant.pk],
+                                              access_variant_id=av_id,
+                                              place_ids=place_ids)
+        df, ignore_columns = self.add_partition_key(
+            df,
+            variant_id=variant.pk,
+            place_ids=df.place_id)
+        self.write_results_to_database(logger,
+                                       queryset,
+                                       df,
+                                       drop_constraints,
+                                       ignore_columns=ignore_columns)
 
     def write_results_to_database(self,
                                   logger: logging.Logger,
@@ -185,7 +193,7 @@ class TravelTimeRouterMixin:
                                              drop_constraints: bool,
                                              variant: ModeVariant,
                                              max_direct_walktime: float,
-                                             ) -> pd.DataFrame:
+                                             ) -> int:
         # calculate time from place to stop
         matrix_place_stop = MatrixPlaceStopRouter()
         df_ps = matrix_place_stop.calc_routed_traveltimes(
@@ -215,7 +223,6 @@ class TravelTimeRouterMixin:
                     f'Haltestellen mit Modus {Mode(access_variant.mode).name}')
         stops = Stop.objects.filter(variant=variant).values_list('id', flat=True)
         chunk_size = 100
-        dataframes_cs = []
 
         for i in range(0, len(stops), chunk_size):
             stops_part = stops[i:i + chunk_size]
@@ -226,13 +233,50 @@ class TravelTimeRouterMixin:
                 stops=stops_part,
                 logger=logger,
             )
-            df_cs.rename(columns={'variant_id': 'access_variant_id',},
+            df_cs.rename(columns={'variant_id': 'access_variant_id', },
                          inplace=True)
-            dataframes_cs.append(df_cs)
+
             logger.info(f'{min((i+chunk_size), len(stops)):n}/'
                         f'{len(stops):n} Haltestellen berechnet')
+            self.store_df_cs_to_database(df_cs, variant, access_variant,
+                                         stops_part,
+                                         logger, drop_constraints)
 
-        df_cs = pd.concat(dataframes_cs)
+        logger.info('Berechne Gesamtreisezeiten...')
+
+        if not place_ids:
+            place_ids = Place.objects.values_list('id', flat=True)
+
+        n_calculated = 0
+        n_total = len(place_ids)
+        for i in range(0, n_total, chunk_size):
+            place_ids_part = place_ids[i:i + chunk_size]
+            df = self.calculate_transit_traveltime(
+                access_variant=access_variant,
+                transit_variant=variant,
+                place_ids=place_ids_part,
+                max_direct_walktime=max_direct_walktime,
+                id_columns=['place_id', 'cell_id'],
+            )
+
+            self.store_to_database(df, variant, access_variant.pk,
+                                   place_ids_part,
+                                   logger, drop_constraints)
+            n_calculated += len(df)
+            logger.info(f'Gesamtreisezeiten zu {n_calculated:n}/'
+                        f'{n_total:n} Orten berechnet')
+
+        return n_calculated
+
+    def store_df_cs_to_database(self,
+                                df_cs: pd.DataFrame,
+                                variant: ModeVariant,
+                                access_variant: ModeVariant,
+                                stop_ids: List[int],
+                                logger: logging.Logger,
+                                drop_constraints: bool):
+        """Store DataFrame from Cell to Stop to Database"""
+        matrix_cell_stop = MatrixCellStopRouter()
         df_cs, ignore_columns = matrix_cell_stop.add_partition_key(
             df_cs,
             transit_variant_id=variant.pk)
@@ -240,31 +284,11 @@ class TravelTimeRouterMixin:
         qs = matrix_cell_stop.get_filtered_queryset(
             variant_ids=[variant.pk],
             access_variant_id=access_variant.pk,
+            stop_ids=stop_ids,
         )
         self.write_results_to_database(logger, qs, df_cs, drop_constraints,
                                        ignore_columns=ignore_columns,
                                        )
-
-        logger.info('Berechne Gesamtreisezeiten...')
-
-        if not place_ids:
-            place_ids = Place.objects.values_list('id', flat=True)
-        dataframes = []
-        for i, place_id in enumerate(place_ids):
-            df = self.calculate_transit_traveltime(
-                access_variant=access_variant,
-                transit_variant=variant,
-                place_ids=[place_id],
-                max_direct_walktime=max_direct_walktime,
-                id_columns=['place_id', 'cell_id'],
-            )
-            dataframes.append(df)
-            c = i + 1
-            if not c % 100 or c == len(place_ids):
-                logger.info(f'Gesamtreisezeiten zu {c:n}/'
-                            f'{len(place_ids):n} Orten berechnet')
-        df_res = pd.concat(dataframes)
-        return df_res
 
     @staticmethod
     def annotate_coords(queryset: QuerySet, geom='geom'):
@@ -663,9 +687,9 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
             .set_index('place_id')
 
         df = df.merge(places_infra, right_index=True, left_on='place_id')
-        partition_keys = df[['variant_id',
-                             'infrastructure_id']].values
-        df['partition_id'] = [f"{{{key[0]},{key[1]}}}" for key in partition_keys]
+        def make_partition_key(row):
+            return f"{{{row['variant_id']:0.0f},{row['infrastructure_id']:0.0f}}}"
+        df['partition_id'] = df.apply(make_partition_key, axis=1)
 
         ignore_columns = ['infrastructure_id']
         return df, ignore_columns
@@ -766,9 +790,13 @@ class MatrixCellStopRouter(AccessTimeRouterMixin):
     def get_filtered_queryset(self,
                               variant_ids: List[int],
                               access_variant_id: int,
-                              **kwargs) -> QuerySet:
+                              stop_ids: List[int] = None,
+                              **kwargs,
+                              ) -> QuerySet:
+        kwargs = {'stop_id__in': stop_ids, } if stop_ids else {}
         return MatrixCellStop.objects.filter(transit_variant_id__in=variant_ids,
-                                             access_variant_id=access_variant_id)
+                                             access_variant_id=access_variant_id,
+                                             **kwargs)
 
     def get_sources(self,
                     stops: List[int] = [],
@@ -965,10 +993,11 @@ class MatrixPlaceStopRouter(AccessTimeRouterMixin):
             .set_index('place_id')
 
         df = df.merge(places_infra, right_index=True, left_on='place_id')
-        partition_keys = df[['transit_variant_id',
-                             'infrastructure_id']].values
-        df['partition_id'] = [f"{{{key[0]},{key[1]}}}" for key in partition_keys]
+        def make_partition_key(row):
+            return f"{{{row['transit_variant_id']:0.0f},{row['infrastructure_id']:0.0f}}}"
+        df['partition_id'] = df.apply(make_partition_key, axis=1)
 
         ignore_columns = ['transit_variant_id',
                           'infrastructure_id']
+
         return df, ignore_columns
