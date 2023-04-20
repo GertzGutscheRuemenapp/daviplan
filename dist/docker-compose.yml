@@ -12,6 +12,7 @@ services:
       POSTGRES_DB: datentool
     volumes:
       - ./postgres_data:/var/lib/postgresql/data/
+    command: -p $DB_PORT
 
   # redis, required for logging and django_q
   redis:
@@ -44,12 +45,13 @@ services:
 
   # backend service serving the frontend and REST resources
   web:
-    image: gertzgutscheruemenapp/daviplan:latest
+    image: gertzgutscheruemenapp/daviplan:test_run_staging
     # environment variables as requested in django (settings.py)
     environment:
+      # set ENVIRONMENT to "development" if you want to run test the tool locally only
+      # set ENVIRONMENT to "staging" if you want to run a (less stable and insecure) staging server
+      - ENVIRONMENT=development
       - DJANGO_SITENAME=datentool
-      # settings file, either datentool.settings for productive use or datentool.settings_dev in development
-      - DJANGO_SETTINGS_MODULE=datentool.settings
       - MODE_CAR_HOST=router-car
       - MODE_BIKE_HOST=router-bike
       - MODE_WALK_HOST=router-walk
@@ -58,6 +60,9 @@ services:
       - MODE_WALK_SERVICE_PORT=8001
       - REDIS_HOST=redis
     env_file: .env
+    # start postgis first
+    depends_on:
+      - postgis    
     # network links to access the other containers
     links:
       - postgis:db
@@ -65,15 +70,17 @@ services:
       - router-bike:router-bike
       - router-walk:router-walk
       - redis:redis
-    # migrate and then run service and a django_q cluster to process background tasks
-    command: bash -c "python /datentool/manage.py migrate --run-syncdb && python /datentool/manage.py collectstatic --no-input && (python /datentool/manage.py qcluster &) && daphne -b 0.0.0.0 -p 8000 datentool.asgi:application"
+    # run shell script containing migration, runserver etc.
+    # wait 5 seconds before so that postgis most likely will be ready when starting the script 
+    # (ToDo: replace sleep with healthcheck that postgis is ready before running command)
+    command: /bin/sh -c "sleep 5s && /run.sh"
     # the port mapped to outside the container
     ports:
       - "${EXT_PORT}:8000"
-    # restart the container on crash and system restart unless it is willingly stopped (docker-compose down)
+    # restart the container on crash and on system restart unless it is willingly stopped (docker-compose down)
     restart: unless-stopped
     volumes:
-      # directory including the static and medua files
+      # directory including the static and media files
       - ./public:/datentool/public
 
 volumes:

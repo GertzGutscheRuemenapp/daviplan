@@ -162,7 +162,7 @@ class TravelTimeRouterMixin:
         """
         Write results of Dataframe to database in chunks
         """
-        logger.info('Schreibe Ergebnisse in die Datenbank')
+        logger.debug('Schreibe Ergebnisse in die Datenbank')
 
         delete_chunks(queryset, logger)
         model = queryset.model
@@ -180,10 +180,10 @@ class TravelTimeRouterMixin:
                          model,
                          drop_constraints=drop_constraints)
             n_inserted = len(chunk)
-            logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}'
-                        '-Einträgen geschrieben')
+            logger.debug(f'{i + n_inserted:n}/{n_rows:n} {model_name}'
+                         '-Einträgen geschrieben')
         msg = (f'{n_rows:n} {model_name}-Einträge geschrieben')
-        logger.info(msg)
+        logger.debug(msg)
 
     def prepare_and_calc_transit_traveltimes(self,
                                              logger: logging.Logger,
@@ -222,9 +222,10 @@ class TravelTimeRouterMixin:
         logger.info(f'Berechne Wegezeiten zwischen Siedlungszellen und den '
                     f'Haltestellen mit Modus {Mode(access_variant.mode).name}')
         stops = Stop.objects.filter(variant=variant).values_list('id', flat=True)
+        n_stops = len(stops)
         chunk_size = 100
 
-        for i in range(0, len(stops), chunk_size):
+        for i in range(0, n_stops, chunk_size):
             stops_part = stops[i:i + chunk_size]
             df_cs = matrix_cell_stop.calc_routed_traveltimes(
                 variant=access_variant,
@@ -236,8 +237,8 @@ class TravelTimeRouterMixin:
             df_cs.rename(columns={'variant_id': 'access_variant_id', },
                          inplace=True)
 
-            logger.info(f'{min((i+chunk_size), len(stops)):n}/'
-                        f'{len(stops):n} Haltestellen berechnet')
+            logger.info(f'{min((i+chunk_size), n_stops):n}/'
+                        f'{n_stops:n} Haltestellen berechnet')
             self.store_df_cs_to_database(df_cs, variant, access_variant,
                                          stops_part,
                                          logger, drop_constraints)
@@ -263,7 +264,8 @@ class TravelTimeRouterMixin:
                                    place_ids_part,
                                    logger, drop_constraints)
             n_calculated += len(df)
-            logger.info(f'Gesamtreisezeiten zu {n_calculated:n}/'
+            logger.info(f'Gesamtreisezeiten zu '
+                        f'{min((i+chunk_size), n_total):n}/'
                         f'{n_total:n} Orten berechnet')
 
         return n_calculated
@@ -356,7 +358,7 @@ class TravelTimeRouterMixin:
         df = minutes.to_frame(name='minutes')
         df['variant_id'] = variant.id
         df.reset_index(inplace=True)
-        logger.debug(df)
+        #logger.debug(df)
         return df
 
     @staticmethod

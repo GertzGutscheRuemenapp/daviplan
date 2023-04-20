@@ -313,7 +313,7 @@ DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # maximum number of persisted log entries per room
-MAX_N_LOGS = 2000
+MAX_N_LOGS = 10000
 
 LOGGING = {
     'version': 1,
@@ -324,7 +324,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'web_socket': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'datentool.loggers.WebSocketHandler',
         },
         'persist': {
@@ -335,22 +335,22 @@ LOGGING = {
     'loggers': {
         'areas': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'population': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'infrastructure': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'routing': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
     },

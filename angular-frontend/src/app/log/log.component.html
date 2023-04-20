@@ -5,7 +5,10 @@
          [style.color]="(entry.level === 'ERROR' || entry.status?.success === false)? 'red': (entry.status?.success)? 'green': 'black'"
          [style.font-weight]="entry.status?.finished? 'bold': ''">
       <ng-container *ngIf="entry.level === 'DEBUG'">DEBUG </ng-container>
-      <i>{{entry.timestamp}}</i> - {{entry.message}}
+      <ng-container *ngIf="entry.timestamp">
+        <i>{{entry.timestamp}}</i> -
+      </ng-container>
+      {{entry.message}}
     </div>
   </ng-container>
 </div>

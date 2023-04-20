@@ -30,13 +30,14 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
   entries: LogEntry[] = [];
 
   constructor(private restService: RestCacheService, private cdref: ChangeDetectorRef) {
-    const host = environment.production? window.location.hostname: environment.backend.replace('http://', '');
+    // in local dev the location equals
+    const host = environment.backend? environment.backend.replace('http://', ''): window.location.hostname;
     this.wsURL = `${(environment.production && host.indexOf('localhost') === -1)? 'wss:': 'ws:'}//${host}/ws/log/`;
   }
 
   ngAfterViewInit(): void {
     if (this.fetchOldLogs)
-      this.restService.getLogs({ room: this.room, reset: true }).subscribe(entries => {
+      this.restService.getLogs({ room: this.room, reset: true, level: environment.loglevel, nLast: environment.maxLogs }).subscribe(entries => {
         entries.forEach(entry => this.addLogEntry(entry));
         this.cdref.detectChanges();
         this.scrollToBottom(true);
@@ -56,8 +57,8 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
     this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
     this.chatSocket.onopen = e => this.retries = 0;
     this.chatSocket.onmessage = e => {
-      const logEntry = JSON.parse(e.data)
-      this.addLogEntry(logEntry);
+      const logEntry = JSON.parse(e.data);
+      this.addLogEntry(logEntry, { intermediateDots: true });
       this.onMessage.emit(logEntry);
     }
     this.chatSocket.onclose = e => {
@@ -66,7 +67,26 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
     };
   }
 
-  addLogEntry(entry: LogEntry): void {
+  addLogEntry(entry: LogEntry, options?: { intermediateDots?: boolean }): void {
+    const lastEntry = this.entries[this.entries.length - 1];
+    // then skip
+    if (environment.loglevel === 'INFO' && entry.level === 'DEBUG') {
+      // show debug messages that are skipped in info level as a dotted progress indicator in log
+      if (options?.intermediateDots) {
+        if (lastEntry.level === 'INTER')
+          lastEntry.message += '.';
+        else
+          this.addLogEntry({
+            message: '.',
+            level: 'INTER'
+          })
+      }
+      // do not add actual debug message
+      return;
+    }
+    // remove eventual intermediate logs
+    if (lastEntry?.level === 'INTER')
+      this.entries.pop();
     if (!entry.message) return;
     if (entry.timestamp)
       // cut off milliseconds

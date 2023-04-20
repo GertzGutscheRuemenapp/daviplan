@@ -9,11 +9,9 @@ INSTALLED_APPS.extend([
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ['*']
-#ALLOWED_HOSTS.extend([
-    #'localhost',
-    #'127.0.0.1',
-    #'0.0.0.0'
-#])
+
+LOGGING['handlers']['web_socket']['level'] = 'DEBUG'
+LOGGING['handlers']['console']['level'] = 'DEBUG'
 
 # cors midleware has to be loaded first
 MIDDLEWARE = [

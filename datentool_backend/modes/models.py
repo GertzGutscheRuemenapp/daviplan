@@ -3,9 +3,7 @@ from django.db import models
 
 from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin, )
-from datentool_backend.utils.partitions import (add_partition,
-                                                truncate_partition_table,
-                                                delete_partition_table, )
+from datentool_backend.utils.partitions import add_partition
 from datentool_backend.infrastructure.models import Infrastructure
 
 
@@ -169,10 +167,10 @@ class ModeVariant(DatentoolModelMixin, models.Model):
         any at all)
         """
 
-        from datentool_backend.indicators.models import (MatrixCellPlace,
-                                                         MatrixCellStop,
-                                                         MatrixPlaceStop,
-                                                         MatrixStopStop)
+        #from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                         #MatrixCellStop,
+                                                         #MatrixPlaceStop,
+                                                         #MatrixStopStop)
 
         #name = f"mode_{self.pk}"
         #for model in [MatrixCellStop,
