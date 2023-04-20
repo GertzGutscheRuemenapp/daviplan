@@ -187,7 +187,7 @@ class ProjectSettingViewSet(RunProcessMixin, SingletonViewSet):
         logger.info('Bereinige Daten:')
         for area_level in AreaLevel.objects.filter():
             areas = Area.objects.filter(area_level=area_level)
-            if len(areas) > 0:
+            if areas:
                 logger.info(f'Lösche {len(areas):n} Gebiete der Ebene '
                             f'{area_level.name}...')
                 areas.delete()

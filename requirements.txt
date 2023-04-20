@@ -23,6 +23,7 @@ mapbox_vector_tile
 xarray
 drf-spectacular<=0.22
 django-postgres-copy
+django-postgres-extra
 openpyxl
 matrixconverters
 packaging

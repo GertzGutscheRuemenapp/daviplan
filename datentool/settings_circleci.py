@@ -6,7 +6,7 @@ MEDIA_ROOT = mkdtemp(prefix='media_')
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'psqlextra.backend',
         'NAME': 'circle_test',
         'USER': 'postgres',
         'PASSWORD': 'postgres',

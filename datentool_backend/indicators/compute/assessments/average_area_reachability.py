@@ -2,6 +2,7 @@ from django.core.exceptions import BadRequest
 
 from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ServiceIndicator,
+                                                       Service,
                                                        ModeParameter,
                                                        ResultSerializer)
 
@@ -41,6 +42,8 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
         variant = self.get_mode_variant(mode, scenario_id)
         if not variant:
             return []
+        service = Service.objects.get(id=service_id)
+        partition_id = [variant.id, service.infrastructure_id]
 
         if area_level_id is None:
             raise BadRequest('No AreaLevel provided')
@@ -51,7 +54,9 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
 
         places = self.get_places_with_capacities(service_id, year, scenario_id)
-        cells_places = MatrixCellPlace.objects.filter(variant=variant, place__in=places)
+        cells_places = MatrixCellPlace.objects.filter(variant=variant,
+                                                      place__in=places,
+                                                      partition_id=partition_id)
         q_cp, p_cp = cells_places.query.sql_with_params()
 
         q_demand, p_demand = self.get_cell_demand(scenario_id, service_id)

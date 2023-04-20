@@ -405,8 +405,8 @@ export interface ModeVariant {
 
 export interface LogEntry {
   user?: number,
-  level: 'ERROR' | 'INFO' | 'DEBUG',
-  timestamp: string,
+  level: 'ERROR' | 'INFO' | 'DEBUG' | 'INTER',
+  timestamp?: string,
   message: string,
   status?: { success?: boolean, finished?: boolean }
 }

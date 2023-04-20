@@ -7,7 +7,7 @@ machine:
 jobs:
   django testing:
     docker:
-      - image: gertzgutscheruemenapp/daviplan:testing
+      - image: gertzgutscheruemenapp/daviplan:latest
       - image: gertzgutscheruemenapp/osrm-flask
       - image: circleci/postgres:13-postgis-ram
         environment:

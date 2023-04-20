@@ -179,8 +179,17 @@ class StopTemplateTest(LoginTestCase, APITestCase):
 
         # delete the whole modevariant to test if the depending matrix entries are deleted
         url = 'modevariants-detail'
-        res = self.delete(url, pk=self.mode_variant.pk, extra={'format': 'json'})
+        mode_variant_id = self.mode_variant.pk
+        mode = self.mode_variant.mode
+        res = self.delete(url, pk=mode_variant_id, extra={'format': 'json'})
         self.assert_http_204_no_content(res)
+
+        # recreate and delete again
+        mode_variant = ModeVariantFactory(id=mode_variant_id, label='I am Back', mode=mode)
+        
+        res = self.delete(url, pk=mode_variant_id, extra={'format': 'json'})
+        self.assert_http_204_no_content(res)
+
 
     def test_upload_broken_matrix_file(self):
         """

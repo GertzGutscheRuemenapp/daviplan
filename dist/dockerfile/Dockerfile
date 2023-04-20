@@ -21,7 +21,10 @@ RUN npm i -g @angular/cli@14
 WORKDIR /datentool/angular-frontend
 RUN npm i
 RUN ng build --stats-json --build-optimizer
-RUN rm -R node_modules/tmp
+
+# node modules tmp-directories may contain files with high UIDs that cause problems with CircleCI
+RUN rm -R /datentool/angular-frontend/node_modules/tmp
+RUN rm -R /usr/lib/node_modules/@angular/cli/node_modules/tmp
 
 WORKDIR /datentool
 RUN python -m pip install --upgrade pip && pip install -r requirements.txt
@@ -31,3 +34,5 @@ ENV SECRET_KEY=1234
 RUN python manage.py collectstatic
 # unset the key
 ENV SECRET_KEY=
+
+COPY run.sh /run.sh

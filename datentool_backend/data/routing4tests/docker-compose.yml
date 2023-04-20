@@ -1,0 +1,36 @@
+version: '3.1'
+
+services:
+
+  router-car:
+    image: gertzgutscheruemenapp/osrm-flask
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8011:8001"
+      - "5011:5001"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+
+  router-bike:
+    image: gertzgutscheruemenapp/osrm-flask
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8012:8001"
+      - "5012:5002"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+
+  router-walk:
+    image: gertzgutscheruemenapp/osrm-flask
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8013:8001"
+      - "5013:5003"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data

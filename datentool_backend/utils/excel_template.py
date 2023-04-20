@@ -101,8 +101,12 @@ class ExcelTemplateMixin(RunProcessMixin):
         # postprocess (optional)
 
 
-def write_template_df(df: pd.DataFrame, model, logger, drop_constraints=False,
-                      log_level=logging.INFO):
+def write_template_df(df: pd.DataFrame,
+                      model,
+                      logger,
+                      drop_constraints=False,
+                      log_level=logging.INFO,
+                      partition_id=None):
     manager = model.copymanager
     with transaction.atomic():
         if drop_constraints:

@@ -76,13 +76,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'django.contrib.postgres',
     'datentool_backend',
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
     'django_filters',
-    'django_q'
+    'django_q',
+    'psqlextra',
 ]
 
 MIDDLEWARE = [
@@ -173,7 +175,7 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'psqlextra.backend',
         'NAME': DB_NAME,
         'USER': DB_USER,
         'PASSWORD': DB_PASS,
@@ -192,6 +194,10 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     },
 }
+
+POSTGRES_EXTRA_DB_BACKEND_BASE = 'django.contrib.gis.db.backends.postgis'
+
+
 # GDAL configuration
 if os.name == 'nt':
     lib_path = os.path.join(sys.exec_prefix, 'Library')
@@ -307,7 +313,7 @@ DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # maximum number of persisted log entries per room
-MAX_N_LOGS = 2000
+MAX_N_LOGS = 10000
 
 LOGGING = {
     'version': 1,
@@ -318,7 +324,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'web_socket': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'datentool.loggers.WebSocketHandler',
         },
         'persist': {
@@ -329,22 +335,22 @@ LOGGING = {
     'loggers': {
         'areas': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'population': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'infrastructure': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'routing': {
             'handlers': ['web_socket', 'console', 'persist'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
     },

@@ -35,9 +35,8 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  )
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
-from datentool_backend.utils.routers import (OSRMRouter,
-                                             assert_routers_are_running)
-from datentool_backend.utils.raw_delete import delete_chunks
+from datentool_backend.utils.routers import (assert_routers_are_running)
+from datentool_backend.utils.partitions import truncate_partition_table
 
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
@@ -129,12 +128,8 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         df = read_traveltime_matrix(excel_or_visum_filepath, variant_id)
 
         # delete existing matrix entries if exist
-        qs = MatrixStopStop.objects\
-            .select_related('from_stop')\
-            .select_related('to_stop')\
-            .filter(Q(from_stop__variant=variant_id) |
-                    Q(to_stop__variant=variant_id))
-        delete_chunks(qs, logger)
+        name = f"mode_{variant_id}"
+        truncate_partition_table(MatrixStopStop, name)
 
         model = MatrixStopStop
         model_name = model._meta.object_name
@@ -193,6 +188,7 @@ def read_traveltime_matrix(excel_or_visum_filepath, variant_id) -> pd.DataFrame:
                   left_on='to_stop', right_index=True)
 
     df = df[['from_stop_id', 'to_stop_id', 'minutes']]
+    df['variant_id'] = variant_id
     return df
 
 
@@ -211,7 +207,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
     @staticmethod
     def calc(router_class: TravelTimeRouterMixin,
              variant_ids: List[int],
-             places: List[int],
+             place_ids: List[int],
              drop_constraints: bool,
              logger: logging.Logger,
              max_distance: float = None,
@@ -222,7 +218,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
              ):
         router = router_class()
         router.calc(variant_ids,
-                    places,
+                    place_ids,
                     drop_constraints,
                     logger,
                     max_distance,
@@ -295,7 +291,7 @@ class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
                 return Response({'Fehler': error_msg},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        places = request.data.get('places')
+        place_ids = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
         msg_start = 'Routenberechnung gestartet'
@@ -308,7 +304,7 @@ class MatrixCellPlaceViewSet(RunProcessMixin, TravelTimeRouterViewMixin):
                                       message_sync=msg_end,
                                       router_class=self.router,
                                       variant_ids=variant_ids,
-                                      places=places,
+                                      place_ids=place_ids,
                                       max_distance=max_distance,
                                       max_access_distance=max_access_distance,
                                       access_variant_id=access_variant_id,
@@ -370,7 +366,7 @@ class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
 
         variant_ids = [transit_variant_id]
 
-        places = request.data.get('places')
+        place_ids = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
         msg_start = 'Routenberechnung gestartet'
@@ -383,7 +379,7 @@ class TransitAccessRouterViewMixin(RunProcessMixin, TravelTimeRouterViewMixin):
                                       router_class=self.router,
                                       variant_ids=variant_ids,
                                       drop_constraints=drop_constraints,
-                                      places=places,
+                                      place_ids=place_ids,
                                       max_distance=max_distance,
                                       max_access_distance=max_access_distance,
                                       access_variant_id=access_variant_id,

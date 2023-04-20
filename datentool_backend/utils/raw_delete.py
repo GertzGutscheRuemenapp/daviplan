@@ -7,7 +7,7 @@ from django.db.models import QuerySet
 
 def delete_chunks(qs: QuerySet,
                   logger: logging.Logger,
-                  log_level = logging.INFO,
+                  log_level = logging.DEBUG,
                   stepsize: int = settings.STEPSIZE):
     """delete entries from queryset in chunks using raw-delete sql"""
     model = qs.model
