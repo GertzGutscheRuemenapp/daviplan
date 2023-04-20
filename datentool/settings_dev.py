@@ -11,6 +11,7 @@ CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ['*']
 
 LOGGING['handlers']['web_socket']['level'] = 'DEBUG'
+LOGGING['handlers']['console']['level'] = 'DEBUG'
 
 # cors midleware has to be loaded first
 MIDDLEWARE = [

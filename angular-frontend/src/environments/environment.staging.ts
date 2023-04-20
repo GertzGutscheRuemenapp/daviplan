@@ -1,3 +1,4 @@
+// staging mode
 export const environment = {
   production: true,
   loglevel: 'DEBUG',

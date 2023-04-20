@@ -181,7 +181,7 @@ class TravelTimeRouterMixin:
                          drop_constraints=drop_constraints)
             n_inserted = len(chunk)
             logger.debug(f'{i + n_inserted:n}/{n_rows:n} {model_name}'
-                        '-Einträgen geschrieben')
+                         '-Einträgen geschrieben')
         msg = (f'{n_rows:n} {model_name}-Einträge geschrieben')
         logger.debug(msg)
 
@@ -248,7 +248,6 @@ class TravelTimeRouterMixin:
         if not place_ids:
             place_ids = Place.objects.values_list('id', flat=True)
 
-        n_calculated = 0
         n_total = len(place_ids)
         for i in range(0, n_total, chunk_size):
             place_ids_part = place_ids[i:i + chunk_size]
@@ -263,11 +262,11 @@ class TravelTimeRouterMixin:
             self.store_to_database(df, variant, access_variant.pk,
                                    place_ids_part,
                                    logger, drop_constraints)
-            n_calculated += len(df)
-            logger.info(f'Gesamtreisezeiten zu {n_calculated:n}/'
+            logger.info(f'Gesamtreisezeiten zu '
+                        f'{min((i+chunk_size), n_total):n}/'
                         f'{n_total:n} Orten berechnet')
 
-        return n_calculated
+        return n_total
 
     def store_df_cs_to_database(self,
                                 df_cs: pd.DataFrame,
@@ -357,7 +356,7 @@ class TravelTimeRouterMixin:
         df = minutes.to_frame(name='minutes')
         df['variant_id'] = variant.id
         df.reset_index(inplace=True)
-        logger.debug(df)
+        #logger.debug(df)
         return df
 
     @staticmethod

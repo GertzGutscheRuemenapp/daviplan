@@ -58,7 +58,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
     this.chatSocket.onopen = e => this.retries = 0;
     this.chatSocket.onmessage = e => {
       const logEntry = JSON.parse(e.data);
-      this.addLogEntry(logEntry);
+      this.addLogEntry(logEntry, { intermediateDots: true });
       this.onMessage.emit(logEntry);
     }
     this.chatSocket.onclose = e => {
@@ -67,9 +67,27 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
     };
   }
 
-  addLogEntry(entry: LogEntry): void {
+  addLogEntry(entry: LogEntry, options?: { intermediateDots?: boolean }): void {
+    const lastEntry = this.entries[this.entries.length - 1];
+    // then skip
+    if (environment.loglevel === 'INFO' && entry.level === 'DEBUG') {
+      // show debug messages that are skipped in info level as a dotted progress indicator in log
+      if (options?.intermediateDots) {
+        if (lastEntry.level === 'INTER')
+          lastEntry.message += '.';
+        else
+          this.addLogEntry({
+            message: '.',
+            level: 'INTER'
+          })
+      }
+      // do not add actual debug message
+      return;
+    }
+    // remove eventual intermediate logs
+    if (lastEntry?.level === 'INTER')
+      this.entries.pop();
     if (!entry.message) return;
-    if (environment.loglevel === 'INFO' && entry.level === 'DEBUG') return;
     if (entry.timestamp)
       // cut off milliseconds
       entry.timestamp = entry.timestamp.split(',')[0];
