@@ -248,6 +248,7 @@ class TravelTimeRouterMixin:
         if not place_ids:
             place_ids = Place.objects.values_list('id', flat=True)
 
+        n_calculated = 0
         n_total = len(place_ids)
         for i in range(0, n_total, chunk_size):
             place_ids_part = place_ids[i:i + chunk_size]
@@ -262,11 +263,12 @@ class TravelTimeRouterMixin:
             self.store_to_database(df, variant, access_variant.pk,
                                    place_ids_part,
                                    logger, drop_constraints)
+            n_calculated += len(df)
             logger.info(f'Gesamtreisezeiten zu '
                         f'{min((i+chunk_size), n_total):n}/'
                         f'{n_total:n} Orten berechnet')
 
-        return n_total
+        return n_calculated
 
     def store_df_cs_to_database(self,
                                 df_cs: pd.DataFrame,
