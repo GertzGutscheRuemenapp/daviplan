@@ -50,6 +50,7 @@ class ModeVariantViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelVie
         instance = self.get_object()
         msg_start = f'Löschen der Variante {instance.label} gestartet'
         msg_end = f'Löschen der Variante {instance.label} beendet'
+        logger.info(f'Lösche Haltestellen der Variante {instance.label}')
         response = self.run_sync_or_async(func=delete_depending_matrices,
                                           user=request.user,
                                           scope=ProcessScope.ROUTING,
@@ -85,7 +86,7 @@ def delete_depending_matrices(variant_id: int,
         delete_chunks(qs, logger)
 
     res = Stop.objects.filter(variant=variant_id).delete()
-    logger.info(f'{res[0]} stops deleted')
+    logger.info(f'{res[0]} Haltestellen gelöscht')
 
 _l_i = 0
 
