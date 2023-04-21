@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import { environment } from "../../../../environments/environment";
@@ -7,7 +6,6 @@ import {
   CellResult,
   IndicatorLegendClass,
   Infrastructure,
-  ModeStatistics,
   Place,
   Scenario,
   Service,
@@ -86,7 +84,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updatePlaces().subscribe(() => this.renderReachability());
-      // this.updateStops();
+      this.updateStops();
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
@@ -175,13 +173,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.placesLayerGroup?.removeLayer(this.stopsLayer);
       this.stopsLayer = undefined;
     }
-    if (!transitVariant) return;
+    if (!transitVariant || this.activeMode !== TransportMode.TRANSIT ) return;
     this.planningService.getTransitStops({ variant: transitVariant['variant'] }).subscribe(stops => {
       this.stopsLayer = this.placesLayerGroup?.addVectorLayer('Haltestellen', {
         id: 'reach-places',
         order: 1,
         zIndex: 99998,
-        description: 'Haltestellen',
+        minZoom: 12,
+        description: 'Haltestellen - sichtbar erst ab einer hohen Zoomstufe',
         radius: 7,
         style: {
           fillColor: '#c26f12',
@@ -202,7 +201,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       });
       this.stopsLayer?.addFeatures(stops.map(stop => {
         return { id: stop.id, geometry: stop.geom, properties: { name: `Haltestelle: ${stop.name}` } }
-      }));;
+      }));
     })
   }
 
@@ -404,6 +403,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   changeMode(mode: TransportMode | undefined): void {
     this.activeMode = mode;
     this.cookies.set('planning-mode', mode);
+    this.updateStops();
     this.renderReachability();
   }
 

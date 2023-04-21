@@ -129,7 +129,7 @@ export class OlMap {
     }
   }
 
-  addTileServer(name: string, url: string, options: { params?: any, zIndex?: number,
+  addTileServer(name: string, url: string, options: { params?: any, zIndex?: number, minZoom?: number,
     visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string } = {}): OlLayer<any>{
 
     if (this.layers[name] != null) this.removeLayer(name)
@@ -154,7 +154,8 @@ export class OlMap {
     let layer = new OlTileLayer({
       opacity: (options.opacity != undefined) ? options.opacity: 1,
       source: source,
-      visible: options.visible === true
+      visible: options.visible === true,
+      minZoom: options?.minZoom
     });
     if (options?.zIndex)
       layer.setZIndex(options?.zIndex);
@@ -354,6 +355,7 @@ export class OlMap {
     multiSelect?: boolean,
     shape?: 'circle' | 'square' | 'star' | 'x',
     mouseOverCursor?: string,
+    minZoom?: number,
     stroke?: {
       color?: string | ((f: Feature<any>) => string),
       width?: number, dash?: number[],
@@ -444,6 +446,7 @@ export class OlMap {
     };
     let layer = new OlVectorLayer({
       source: source,
+      minZoom: options?.minZoom,
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: styleFunc

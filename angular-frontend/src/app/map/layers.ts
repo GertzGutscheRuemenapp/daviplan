@@ -27,6 +27,7 @@ interface ColorLegend {
 export interface LayerOptions {
   id?: string | number,
   url?: string,
+  minZoom?: number,
   description?: string,
   order?: number,
   zIndex?: number,
@@ -40,9 +41,11 @@ export interface LayerOptions {
 
 export abstract class MapLayer {
   name: string;
+  disabled = false;
   url?: string;
   id?: number | string;
   mapId?: string;
+  minZoom?: number;
   description?: string = '';
   order?: number = 1;
   zIndex?: number;
@@ -60,6 +63,7 @@ export abstract class MapLayer {
     this.name = name;
     this.id = options?.id;
     this.url = options?.url;
+    this.minZoom = options?.minZoom;
     this.legendElapsed = options?.legendElapsed;
     this.description = options?.description;
     this.attribution = options?.attribution;
@@ -135,9 +139,12 @@ export class TileLayer extends MapLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
+    if (this.minZoom)
+      this.map.view.on('change:resolution', () => console.log(this.map?.view.getZoom()))
     return this.map.addTileServer(
       this.mapId, this.url!, {
         zIndex: this.zIndex,
+        minZoom: this.minZoom,
         params: { layers: this.layerName },
         visible: this.visible,
         opacity: this.opacity,
@@ -223,8 +230,8 @@ function findBin(arr: number[], value: number) {
 }
 
 export class VectorLayer extends MapLayer {
-  featuresSelected: EventEmitter<Feature<any>[]>
-  featuresDeselected: EventEmitter<Feature<any>[]>
+  featuresSelected: EventEmitter<Feature<any>[]>;
+  featuresDeselected: EventEmitter<Feature<any>[]>;
   showLabel?: boolean;
   tooltipField?: string;
   labelField?: string;
@@ -311,6 +318,12 @@ export class VectorLayer extends MapLayer {
     this.mapId = uuid();
     this.initFunctions();
     this.initSelect();
+    if (this.minZoom) {
+      this.disabled = this.minZoom > this.map?.view.getZoom()!;
+      this.map.view.on('change:resolution', () => {
+        this.disabled = this.minZoom! > this.map?.view.getZoom()!;
+      })
+    }
     return this.map!.addVectorLayer(this.mapId, {
       zIndex: this.getZIndex(),
       visible: this.visible,
@@ -318,6 +331,7 @@ export class VectorLayer extends MapLayer {
       valueField: this.valueStyles?.field || 'value',
       mouseOverCursor: this.mouseOverCursor,
       multiSelect: this.multiSelect,
+      minZoom: this.minZoom,
       stroke: {
         color: this.valueStyles?.strokeColor?.colorFunc || this.style?.strokeColor,
         width: this.style?.strokeWidth || 2,
