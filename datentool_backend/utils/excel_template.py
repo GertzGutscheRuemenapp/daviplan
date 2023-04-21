@@ -105,7 +105,7 @@ def write_template_df(df: pd.DataFrame,
                       model,
                       logger,
                       drop_constraints=False,
-                      log_level=logging.INFO,
+                      log_level=logging.DEBUG,
                       partition_id=None):
     manager = model.copymanager
     with transaction.atomic():
