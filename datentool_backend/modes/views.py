@@ -50,26 +50,28 @@ class ModeVariantViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelVie
         instance = self.get_object()
         msg_start = f'Löschen der Variante {instance.label} gestartet'
         msg_end = f'Löschen der Variante {instance.label} beendet'
-        logger.info(f'Lösche Haltestellen der Variante {instance.label}')
         response = self.run_sync_or_async(func=delete_depending_matrices,
                                           user=request.user,
                                           scope=ProcessScope.ROUTING,
                                           message_async=msg_start,
                                           message_sync=msg_end,
                                           ret_status=status.HTTP_204_NO_CONTENT,
-                                          variant_id=instance.pk)
-        instance.delete()
+                                          variant_id=instance.pk,
+                                          delete_variant=True)
         return response
 
 
 def delete_depending_matrices(variant_id: int,
                               logger: logging.Logger,
-                              only_with_stops: bool = False):
+                              only_with_stops: bool = False,
+                              delete_variant: bool = False):
     """
     Delete the depending objects in the matrices
     in the database first to improve performance
     """
     name = f"mode_{variant_id}"
+    variant = ModeVariant.objects.get(id=variant_id)
+    logger.info(f'Lösche Haltestellen der Variante {variant.label}')
     for model in [MatrixCellStop,
                   MatrixStopStop]:
         truncate_partition_table(model, name)
@@ -87,6 +89,9 @@ def delete_depending_matrices(variant_id: int,
 
     res = Stop.objects.filter(variant=variant_id).delete()
     logger.info(f'{res[0]} Haltestellen gelöscht')
+    if delete_variant:
+        variant.delete()
+        logger.info(f'Variante {variant.label} gelöscht')
 
 _l_i = 0
 
