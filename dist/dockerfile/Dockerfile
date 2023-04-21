@@ -20,7 +20,7 @@ RUN npm i -g @angular/cli@14
 # bundle the frontend scripts
 WORKDIR /datentool/angular-frontend
 RUN npm i
-RUN ng build --stats-json --build-optimizer
+RUN ng build --stats-json --configuration production
 
 # node modules tmp-directories may contain files with high UIDs that cause problems with CircleCI
 RUN rm -R /datentool/angular-frontend/node_modules/tmp

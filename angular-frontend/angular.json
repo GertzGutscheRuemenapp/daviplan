@@ -43,8 +43,14 @@
           },
           "configurations": {
             "production": {
-              "buildOptimizer": true,
               "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -56,8 +62,7 @@
                   "maximumWarning": "8kb",
                   "maximumError": "200kb"
                 }
-              ],
-              "outputHashing": "all"
+              ]
             },
             "development": {
               "buildOptimizer": false,
@@ -74,6 +79,8 @@
               ]
             },
             "staging": {
+              "buildOptimizer": false,
+              "optimization": false,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
