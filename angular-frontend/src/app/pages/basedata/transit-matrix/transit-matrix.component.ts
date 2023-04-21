@@ -263,8 +263,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
         this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/?force=true`
         ).subscribe(res => {
           this.selectedVariant = undefined;
-          // other variants might change on deletion of the default one
-          this.fetchVariants({ reset: true });
+          this.isProcessing$.next(true);
         }, error => {
           showAPIError(error, this.dialog);
         });
