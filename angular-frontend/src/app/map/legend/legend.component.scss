@@ -46,6 +46,10 @@
 .legend-entry {
   height: 30px;
   //display: flex;
+
+  ::ng-deep .mat-checkbox-checked.disabled .mat-checkbox-background {
+    background-color: lightgrey;
+  }
 }
 
 .entry-header {

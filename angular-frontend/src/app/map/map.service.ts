@@ -55,6 +55,7 @@ export class MapLayerGroup {
 
   appendLayer(layer: MapLayer | undefined){
     if (layer) this.children.push(layer);
+    this.children = sortBy(this.children, 'order');
   }
 
   addVectorLayer(name: string, options: VectorLayerOptions): VectorLayer | undefined {

@@ -52,6 +52,7 @@
                   <mat-checkbox color="primary"
                                 [checked]="layer.visible || false"
                                 (change)="toggleLayer(layer)"
+                                [ngClass]="{'disabled': layer.disabled}"
                                 title="Layer anzeigen/verstecken">
                   </mat-checkbox>
                 </div>
@@ -66,8 +67,8 @@
                     <ng-container *ngIf="!layer.legend">
                       <div *ngIf="$any(layer).style" style="cursor: pointer;"
                            class="symbol"
-                           [style.background]="$any(layer).style.fillColor || 'white'"
-                           [style.border-color]="$any(layer).style.strokeColor || 'white'"
+                           [style.background]="(layer.disabled || !layer.visible)? 'lightgrey': $any(layer).style.fillColor || 'white'"
+                           [style.border-color]="(layer.disabled || !layer.visible)? 'grey': $any(layer).style.strokeColor || 'white'"
                            [class]="$any(layer).style.symbol">
                       </div>
                       <mat-icon *ngIf="$any(layer).legendUrl"
