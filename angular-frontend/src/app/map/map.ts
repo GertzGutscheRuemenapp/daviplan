@@ -463,7 +463,8 @@ export class OlMap {
       fillColor: options?.fill?.mouseOverColor,
       strokeColor: options?.stroke?.mouseOverColor,
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1,
-      styleFunc: styleFunc
+      styleFunc: styleFunc,
+      minZoom: options?.minZoom
     });
     if (options?.selectable) {
       const selectStrokeColor = options.stroke?.selectedColor || strokeColor;
@@ -514,6 +515,7 @@ export class OlMap {
     strokeColor?: string,
     strokeWidth?: number,
     styleFunc?: ((d: any) => any),
+    minZoom?: number
     /*    valueMap?: {
           field: string,
           values: Record<string, number>
@@ -556,11 +558,12 @@ export class OlMap {
       this.overlays[layer.get('name')] = new OlVectorLayer({
         source: new VectorSource(),
         map: this.map,
-        style: styleFunc
+        style: styleFunc,
+        minZoom: options?.minZoom
       });
     }
     this.map.on('pointermove', event => {
-      if (!layer.getVisible()) return;
+      if (!layer.getVisible() || (options?.minZoom && options?.minZoom > this.view.getZoom()!)) return;
       const overlay = this.overlays[layer.get('name')];
       if ((!overlay || !overlay.getVisible()) && !layer.get('showTooltip')) return;
       layer.getFeatures(event.pixel).then((features: FeatureLike[]) => {
