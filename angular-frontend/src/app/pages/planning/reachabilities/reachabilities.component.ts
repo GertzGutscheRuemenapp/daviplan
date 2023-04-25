@@ -113,7 +113,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.planningService.getPlaces({
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
-        this.placesLayerGroup?.clear();
+        if (this.placesLayer)
+          this.placesLayerGroup?.removeLayer(this.placesLayer);
         this.places = places;
         this.placesLayer = this.placesLayerGroup?.addVectorLayer(this.activeInfrastructure!.name, {
           id: 'reach-places',
@@ -177,7 +178,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getTransitStops({ variant: transitVariant['variant'] }).subscribe(stops => {
       this.stopsLayer = this.placesLayerGroup?.addVectorLayer('Haltestellen', {
         id: 'reach-places',
-        order: 1,
+        order: 2,
         zIndex: 99998,
         minZoom: 13,
         description: 'Haltestellen - sichtbar erst ab einer hohen Zoomstufe',
