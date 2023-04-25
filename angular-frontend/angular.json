@@ -81,6 +81,7 @@
             "staging": {
               "buildOptimizer": false,
               "optimization": false,
+              "outputHashing": "all",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
