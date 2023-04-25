@@ -179,7 +179,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         id: 'reach-places',
         order: 1,
         zIndex: 99998,
-        minZoom: 12,
+        minZoom: 13,
         description: 'Haltestellen - sichtbar erst ab einer hohen Zoomstufe',
         radius: 7,
         style: {
