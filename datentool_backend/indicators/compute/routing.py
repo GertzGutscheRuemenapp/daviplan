@@ -333,7 +333,9 @@ class TravelTimeRouterMixin:
             matrix = router.matrix_calculation(source_coords, dest_coords)
         # if routing crashes due to malformed network the connection just aborts
         except ConnectionError:
-            raise RoutingError('Routing abgebrochen')
+            msg = 'Routing abgebrochen'
+            logger.error(msg)
+            raise RoutingError(msg)
 
         # convert matrix to dataframe
         arr = np.array(matrix.durations)
