@@ -147,7 +147,7 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     }
   }
 
-  updateTotalCapacities(options?:{scenario?:Scenario, reset?:boolean} ): void{
+  updateTotalCapacities(options?:{scenario?: Scenario, reset?: boolean} ): void{
     if (!options?.scenario)
       this.totalCapacities = {};
     if (!this.service || !this.year) return;

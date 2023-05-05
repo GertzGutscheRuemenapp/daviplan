@@ -412,7 +412,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       });
       const format = new WKT();
       let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
-      const dialogRefWait = SimpleDialogComponent.show('Füge Ort hinzu und berechne Erreichbarkeiten. Bitte warten', this.dialog, { showAnimatedDots: true });
+      const dialogRefWait = SimpleDialogComponent.show(
+        '<p>Füge Ort hinzu und berechne Erreichbarkeiten.</p>Das Einfügen kann wegen der komplexen Erreichbarkeits- berechnungen ggf. ein paar Minuten dauern.  Bitte warten',
+        this.dialog, { showAnimatedDots: true }
+      );
       this.http.post<Place>(this.rest.URLS.places, {
         name: this.placeForm!.value.name,
         infrastructure: this.activeService?.infrastructure,
