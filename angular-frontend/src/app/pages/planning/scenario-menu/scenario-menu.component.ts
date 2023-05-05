@@ -86,9 +86,9 @@ export class ScenarioMenuComponent implements OnInit, OnDestroy {
     this.planningService.getPrognoses().subscribe(pr => this.prognoses = pr);
     this.subscriptions.push(this.planningService.scenarioChanged.subscribe(scenario => {
       this.verifyScenarioInputs();
-      if (this.domain==="supply") {
-        this.updateTotalCapacities({scenario: scenario, reset: true});
-      }
+    }));
+    this.subscriptions.push(this.planningService.capacitiesChanged.subscribe(() => {
+      this.updateTotalCapacities({ reset: true });
     }));
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       if (scenario)

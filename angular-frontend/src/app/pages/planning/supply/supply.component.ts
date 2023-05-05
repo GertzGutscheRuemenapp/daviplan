@@ -544,9 +544,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }).subscribe(capacities => {
         // clear scenario cache (to force update on rating page)
         this.planningService.clearCache(this.activeScenario!.id.toString());
+        this.planningService.clearCache('totalcapacities');
         this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
         this.updatePlaces({ resetScenario: true });
-        this.planningService.scenarioChanged.emit(this.activeScenario);
+        this.planningService.capacitiesChanged.emit();
         dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
       }, error => {
