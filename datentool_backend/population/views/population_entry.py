@@ -181,7 +181,9 @@ def read_excel_file(excel_filepath, prognosis_id) -> pd.DataFrame:
             df_pop.rename(columns={0: 'value',}, inplace=True)
             df_pop['population_id'] = population.id
         except KeyError as e:
-            raise ColumnError(f'Spalte {e} wurde nicht gefunden.')
+            msg = f'Spalte {e} wurde nicht gefunden.'
+            logger.error(msg)
+            raise ColumnError(msg)
         populations.append(population)
         df = pd.concat([df, df_pop[columns]])
 

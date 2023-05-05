@@ -18,6 +18,7 @@ from drf_spectacular.utils import (extend_schema,
                                    extend_schema_view,
                                    inline_serializer,
                                    )
+from django.contrib.gis.gdal.error import GDALException
 from djangorestframework_camel_case.util import camelize
 
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
@@ -300,11 +301,19 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
                     continue
             else:
                 from django.core.exceptions import ValidationError
+                logger.error(f'Fehler beim Geokodieren des Standorts '
+                             f'"{place_name}":')
+                logger.error(bkg_error)
                 raise ValidationError(bkg_error)
         else:
-            # create the geometry and transform to WebMercator
-            geom = Point(lon, lat, srid=4326)
-            geom.transform(3857)
+            try:
+                # create the geometry and transform to WebMercator
+                geom = Point(lon, lat, srid=4326)
+                geom.transform(3857)
+            except GDALException as e:
+                logger.error(f'Die Geometrie des Standorts "{place_name}" '
+                             'ist nicht valide')
+                raise e
 
         # set the place columns
         place.infrastructure = infra
