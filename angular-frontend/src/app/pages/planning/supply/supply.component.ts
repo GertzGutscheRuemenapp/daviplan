@@ -412,7 +412,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       });
       const format = new WKT();
       let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
-      const dialogRefWait = SimpleDialogComponent.show('Füge Ort hinzu und berechne Erreichbarkeiten. Bitte warten', this.dialog, { showAnimatedDots: true });
+      const dialogRefWait = SimpleDialogComponent.show(
+        '<p>Füge Ort hinzu und berechne Erreichbarkeiten.</p>Das Einfügen kann wegen der komplexen Erreichbarkeits- berechnungen ggf. ein paar Minuten dauern.  Bitte warten',
+        this.dialog, { showAnimatedDots: true }
+      );
       this.http.post<Place>(this.rest.URLS.places, {
         name: this.placeForm!.value.name,
         infrastructure: this.activeService?.infrastructure,
@@ -541,9 +544,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }).subscribe(capacities => {
         // clear scenario cache (to force update on rating page)
         this.planningService.clearCache(this.activeScenario!.id.toString());
+        this.planningService.clearCache('totalcapacities');
         this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
         this.updatePlaces({ resetScenario: true });
-        this.planningService.scenarioChanged.emit(this.activeScenario);
+        this.planningService.capacitiesChanged.emit();
         dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
       }, error => {

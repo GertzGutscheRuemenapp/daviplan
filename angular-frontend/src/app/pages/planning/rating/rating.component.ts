@@ -203,7 +203,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         results.values.forEach(result => {
           const place = places.find(p => p.id == result.placeId);
           if (!place) return;
-          const formattedValue = `${result.value} ${this.selectedIndicator?.unit}`;
+          const formattedValue = `${result.value.toLocaleString()} ${this.selectedIndicator?.unit}`;
           let description = `<b>${place.name}</b><br>
                             ${this.selectedIndicator!.description}: <b>${formattedValue}</b><br>
                             Jahr: ${this.year}<br>

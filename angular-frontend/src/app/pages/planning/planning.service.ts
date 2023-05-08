@@ -46,6 +46,7 @@ export class PlanningService extends RestCacheService {
   activeProcess?: PlanningProcess;
   showScenarioMenu = false;
   scenarioChanged = new EventEmitter<Scenario>();
+  capacitiesChanged = new EventEmitter<boolean>();
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
               private cookies: CookieService) {
@@ -205,7 +206,7 @@ export class PlanningService extends RestCacheService {
     if (options?.planningProcess){
       params.planningProcess = options.planningProcess.id
     };
-    return this.getCachedData<TotalCapacityInScenario[]>(url, {params: params, reset: options?.reset});
+    return this.getCachedData<TotalCapacityInScenario[]>(url, {params: params, reset: options?.reset, key: 'totalcapacities' });
   }
 
   updateCapacities(options?: { infrastructure?: Infrastructure, year?: number, scenario?: Scenario, reset?: boolean }): Observable<any> {

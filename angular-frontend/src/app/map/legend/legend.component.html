@@ -39,7 +39,7 @@
           <div *ngFor="let layer of group.children">
             <div class="legend-entry"
                  [ngClass]="{'checked': layer.visible && !layer.disabled }"
-                 *ngIf="mapControl.editMode || layer.visible">
+                 *ngIf="mapControl.editMode || (layer.visible && !layer.disabled)">
               <div class="entry-header"
                    [ngbPopover]="layer.description? popover: undefined"
                    placement="left"
