@@ -144,11 +144,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           },
           labelOffset: { y: 15 }
         });
-        this.placesLayer?.setSelectable(this.indicator === 'place');
         this.placesLayer?.addFeatures(places.map(place => {
           return { id: place.id, geometry: place.geom, properties: { name: `Standort: ${place.name}` } }
         }));
-
+        const selectable = this.indicator === 'place';
+        this.placesLayer?.setSelectable(selectable);
+        if (selectable && this.selectedPlaceId !== undefined) {
+          this.placesLayer?.selectFeatures([this.selectedPlaceId],{silent: true});
+        }
         this.placesLayer?.featuresSelected?.subscribe(features => {
           this.selectedPlaceId = features[0].get('id');
           this.cookies.set('reachability-place', this.selectedPlaceId);
@@ -208,6 +211,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   showPlaceReachability(): void {
     if (this.selectedPlaceId === undefined || !this.activeScenario || !this.activeMode) return;
+    // place is selected but is not available after changing year or service
+    if (this.selectedPlaceId && !this.places.find(place => place.id === this.selectedPlaceId)) return;
     this.updateMapDescription('zur ausgewählten Einrichtung');
 
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode, { scenario: this.activeScenario }).subscribe(cellResults => {
@@ -227,9 +232,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         style.fillColor = {
           bins: getIndicatorLegendClasses(this.activeMode!)
         };
-      }
-      if (this.placesLayer && this.selectedPlaceId !== undefined) {
-        this.placesLayer.selectFeatures([this.selectedPlaceId],{silent: true});
       }
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
@@ -374,6 +376,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const placeSelectMode = this.indicator === 'place';
     const cellSelectMode = this.indicator === 'cell';
     this.setPlaceSelection(placeSelectMode);
+    this.placesLayer?.clearSelection();
     this.setMarkerPlacement(cellSelectMode);
     this.mapControl?.setCursor(placeSelectMode? 'search': cellSelectMode? 'marker': 'default');
     // this.mapControl?.setCursor(cellSelectMode? 'marker': 'default');
