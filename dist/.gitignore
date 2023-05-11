@@ -2,3 +2,4 @@
 routing_data
 redis_data
 postgres_data
+docker-compose_testing

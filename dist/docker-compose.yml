@@ -45,12 +45,12 @@ services:
 
   # backend service serving the frontend and REST resources
   web:
-    image: gertzgutscheruemenapp/daviplan:test_run_staging
+    image: gertzgutscheruemenapp/daviplan:latest
     # environment variables as requested in django (settings.py)
     environment:
       # set ENVIRONMENT to "development" if you want to run test the tool locally only
       # set ENVIRONMENT to "staging" if you want to run a (less stable and insecure) staging server
-      - ENVIRONMENT=development
+      - ENVIRONMENT=productive
       - DJANGO_SITENAME=datentool
       - MODE_CAR_HOST=router-car
       - MODE_BIKE_HOST=router-bike
@@ -62,7 +62,7 @@ services:
     env_file: .env
     # start postgis first
     depends_on:
-      - postgis    
+      - postgis
     # network links to access the other containers
     links:
       - postgis:db
@@ -71,7 +71,7 @@ services:
       - router-walk:router-walk
       - redis:redis
     # run shell script containing migration, runserver etc.
-    # wait 5 seconds before so that postgis most likely will be ready when starting the script 
+    # wait 5 seconds before so that postgis most likely will be ready when starting the script
     # (ToDo: replace sleep with healthcheck that postgis is ready before running command)
     command: /bin/sh -c "sleep 5s && /run.sh"
     # the port mapped to outside the container
