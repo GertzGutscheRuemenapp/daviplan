@@ -108,7 +108,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy, OnInit {
           this.years = [];
           this.realYears = [];
           years.forEach(year => {
-            if (year.year > this.maxYear) return;
+            if (!year.hasRealData && (year.year > this.maxYear)) return;
             if (year.isReal) {
               this.realYears.push(year.year);
             }

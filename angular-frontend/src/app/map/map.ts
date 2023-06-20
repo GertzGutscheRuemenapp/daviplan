@@ -213,7 +213,6 @@ export class OlMap {
         })
       })
     })
-    const _this = this;
     const layer = new VectorTileLayer({
       source: source,
       declutter: true,
