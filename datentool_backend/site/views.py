@@ -4,7 +4,7 @@ import logging
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
-from django.db.models import ExpressionWrapper, BooleanField, Q, Count
+from django.db.models import Exists, OuterRef
 from django.core.exceptions import BadRequest
 from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiResponse)
@@ -23,7 +23,8 @@ from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
 from datentool_backend.modes.models import Mode
 from datentool_backend.site.models import SiteSetting, ProjectSetting, Year
 from datentool_backend.area.models import AreaLevel, Area
-from datentool_backend.population.models import PopulationRaster
+from datentool_backend.population.models import (PopulationRaster, Population,
+                                                 PopStatistic)
 
 from .serializers import (SiteSettingSerializer,
                           ProjectSettingSerializer,
@@ -33,7 +34,6 @@ from .serializers import (SiteSettingSerializer,
                           )
 from datentool_backend.utils.processes import RunProcessMixin, ProcessScope
 from datentool_backend.population.views.raster import PopulationRasterViewSet
-
 
 
 class YearFilter(filters.FilterSet):
@@ -55,22 +55,20 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         """ get the years. Request-parameters with_prognosis/with_population """
-        qs = Year.objects.all()
+        all_years = Year.objects.all()
 
-        has_real_data = (Q(population__isnull=False) &
-                         Q(population__prognosis__isnull=True))
-        has_prognosis_data = Q(population__prognosis__isnull=False)
-        has_statistics_data = Q(stat_count__gt=0)
+        pop_prognosis = Population.objects.filter(
+            year=OuterRef('pk'), prognosis__isnull=False)
+        pop_real = Population.objects.filter(
+            year=OuterRef('pk'), prognosis__isnull=True)
+        statistics = PopStatistic.objects.filter(year=OuterRef('pk'))
 
-        qs = qs.annotate(stat_count=Count('statistics')).annotate(
-            has_real=ExpressionWrapper(has_real_data,
-                                       output_field=BooleanField()),
-            has_prognosis=ExpressionWrapper(has_prognosis_data,
-                                            output_field=BooleanField()),
-            has_statistics=ExpressionWrapper(has_statistics_data,
-                                             output_field=BooleanField()),
+        qs = all_years.annotate(
+            has_real=Exists(pop_real),
+            has_prognosis=Exists(pop_prognosis),
+            has_statistics=Exists(statistics)
         )
-        return qs.distinct().order_by('year')
+        return qs.order_by('year')
 
     @extend_schema(description='Set Year Range',
                    request=inline_serializer(

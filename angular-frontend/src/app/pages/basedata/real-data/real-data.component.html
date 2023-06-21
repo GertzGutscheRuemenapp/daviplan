@@ -197,6 +197,7 @@
         <mat-checkbox color="primary"
                       [checked]="yearSelection.isSelected(year.year)"
                       (change)="yearSelection.toggle(year.year)"
+                      [disabled]="year.year > maxYear"
                       title="{{year.year}} als Realdatenjahr aus/abwählen">
         </mat-checkbox>
       </td>

@@ -3,6 +3,7 @@ import warnings
 import os
 from tempfile import mktemp
 import pandas as pd
+import datetime
 
 from openpyxl.reader.excel import load_workbook
 
@@ -150,6 +151,15 @@ def read_excel_file(excel_filepath, prognosis_id) -> pd.DataFrame:
 
     n_years = meta['B2'].value
     years = [meta.cell(3, n).value for n in range(2, n_years + 2)]
+    cur_year = datetime.date.today().year
+    if prognosis_id is None:
+        future_years = [y for y in years if y > cur_year]
+        if future_years:
+            msg = ('Die Datei enthält Jahre, die in der Zukunft liegen: '
+                   f'{future_years}. Laden Sie Daten für zukünftige Jahre bitte'
+                   ' als Prognosen unter "Zukunft" hoch.')
+            logger.error(msg)
+            raise Exception(msg)
     populations = []
     for y in years:
         if not str(y) in wb.sheetnames:

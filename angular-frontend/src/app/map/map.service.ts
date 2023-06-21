@@ -501,8 +501,7 @@ export class MapControl {
 
   zoomTo(layer: MapLayer): void {
     if (!layer.mapId) return;
-    const mapLayer = this.map?.getLayer(layer.mapId),
-          _this = this;
+    const mapLayer = this.map?.getLayer(layer.mapId);
     mapLayer!.getSource().once('featuresloadend', (evt: any) => {
       this.map?.zoomToExtent(layer.mapId!);
     })
