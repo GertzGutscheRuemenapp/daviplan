@@ -132,7 +132,6 @@ def read_excel_file(excel_filepath, prognosis_id) -> pd.DataFrame:
     df = pd.DataFrame(columns=columns)
 
     wb = load_workbook(excel_filepath)
-    meta = wb['meta']
     area_level = AreaLevel.objects.get(is_default_pop_level=True)
 
     areas = Area.annotated_qs(area_level)
@@ -149,8 +148,22 @@ def read_excel_file(excel_filepath, prognosis_id) -> pd.DataFrame:
                                 columns=['age_group_id', 'Altersgruppe'])\
         .set_index('Altersgruppe')
 
-    n_years = meta['B2'].value
-    years = [meta.cell(3, n).value for n in range(2, n_years + 2)]
+    years = []
+    for sn in wb.sheetnames:
+        sheet = wb[sn]
+        year = sheet.cell(1, 2).value
+        error_msg = ''
+        try:
+            if int(sn) != year:
+                error_msg = (f'Der Name des Blatts "{sn}" stimmt nicht mit dem'
+                             f' dort angegebenen Jahr "{year}" überein')
+        except ValueError:
+            error_msg = (f'Der Name des Blatts "{sn}" entspricht '
+                         'keinem gültigen Jahr')
+        if error_msg:
+            logger.error(error_msg)
+            raise Exception(error_msg)
+        years.append(year)
     cur_year = datetime.date.today().year
     if prognosis_id is None:
         future_years = [y for y in years if y > cur_year]
@@ -162,9 +175,6 @@ def read_excel_file(excel_filepath, prognosis_id) -> pd.DataFrame:
             raise Exception(msg)
     populations = []
     for y in years:
-        if not str(y) in wb.sheetnames:
-            logger.info(f'Excel-Blatt für Jahr {y} nicht vorhanden')
-            continue
         year, created = Year.objects.get_or_create(year=y)
         population, created = Population.objects.get_or_create(
             prognosis_id=prognosis_id,
