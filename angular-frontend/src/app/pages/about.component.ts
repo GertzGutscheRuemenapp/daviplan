@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { environment } from "../../environments/environment";
+import { SettingsService } from "../settings.service";
 
 @Component({
   templateUrl: './about.component.html',
@@ -7,9 +8,13 @@ import { environment } from "../../environments/environment";
 })
 export class AboutComponent implements OnInit {
   backend: string = environment.backend;
+  version: string = '';
 
-  constructor() {}
+  constructor(private settingsService: SettingsService) {}
 
-  ngOnInit(): void { }
-
+  ngOnInit(): void {
+    this.settingsService.siteSettings$.subscribe(settings => {
+      this.version = settings.version;
+    });
+  }
 }
