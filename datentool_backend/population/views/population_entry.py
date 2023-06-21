@@ -150,6 +150,9 @@ def read_excel_file(excel_filepath, prognosis_id) -> pd.DataFrame:
 
     years = []
     for sn in wb.sheetnames:
+        # ignore the former existing hidden meta sheet that was removed
+        if sn == 'meta':
+            continue
         sheet = wb[sn]
         year = sheet.cell(1, 2).value
         error_msg = ''
