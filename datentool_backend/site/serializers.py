@@ -25,6 +25,7 @@ from datentool_backend.indicators.models import (MatrixMixin,
                                                  MatrixStopStop,
                                                  Stop,
                                                  )
+from datentool_backend import __version__ as DATENTOOL_VERSION
 
 logger = logging.getLogger('areas')
 
@@ -150,10 +151,11 @@ class SiteSettingSerializer(serializers.ModelSerializer):
         #view_name='settings-detail', read_only=True)
     bkg_password_is_set = serializers.SerializerMethodField()
     regionalstatistik_password_is_set = serializers.SerializerMethodField()
+    version = serializers.SerializerMethodField()
 
     class Meta:
         model = SiteSetting
-        fields = ('name', 'title', 'contact_mail', 'logo',
+        fields = ('name', 'version', 'title', 'contact_mail', 'logo',
                   'primary_color', 'secondary_color', 'welcome_text',
                   'bkg_password_is_set', 'regionalstatistik_password_is_set',
                   'bkg_password', 'regionalstatistik_user',
@@ -162,6 +164,9 @@ class SiteSettingSerializer(serializers.ModelSerializer):
             'bkg_password': {'write_only': True},
             'regionalstatistik_password': {'write_only': True}
         }
+
+    def get_version(self, obj):
+        return DATENTOOL_VERSION
 
     def get_bkg_password_is_set(self, obj):
         return bool(obj.bkg_password)

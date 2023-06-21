@@ -1,6 +1,6 @@
 # daviplan
 
-Webtool zur Planung und Darstellung von Strukturen der regionalen Daseinsvorsorge 
+Webtool zur Planung und Darstellung von Strukturen der regionalen Daseinsvorsorge
 
 A web tool to display and plan basic public services
 
@@ -19,6 +19,9 @@ Testing Status
 Code Coverage
 
 [![codecov](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool/branch/main/graph/badge.svg?token=18FTTI6MF5)](https://codecov.io/gh/GertzGutscheRuemenapp/bule_datentool)
+
+## Version
+see /datentool_backend/version.py
 
 ## Setting up a development environment
 

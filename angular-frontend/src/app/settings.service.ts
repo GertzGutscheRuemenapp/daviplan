@@ -9,6 +9,7 @@ import { environment } from "../environments/environment";
 
 export interface SiteSettings {
   id: number,
+  version: string,
   title: string,
   contactMail: string,
   welcomeText: string,
@@ -64,7 +65,7 @@ class UserSettings {
 export class SettingsService {
   siteSettings$ = new BehaviorSubject<SiteSettings>({
     id: 0, title: '', contactMail: '', welcomeText: '', logo: '', regionalstatistikUser: '',
-    regionalstatistikPasswordIsSet: false, bkgPasswordIsSet: false
+    regionalstatistikPasswordIsSet: false, bkgPasswordIsSet: false, version: '0.0.0'
   });
   baseDataSettings$ = new BehaviorSubject<BasedataSettings>({
     popStatisticsAreaLevel: 0,
