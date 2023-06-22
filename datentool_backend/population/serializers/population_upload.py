@@ -97,20 +97,6 @@ class PopulationTemplateSerializer(serializers.Serializer):
 
         fn = os.path.join(settings.MEDIA_ROOT, excel_filename)
         with pd.ExcelWriter(fn, engine='openpyxl') as writer:
-            meta = writer.book.create_sheet('meta')
-            meta['A1'] = 'arealevel'
-            meta['B1'] = area_level_id
-            meta['C1'] = area_level.name
-            meta['A2'] = 'years count'
-            meta['B2'] = len(years)
-            meta['A3'] = 'years'
-            for i, year in enumerate(years):
-                meta.cell(3, i+2, year)
-            meta['A4'] = 'prognosis'
-            if prognosis_id:
-                meta['B4'] = prognosis.name
-            meta.sheet_state = 'hidden'
-
             for year in years:
                 columns = ['area_id', 'gender_id', 'age_group_id', 'value']
                 try:

@@ -90,7 +90,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
-                            set(['meta']+[f'{y}' for y in years]))
+                            set([f'{y}' for y in years]))
 
     def test_create_prognosis_template(self):
         """Create templates for Prognosis"""
@@ -104,7 +104,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
-                            set(['meta']+[f'{y}' for y in years]))
+                            set([f'{y}' for y in years]))
 
     def test_upload_prognosis_template(self):
         """
