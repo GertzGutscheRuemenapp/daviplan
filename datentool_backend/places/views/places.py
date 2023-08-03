@@ -8,6 +8,7 @@ from tempfile import mktemp
 
 import pandas as pd
 
+from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import Point
 from django.db.models import Prefetch, Q
 from django.http.request import QueryDict
@@ -278,7 +279,11 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
         if pd.isna(lon) or pd.isna(lat):
             if geocoder:
                 logger.info(f'Geokodiere Adresse für "{place_row.Name}"')
-                res = geocode(geocoder, place_row)
+                try:
+                    res = geocode(geocoder, place_row)
+                except ValidationError as e:
+                    logger.error(str(e))
+                    raise e
                 if res:
                     (lon, lat), typ = res
                     if typ.lower() not in ['haus', 'strasse']:
@@ -300,7 +305,6 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
                     n_failed += 1
                     continue
             else:
-                from django.core.exceptions import ValidationError
                 logger.error(f'Fehler beim Geokodieren des Standorts '
                              f'"{place_name}":')
                 logger.error(bkg_error)
