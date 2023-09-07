@@ -72,8 +72,8 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscriptions.push(this.settings.projectSettings$.subscribe(ps => {
       this.projectArea = (ps.projectArea.indexOf('EMPTY') >= 0)? '': ps.projectArea;
     }));
-    this.settings.fetchBaseDataSettings();
-    this.settings.fetchProjectSettings();
+    this.settings.getBaseDataSettings().subscribe();
+    this.settings.getProjectSettings().subscribe();
   }
 
   ngAfterViewInit() {

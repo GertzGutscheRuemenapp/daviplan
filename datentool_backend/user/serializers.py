@@ -28,7 +28,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Profile
-        fields = ('admin_access', 'can_create_process', 'can_edit_basedata')
+        fields = ('admin_access', 'can_create_process', 'can_edit_basedata',
+                  'is_demo_user')
 
 
 class UserAccessSerializer(serializers.ModelSerializer):

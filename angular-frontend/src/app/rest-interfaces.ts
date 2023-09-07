@@ -24,6 +24,7 @@ export type Profile = {
   adminAccess: boolean;
   canCreateProcess: boolean;
   canEditBasedata: boolean;
+  isDemoUser: boolean;
 }
 
 export type InfrastructureAccess = {

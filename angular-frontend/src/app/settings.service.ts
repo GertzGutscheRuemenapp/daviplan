@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { RestAPI } from "./rest-api";
 import { HttpClient } from "@angular/common/http";
 import { Title } from "@angular/platform-browser";
@@ -86,11 +86,13 @@ export class SettingsService {
 
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {}
 
-  refresh(): void {
-    this.getSiteSettings().subscribe();
-    this.fetchProjectSettings();
-    this.fetchBaseDataSettings();
+  refresh(): Observable<any> {
     this.user = new UserSettings(this.rest, this.http);
+    return forkJoin(
+      this.getSiteSettings(),
+      this.getProjectSettings(),
+      this.getBaseDataSettings()
+    )
   }
 
   public getSiteSettings(): Observable<SiteSettings> {
@@ -104,14 +106,14 @@ export class SettingsService {
       }));
   }
 
-  public fetchProjectSettings(): void {
-    this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
-      .subscribe(projectSettings => this.projectSettings$.next(projectSettings));
+  public getProjectSettings(): Observable<ProjectSettings> {
+    return this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
+      .pipe(tap(projectSettings => this.projectSettings$.next(projectSettings)));
   }
 
-  public fetchBaseDataSettings(): void {
-    this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings)
-      .subscribe((basedataSettings) => this.baseDataSettings$.next(basedataSettings));
+  public getBaseDataSettings(): Observable<BasedataSettings> {
+    return this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings)
+        .pipe(tap((basedataSettings) => this.baseDataSettings$.next(basedataSettings)));
   }
 
   applySiteSettings(settings: SiteSettings) {

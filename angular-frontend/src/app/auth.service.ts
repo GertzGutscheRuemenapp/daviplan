@@ -180,10 +180,6 @@ export class TokenInterceptor implements HttpInterceptor {
           }
           return this.logout(err);
         }
-        // if (err instanceof HttpErrorResponse && err.status === 403) {
-        //   return this.logout(err);
-        // }
-        // other errors
         return throwError(err);
       })
     );

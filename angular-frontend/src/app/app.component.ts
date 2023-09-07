@@ -14,15 +14,12 @@ export class AppComponent {
   constructor(router: Router, dialog: MatDialog, authService: AuthService) {
 
     // auto apply site settings when new ones were fetched
-    authService.settings.getSiteSettings().subscribe(settings => {
-      authService.settings.fetchProjectSettings();
-      authService.settings.fetchBaseDataSettings();
-      authService.settings.applySiteSettings(settings);
+    authService.settings.refresh().subscribe(() => {
       // initialize authentication cycle by refreshing access token
       if (authService.hasPreviousLogin())
         authService.refreshToken().subscribe();
       // fetch demo user in demo mode if not logged in
-      else if (settings.demoMode) {
+      else if (authService.settings.siteSettings$.value.demoMode) {
         authService.fetchCurrentUser().subscribe((user) => {
           if (user)
             authService.login({ username: user.username, password: '-' }).subscribe();

@@ -82,8 +82,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy, OnInit {
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
       this.isProcessing$.next(baseSettings.processes?.population || false);
     }));
-    this.settings.fetchBaseDataSettings();
-    this.fetchData();
+    this.settings.getBaseDataSettings().subscribe(() => this.fetchData());
   }
 
   ngAfterViewInit(): void {
