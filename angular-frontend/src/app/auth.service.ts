@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError, Subscription, forkJoin, merge } from 'rxjs';
 import { User } from "./rest-interfaces";
 import { catchError, filter, switchMap, take, tap, map, delay } from 'rxjs/operators';
 import { RestAPI } from "./rest-api";
@@ -12,6 +12,7 @@ import {
   Router,
   ActivatedRoute
 } from "@angular/router";
+import { SettingsService, SiteSettings } from "./settings.service";
 
 interface Token {
   access: string;
@@ -247,31 +248,35 @@ export class TokenInterceptor implements HttpInterceptor {
  * role admin includes access to dataEditor pages
  */
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService,
-              private router: Router) { }
+  constructor(private authService: AuthService, private settings: SettingsService, private router: Router) { }
 
-  canActivate(
-    next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return this.authService.getCurrentUser().pipe(
-      map(user => {
+  canActivate(next: ActivatedRouteSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    const observables: Observable<any>[] = [this.settings.getSiteSettings(), this.authService.getCurrentUser()];
+/*    forkJoin(...observables).pipe(map(o => {
+      console.log(o)
+      return true;
+    })).subscribe(a => console.log(a));*/
+
+    return this.settings.getSiteSettings().pipe(switchMap(settings => {
+      if (settings.demoMode)
+        return of(true);
+      return this.authService.getCurrentUser().pipe(switchMap(user => {
         const expectedRole = next.data.expectedRole;
         const isLoggedIn = !!user;
         if (expectedRole === 'admin')
-          return isLoggedIn && (user?.profile.adminAccess || user?.isSuperuser);
+          return of(isLoggedIn && (user?.profile.adminAccess || user?.isSuperuser));
         if (expectedRole === 'dataEditor')
-          return isLoggedIn && (user?.profile.canEditBasedata || user?.profile.adminAccess || user?.isSuperuser);
-        return isLoggedIn;
-      }),
-      tap(hasAccess => {
-        if (!hasAccess) {
-          // @ts-ignore
-          const _next = next._routerState.url;
-          let params: any = {};
-          if (_next && _next !== '/') params['queryParams'] = {next: _next};
-          this.router.navigate(['/login'], params);
-        }
-      })
-    );
+          return of(isLoggedIn && (user?.profile.canEditBasedata || user?.profile.adminAccess || user?.isSuperuser));
+        return of(isLoggedIn);
+      }))
+    }), tap(hasAccess => {
+          if (!hasAccess) {
+            // @ts-ignore
+            const _next = next._routerState.url;
+            let params: any = {};
+            if (_next && _next !== '/') params['queryParams'] = {next: _next};
+            this.router.navigate(['/login'], params);
+          }
+        }));
   }
 }

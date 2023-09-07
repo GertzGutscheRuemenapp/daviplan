@@ -1,5 +1,4 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { share } from 'rxjs/operators';
 import { AuthService } from "../../auth.service";
@@ -46,10 +45,11 @@ export class MainNavComponent implements OnInit{
       this.menuItems = [
         { name: `Bevölkerung`, url: 'bevoelkerung' },
         { name: `Infrastrukturplanung`, url: 'planung' },
-      ]
-      if (this.user.profile.canEditBasedata || this.user.profile.adminAccess || this.user.isSuperuser)
+      ];
+      console.log(this.settings);
+      if (this.settings?.demoMode || this.user.profile.canEditBasedata || this.user.profile.adminAccess || this.user.isSuperuser)
         this.menuItems.push({ name:  `Grundlagendaten`, url: 'grundlagendaten' })
-      if (this.user.profile.adminAccess || this.user.isSuperuser)
+      if (this.settings?.demoMode || this.user.profile.adminAccess || this.user.isSuperuser)
         this.menuItems.push({ name:  `Administration`, url: 'admin' })
     }
   }

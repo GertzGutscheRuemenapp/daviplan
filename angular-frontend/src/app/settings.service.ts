@@ -6,10 +6,12 @@ import { Title } from "@angular/platform-browser";
 import { ProjectSettings } from "./pages/administration/project-definition/project-definition.component";
 import { BasedataSettings } from "./rest-interfaces";
 import { environment } from "../environments/environment";
+import { tap } from "rxjs/operators";
 
 export interface SiteSettings {
   id: number,
   version: string,
+  demoMode: boolean,
   title: string,
   contactMail: string,
   welcomeText: string,
@@ -65,7 +67,7 @@ class UserSettings {
 export class SettingsService {
   siteSettings$ = new BehaviorSubject<SiteSettings>({
     id: 0, title: '', contactMail: '', welcomeText: '', logo: '', regionalstatistikUser: '',
-    regionalstatistikPasswordIsSet: false, bkgPasswordIsSet: false, version: '0.0.0'
+    regionalstatistikPasswordIsSet: false, bkgPasswordIsSet: false, version: '0.0.0', demoMode: false,
   });
   baseDataSettings$ = new BehaviorSubject<BasedataSettings>({
     popStatisticsAreaLevel: 0,
@@ -87,21 +89,21 @@ export class SettingsService {
   }
 
   refresh(): void {
-    this.fetchSiteSettings();
+    this.getSiteSettings().subscribe();
     this.fetchProjectSettings();
     this.fetchBaseDataSettings();
     this.user = new UserSettings(this.rest, this.http);
   }
 
-  public fetchSiteSettings(): void {
-    this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
-      .subscribe(siteSettings => {
+  public getSiteSettings(): Observable<SiteSettings> {
+    return this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
+      .pipe(tap(siteSettings => {
         if (environment.production) {
           if (siteSettings.logo)
             siteSettings.logo = siteSettings.logo.replace('http:', 'https:');
         }
         this.siteSettings$.next(siteSettings)
-      });
+      }));
   }
 
   public fetchProjectSettings(): void {

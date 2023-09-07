@@ -152,10 +152,11 @@ class SiteSettingSerializer(serializers.ModelSerializer):
     bkg_password_is_set = serializers.SerializerMethodField()
     regionalstatistik_password_is_set = serializers.SerializerMethodField()
     version = serializers.SerializerMethodField()
+    demo_mode = serializers.SerializerMethodField()
 
     class Meta:
         model = SiteSetting
-        fields = ('name', 'version', 'title', 'contact_mail', 'logo',
+        fields = ('name', 'version', 'demo_mode', 'title', 'contact_mail', 'logo',
                   'primary_color', 'secondary_color', 'welcome_text',
                   'bkg_password_is_set', 'regionalstatistik_password_is_set',
                   'bkg_password', 'regionalstatistik_user',
@@ -167,6 +168,9 @@ class SiteSettingSerializer(serializers.ModelSerializer):
 
     def get_version(self, obj):
         return DATENTOOL_VERSION
+
+    def get_demo_mode(self, obj):
+        return settings.DEMO_MODE
 
     def get_bkg_password_is_set(self, obj):
         return bool(obj.bkg_password)

@@ -59,6 +59,8 @@ PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+DEMOMODE = False
+
 hosts = os.environ.get('ALLOWED_HOSTS')
 if hosts:
     hosts = hosts.split(',')
