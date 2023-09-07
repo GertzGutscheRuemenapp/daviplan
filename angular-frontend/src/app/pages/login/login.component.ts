@@ -26,9 +26,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   next: string = '';
   private sub?: Subscription;
 
-  constructor(private settingsService: SettingsService, private formBuilder: FormBuilder, public auth: AuthService,
+  constructor(private formBuilder: FormBuilder, public auth: AuthService,
               private router: Router, private route: ActivatedRoute,
-              private rest: RestCacheService) {
+              private rest: RestCacheService, private settingsService: SettingsService) {
     this.loginForm = this.formBuilder.group({
       userName: '',
       password: ''

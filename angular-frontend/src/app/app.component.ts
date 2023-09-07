@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { SettingsService } from "./settings.service";
 import { MatDialog } from "@angular/material/dialog";
 import { Router } from "@angular/router";
 import { tap } from "rxjs/operators";
@@ -12,13 +11,23 @@ import { AuthService } from "./auth.service";
 })
 export class AppComponent {
 
-  constructor(private settings: SettingsService, router: Router, dialog: MatDialog, authService: AuthService) {
-    // initialize authentication cycle by refreshing access token
-    if (authService.hasPreviousLogin())
-      authService.refreshToken().subscribe();
+  constructor(router: Router, dialog: MatDialog, authService: AuthService) {
+
     // auto apply site settings when new ones were fetched
-    settings.siteSettings$.subscribe(settings => {
-      this.settings.applySiteSettings(settings);
+    authService.settings.getSiteSettings().subscribe(settings => {
+      authService.settings.fetchProjectSettings();
+      authService.settings.fetchBaseDataSettings();
+      authService.settings.applySiteSettings(settings);
+      // initialize authentication cycle by refreshing access token
+      if (authService.hasPreviousLogin())
+        authService.refreshToken().subscribe();
+      // fetch demo user in demo mode if not logged in
+      else if (settings.demoMode) {
+        authService.fetchCurrentUser().subscribe((user) => {
+          if (user)
+            authService.login({ username: user.username, password: '-' }).subscribe();
+        });
+      }
     })
     router.events.pipe(
       tap(() => {

@@ -170,7 +170,7 @@ class SiteSettingSerializer(serializers.ModelSerializer):
         return DATENTOOL_VERSION
 
     def get_demo_mode(self, obj):
-        return settings.DEMO_MODE
+        return getattr(settings, 'DEMO_MODE', False)
 
     def get_bkg_password_is_set(self, obj):
         return bool(obj.bkg_password)

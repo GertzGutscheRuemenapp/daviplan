@@ -1,9 +1,28 @@
 from django.contrib.auth.models import User
-
 from rest_framework import serializers
+from django.conf import settings
 
 from datentool_backend.user.models import Profile
 from datentool_backend.infrastructure.models import InfrastructureAccess
+
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        if getattr(settings, 'DEMO_MODE'):
+            user = User.objects.get(
+                **{self.username_field: attrs[self.username_field]})
+            # skip password authentication for demo user in demo mode
+            if (user.profile.is_demo_user):
+                self.user = user
+                refresh = self.get_token(self.user)
+                return {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token)
+                }
+        return super().validate(attrs)
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):

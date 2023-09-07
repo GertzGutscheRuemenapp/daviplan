@@ -84,9 +84,7 @@ export class SettingsService {
   });
   user!: UserSettings;
 
-  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
-    this.refresh();
-  }
+  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {}
 
   refresh(): void {
     this.getSiteSettings().subscribe();

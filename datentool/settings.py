@@ -128,10 +128,10 @@ SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
     # OTHER SETTINGS
 }
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'TOKEN_OBTAIN_SERIALIZER': 'datentool_backend.user.serializers.CustomTokenObtainPairSerializer',
     'ROTATE_REFRESH_TOKENS': True
 }
 

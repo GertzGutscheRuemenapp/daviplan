@@ -26,11 +26,11 @@ export class MainNavComponent implements OnInit{
 
   menuItems: { name: string, url: string }[] = [];
 
-  constructor(private settingsService: SettingsService, private auth: AuthService, private dialog: MatDialog,
+  constructor(private auth: AuthService, private dialog: MatDialog,
               private router: Router, private rest: RestCacheService) { }
 
   ngOnInit(): void {
-    this.settingsService.siteSettings$.subscribe(settings => {
+    this.auth.settings.siteSettings$.subscribe(settings => {
       this.settings = settings;
     });
     this.user$ = this.auth.getCurrentUser().pipe(share());
@@ -46,7 +46,6 @@ export class MainNavComponent implements OnInit{
         { name: `Bevölkerung`, url: 'bevoelkerung' },
         { name: `Infrastrukturplanung`, url: 'planung' },
       ];
-      console.log(this.settings);
       if (this.settings?.demoMode || this.user.profile.canEditBasedata || this.user.profile.adminAccess || this.user.isSuperuser)
         this.menuItems.push({ name:  `Grundlagendaten`, url: 'grundlagendaten' })
       if (this.settings?.demoMode || this.user.profile.adminAccess || this.user.isSuperuser)
@@ -77,6 +76,5 @@ export class MainNavComponent implements OnInit{
 
   logout(): void {
     this.auth.logout();
-    this.router.navigate(['/login']);
   }
 }
