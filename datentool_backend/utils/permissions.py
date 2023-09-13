@@ -12,7 +12,7 @@ class BasePermission(permissions.BasePermission):
             (request.user.is_anonymous or request.user.profile.is_demo_user)):
             raise PermissionDenied(
                 'Der Demo-Modus dient lediglich der Betrachtung. '
-                'Sie sind mit dem Demo-Konto nicht berechtigt '
+                'Sie sind nicht berechtigt mit dem Demo-Konto '
                 'Änderungen durchzuführen.')
 
     def has_permission(self, request, view):

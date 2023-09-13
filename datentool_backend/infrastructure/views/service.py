@@ -7,6 +7,7 @@ from drf_spectacular.utils import (extend_schema,
                                    inline_serializer,
                                    )
 from django.core.exceptions import BadRequest
+from django.conf import settings
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (HasAdminAccess,
@@ -35,12 +36,14 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
 
     def get_permissions(self):
+        if (getattr(settings, 'DEMO_MODE') and
+            self.action == 'compute_indicator'):
+            return []
         if self.action in ['compute_indicator', 'total_capacity_in_year']:
             permission_classes = [HasAdminAccess | HasPermissionForScenario]
         else:
             permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
         return [permission() for permission in permission_classes]
-
 
     @extend_schema(
         description='Indicators available for this service',

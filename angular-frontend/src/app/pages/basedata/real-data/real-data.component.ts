@@ -145,6 +145,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy, OnInit {
         this.ageTree?.clear();
         this.updatePreview();
         this.yearCard?.closeDialog(true);
+      }, (error) => {
+        showAPIError(error, this.dialog);
+        this.yearCard?.setLoading(false);
       });
     })
   }
