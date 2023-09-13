@@ -9,7 +9,7 @@ class BasePermission(permissions.BasePermission):
         '''restrict demo account to read only'''
         if (getattr(settings, 'DEMO_MODE') and
             request.method not in permissions.SAFE_METHODS and
-            (request.user.profile.is_demo_user or request.user.is_anonymous)):
+            (request.user.is_anonymous or request.user.profile.is_demo_user)):
             raise PermissionDenied(
                 'Der Demo-Modus dient lediglich der Betrachtung. '
                 'Sie sind mit dem Demo-Konto nicht berechtigt '
@@ -85,6 +85,7 @@ class IsOwner(BasePermission):
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
+        self.check_demo_mode(request)
         if isinstance(obj, User):
             return obj.id == request.user.id
         return request.user.id == obj.user.id

@@ -2,16 +2,19 @@ from rest_framework import permissions
 from datentool_backend.infrastructure.models import Service
 from datentool_backend.places.models import Scenario
 from .models import PlanningProcess
+from datentool_backend.utils.permissions import BasePermission
 
 
-class CanUpdateProcessPermission(permissions.BasePermission):
+class CanUpdateProcessPermission(BasePermission):
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         if request.method in permissions.SAFE_METHODS:
             return True
         return (request.user.is_superuser or request.user.profile.admin_access
                 or request.user.profile.can_create_process)
 
     def has_object_permission(self, request, view, obj):
+        self.check_demo_mode(request)
         if request.method in permissions.SAFE_METHODS:
             return (request.user.profile == obj.owner or
                     request.user.profile in obj.users.all())
@@ -20,8 +23,9 @@ class CanUpdateProcessPermission(permissions.BasePermission):
             return request.user.profile == owner
 
 
-class CanEditScenarioPermission(permissions.BasePermission):
+class CanEditScenarioPermission(BasePermission):
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         if not request.user.is_authenticated:
             return False
         if request.method in ['POST']:
@@ -36,14 +40,16 @@ class CanEditScenarioPermission(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
+        self.check_demo_mode(request)
         if request.method in permissions.SAFE_METHODS:
             return obj.has_read_permission(request.user)
         return obj.has_write_permission(request.user)
 
 
-class ScenarioCapacitiesPermission(permissions.BasePermission):
+class ScenarioCapacitiesPermission(BasePermission):
 
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         if not request.user.is_authenticated:
             return False
         if request.method not in permissions.SAFE_METHODS:
@@ -58,6 +64,7 @@ class ScenarioCapacitiesPermission(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
+        self.check_demo_mode(request)
         if obj.scenario is None:
             return False
         if request.method in permissions.SAFE_METHODS:
@@ -65,9 +72,10 @@ class ScenarioCapacitiesPermission(permissions.BasePermission):
         return obj.scenario.has_write_permission(request.user)
 
 
-class CanEditScenarioPlacePermission(permissions.BasePermission):
+class CanEditScenarioPlacePermission(BasePermission):
     ''' object can only be requested in any way if it is owned by the user '''
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         if not request.user.is_authenticated:
             return False
         if request.method == 'POST':
@@ -82,6 +90,7 @@ class CanEditScenarioPlacePermission(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
+        self.check_demo_mode(request)
         if request.method in permissions.SAFE_METHODS:
             return True
         if obj.scenario is None:
@@ -91,8 +100,9 @@ class CanEditScenarioPlacePermission(permissions.BasePermission):
         return obj.scenario.has_write_permission(request.user)
 
 
-class HasPermissionForScenario(permissions.BasePermission):
+class HasPermissionForScenario(BasePermission):
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         if not request.user.is_authenticated:
             return False
         # service-id comes with the view (detail-view) or as query_params

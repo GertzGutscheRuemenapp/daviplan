@@ -743,6 +743,13 @@ mat-panel-title {
   color: $warning;
 }
 
+mat-icon.problem {
+  font-size: 40px;
+  align-self: baseline;
+  height: 40px;
+  width: 40px;
+}
+
 .context-bar {
   //z-index: 12 !important;
   position: relative;
