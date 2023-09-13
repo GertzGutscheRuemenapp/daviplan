@@ -1,13 +1,34 @@
 from rest_framework import permissions
 from django.contrib.auth.models import User
 from django.conf import settings
+from rest_framework.exceptions import PermissionDenied
 
 
-class ReadOnlyPermission(permissions.BasePermission):
+class BasePermission(permissions.BasePermission):
+    def check_demo_mode(self, request):
+        '''restrict demo account to read only'''
+        if (getattr(settings, 'DEMO_MODE') and
+            request.method not in permissions.SAFE_METHODS and
+            (request.user.profile.is_demo_user or request.user.is_anonymous)):
+            raise PermissionDenied(
+                'Der Demo-Modus dient lediglich der Betrachtung. '
+                'Sie sind mit dem Demo-Konto nicht berechtigt '
+                'Änderungen durchzuführen.')
+
+    def has_permission(self, request, view):
+        self.check_demo_mode(request)
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
+
+
+class ReadOnlyPermission(BasePermission):
     """Only user with admin_access or can_edit_basedata have read access.
     Write access is forbidden
     """
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         if not request.user.is_authenticated:
             return False
         if request.method in permissions.SAFE_METHODS and (
@@ -17,12 +38,10 @@ class ReadOnlyPermission(permissions.BasePermission):
             return True
         return False
 
-    def has_object_permission(self, request, view, obj):
-        return self.has_permission(request, view)
 
-
-class HasAdminAccessOrReadOnly(permissions.BasePermission):
+class HasAdminAccessOrReadOnly(BasePermission):
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         # in demo mode everyone is permitted to read everything
         if (getattr(settings, 'DEMO_MODE') and
             request.method in permissions.SAFE_METHODS):
@@ -33,44 +52,36 @@ class HasAdminAccessOrReadOnly(permissions.BasePermission):
                 request.user.is_superuser or
             request.user.profile.admin_access)
 
-    def has_object_permission(self, request, view, obj):
-        return self.has_permission(request, view)
 
-
-class HasAdminAccessOrReadOnlyAny(permissions.BasePermission):
+class HasAdminAccessOrReadOnlyAny(BasePermission):
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         return (request.method in permissions.SAFE_METHODS or
                 request.user.is_authenticated and (
                     request.user.is_superuser or
                     request.user.profile.admin_access
                 ))
 
-    def has_object_permission(self, request, view, obj):
-        return self.has_permission(request, view)
 
-
-class CanEditBasedata(permissions.BasePermission):
+class CanEditBasedata(BasePermission):
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         return (request.user.is_authenticated and
                 request.user.profile.can_edit_basedata)
 
-    def has_object_permission(self, request, view, obj):
-        return self.has_permission(request, view)
 
-
-class HasAdminAccess(permissions.BasePermission):
+class HasAdminAccess(BasePermission):
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         return (request.user.is_authenticated
                 and (request.user.is_superuser or
                      request.user.profile.admin_access))
 
-    def has_object_permission(self, request, view, obj):
-        return self.has_permission(request, view)
 
-
-class IsOwner(permissions.BasePermission):
+class IsOwner(BasePermission):
     ''' object can only be requested in any way if it is owned by the user '''
     def has_permission(self, request, view):
+        self.check_demo_mode(request)
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
