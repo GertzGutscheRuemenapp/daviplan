@@ -1,5 +1,6 @@
 from rest_framework import permissions
 from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class ReadOnlyPermission(permissions.BasePermission):
@@ -22,6 +23,11 @@ class ReadOnlyPermission(permissions.BasePermission):
 
 class HasAdminAccessOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
+        # in demo mode everyone is permitted to read everything
+        if (getattr(settings, 'DEMO_MODE') and
+            request.method in permissions.SAFE_METHODS):
+            return True
+        # otherwise log in requiredto read and admin to write
         return request.user.is_authenticated and (
             request.method in permissions.SAFE_METHODS or
                 request.user.is_superuser or

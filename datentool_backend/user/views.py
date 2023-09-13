@@ -16,9 +16,12 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def __init__(self, **kwargs):
-        if getattr(settings, 'DEMO_MODE'):
-            self.permission_classes = []
+    def get_queryset(self):
+        if (getattr(settings, 'DEMO_MODE') and
+            (self.request.user.is_anonymous or
+             self.request.user.profile.is_demo_user)):
+            return User.objects.filter(profile__is_demo_user=True)
+        return User.objects.all()
 
     def get_object(self):
         pk = self.kwargs.get('pk')
