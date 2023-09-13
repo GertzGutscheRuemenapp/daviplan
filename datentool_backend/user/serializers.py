@@ -49,8 +49,19 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'username', 'email', 'first_name', 'access',
                   'last_name', 'is_superuser', 'profile', 'password')
 
+    def check_profile(self, profile_data, instance=None):
+        if profile_data.get('is_demo_user'):
+            other = User.objects.filter(profile__is_demo_user=True)
+            if instance:
+                other = other.exclude(id=instance.id)
+            if other.count():
+                raise serializers.ValidationError(
+                    'Es gibt bereits einen anderen Demo-Nutzer. '
+                    'Es kann nur einen geben.')
+
     def create(self, validated_data):
         profile_data = validated_data.pop('profile', {})
+        self.check_profile(profile_data)
         password = validated_data.pop('password')
         instance = super().create(validated_data)
         if password:
@@ -64,6 +75,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
+        self.check_profile(profile_data, instance)
         access = profile_data.pop('infrastructureaccess_set', None)
         password = validated_data.pop('password', None)
         if password:
