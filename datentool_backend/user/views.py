@@ -1,9 +1,9 @@
 from django.contrib.auth.models import User
-
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.conf import settings
+from django.http import Http404
 
 from datentool_backend.utils.permissions import(HasAdminAccessOrReadOnly,
                                                 IsOwner
@@ -17,6 +17,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
+        # only show demo user to demo user
         if (getattr(settings, 'DEMO_MODE') and
             (self.request.user.is_anonymous or
              self.request.user.profile.is_demo_user)):
@@ -31,7 +32,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 try:
                     demo_user = User.objects.get(profile__is_demo_user=True)
                 except User.DoesNotExist:
-                    return
+                    raise Http404
                 return demo_user
             return self.request.user
         return super().get_object()
