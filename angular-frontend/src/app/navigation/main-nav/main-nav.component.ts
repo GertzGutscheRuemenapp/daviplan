@@ -4,7 +4,7 @@ import { share } from 'rxjs/operators';
 import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
 import { environment } from "../../../environments/environment";
-import { SettingsService, SiteSettings } from "../../settings.service";
+import { SiteSettings } from "../../settings.service";
 import { Infrastructure, User } from "../../rest-interfaces";
 import { SimpleDialogComponent } from "../../dialogs/simple-dialog/simple-dialog.component";
 import { MatDialog } from "@angular/material/dialog";

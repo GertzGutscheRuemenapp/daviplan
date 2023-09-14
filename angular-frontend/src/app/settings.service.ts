@@ -87,12 +87,11 @@ export class SettingsService {
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {}
 
   refresh(): Observable<any> {
-    this.user = new UserSettings(this.rest, this.http);
     return forkJoin(
       this.getSiteSettings(),
       this.getProjectSettings(),
       this.getBaseDataSettings()
-    )
+    ).pipe(tap( () => { this.user = new UserSettings(this.rest, this.http); }));
   }
 
   public getSiteSettings(): Observable<SiteSettings> {
