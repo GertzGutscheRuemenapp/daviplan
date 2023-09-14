@@ -13,10 +13,11 @@ export class AppComponent {
 
   constructor(router: Router, dialog: MatDialog, authService: AuthService) {
 
+    console.log('app start');
     // auto apply site settings when new ones were fetched
     authService.settings.refresh().subscribe(() => {
       // initialize authentication cycle by refreshing access token
-      console.log(authService.settings.siteSettings$.value)
+      console.log(authService.settings.siteSettings$.value);
       if (authService.hasPreviousLogin())
         authService.refreshToken().subscribe();
       // fetch demo user in demo mode if not logged in
