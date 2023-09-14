@@ -65,8 +65,8 @@ export class AuthService {
     this.clearLocalStorage();
     this.stopTokenTimer();
     this.user$.next(undefined);
-    const redirectUrl = this.settings.siteSettings$.value?.demoMode? '/welcome': '/login';
-    this.router.navigateByUrl(redirectUrl);
+    // const redirectUrl = this.settings.siteSettings$.value?.demoMode? '/': '/login';
+    this.router.navigateByUrl('/login');
   }
 
   /**
