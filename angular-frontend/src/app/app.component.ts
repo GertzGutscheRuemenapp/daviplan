@@ -16,6 +16,7 @@ export class AppComponent {
     // auto apply site settings when new ones were fetched
     authService.settings.refresh().subscribe(() => {
       // initialize authentication cycle by refreshing access token
+      console.log(authService.settings.siteSettings$.value)
       if (authService.hasPreviousLogin())
         authService.refreshToken().subscribe();
       // fetch demo user in demo mode if not logged in
