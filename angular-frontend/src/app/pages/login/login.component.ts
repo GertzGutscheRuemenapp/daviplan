@@ -54,7 +54,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             username: username
           }).subscribe(token => {
             // fetch global settings after logged in
-            this.settingsService.refresh();
+            this.settingsService.refresh().subscribe();
             // reset rest caches
             this.rest.reset();
             this.router.navigate([this.next || '/']);
