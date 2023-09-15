@@ -1,0 +1,87 @@
+@import "src/constants";
+
+#project-preview-map {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  background-color: white;
+}
+
+#project-area-select-map {
+  height: 500px;
+  position: relative;
+  width: 100%;
+  background-color: white;
+}
+
+#selected-area-list, #available-area-list {
+  min-height: 100px;
+  user-select: none;
+  overflow-y: auto;
+  border: 1px solid lightgrey;
+
+  li {
+    cursor: pointer;
+  }
+
+  mat-icon {
+    display: none;
+    font-size: 14px;
+    height: 14px;
+    width: 15px;
+    position: relative;
+    top: 2px;
+  }
+
+  li:hover mat-icon {
+    display: inline-block;
+  }
+
+}
+
+#selected-area-list {
+  max-height: 210px;
+
+  li {
+    font-weight: bold;
+  }
+
+  li:hover {
+    color: red;
+  }
+}
+
+#available-area-list {
+  max-height: 230px;
+
+  li {
+    color: grey;
+  }
+
+  li:hover {
+    color: #2196f3;
+  }
+}
+
+.age-group-container {
+  user-select: none;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid lightgrey;
+  padding: 5px 0 5px 5px;
+  > div {
+    width: 100%;
+    margin: auto;
+  }
+}
+
+.age-row {
+  padding: 5px 10px;
+  mat-form-field {
+    width: 100px;
+  }
+}
+
+.age-row:hover {
+  background-color: $primary-light;
+}

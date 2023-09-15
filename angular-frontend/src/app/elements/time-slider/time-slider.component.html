@@ -1,0 +1,13 @@
+<label>{{years[0]}}</label>
+<mat-slider #slider
+            thumbLabel aria-label="Jahr"
+            color="primary"
+            (change)="inputChanged($event)" (input)="sliderMoved($event)"
+            min="{{years[0]}}" max="{{years[years.length - 1]}}" step="1" value="{{value}}">
+<!--            [ngModel]="pickedYear"-->
+</mat-slider>
+<label>{{years[years.length - 1]}}</label>
+
+<app-help-button style="margin-left: 5px;" title="Zeitschieber" [top]="helpYOffset">
+  <p>Ziehen Sie den Knopf (großer blauer Punkt) auf das Jahr, dessen Werte angezeigt werden sollen.</p>
+</app-help-button>

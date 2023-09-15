@@ -1,0 +1,10 @@
+*.pyc
+public
+.hypothesis
+.coverage
+htmlcov
+/datentool.wpr
+/datentool.wpu
+.idea
+local_scripts
+~$*.xlsx

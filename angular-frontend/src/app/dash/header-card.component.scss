@@ -1,0 +1,32 @@
+@import "src/constants";
+
+.dashboard-card {
+  margin: 10px;
+  border: 1px solid #0000001F;
+  border-bottom: 1px solid $accent;
+  max-width: calc(100% - 30px);
+}
+
+.title {
+  color: $accent;
+  margin: 5px 0;
+}
+
+.mat-expansion-panel-header {
+  width: calc(100% - 10px);
+  align-items: baseline;
+}
+
+//.mat-expansion-panel-header, .mat-expanded .mat-expansion-panel-header {
+//  height: 40px !important;
+//}
+
+::ng-deep app-header-card {
+  .mat-expansion-indicator {
+    align-self: center;
+  }
+  .mat-expansion-panel-body {
+    //max-width: 600px;
+    padding-top: 16px !important;
+  }
+}

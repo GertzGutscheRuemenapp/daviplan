@@ -1,0 +1,42 @@
+@import "../../../constants";
+
+button {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+#close-button {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+}
+
+mat-dialog-content {
+  font-size: 16px;
+  user-select: none;
+}
+
+.mat-dialog-content {
+  overflow: auto;
+}
+
+::ng-deep confirm-dialog {
+  .sub {
+    color: grey;
+    margin-bottom: 10px;
+    user-select: none;
+  }
+
+  h4 {
+    color: $accent;
+    user-select: none;
+  }
+
+  .mat-dialog-content {
+    max-height: 75vh;
+  }
+
+  .mat-radio-label {
+    white-space: normal;
+  }
+}

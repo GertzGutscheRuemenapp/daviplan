@@ -1,0 +1,257 @@
+<mat-expansion-panel class="side-toggle" id="scenario-toggle"
+                     [expanded]="planningService.showScenarioMenu">
+  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
+    <mat-panel-title>
+      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
+        <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
+      </div>
+      Szenario
+      <mat-icon *ngIf="inputErrors.length > 0" class="warning"
+                [title]="'Fehler in ausgewähltem Szenario: ' + inputErrors.join(' | ')">
+        error_outline
+      </mat-icon>
+      <app-help-button title="Szenario" position="right" style="pointer-events: all;">
+        <div [innerHTML]="helpText"></div>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+</mat-expansion-panel>
+
+<div id="scenario-menu" [ngClass]="{expanded: planningService.showScenarioMenu}">
+  <div id="scenario-arrow">
+    &#9664;
+  </div>
+  <div id="scenario-cards-wrapper">
+    <div id="scenario-cards">
+      <div #scenario [ngClass]="{active: scenario.id === activeScenario?.id}"
+           *ngFor="let scenario of scenarios"
+           class="scenario-card">
+        <div class="scenario-card-header"
+             (click)="setScenario(scenario)">
+          <div style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+               [title]="scenario.name"
+               [style.width]="(!scenario.isBase && processEditable)? 'calc(100% - 30px)': '100%'">
+            {{ scenario.name }}
+          </div>
+          <ng-container *ngIf="!scenario.isBase && processEditable">
+            <button mat-icon-button color="primary"
+                    class="small"
+                    style="width: 30px; margin-top: -2px;"
+                    [matMenuTriggerFor]="editMenu"
+                    [ngClass]="{'inverted': scenario.id === activeScenario?.id}"
+                    title="Szenariomenü (Editieren/Entfernen)"
+                    (click)="$event.stopPropagation()">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #editMenu>
+              <button mat-menu-item (click)="editScenario(scenario);" title='Szenario "{{scenario.name}}" umbenennen'>
+                <mat-icon>edit</mat-icon>
+                <span>Szenario umbenennen</span>
+              </button>
+              <button mat-menu-item (click)="deleteScenario(scenario);" title='Szenario "{{scenario.name}}" entfernen'>
+                <mat-icon>delete_forever</mat-icon>
+                <span>Szenario entfernen</span>
+              </button>
+            </mat-menu>
+          </ng-container>
+        </div>
+        <div class="scenario-card-body">
+          <ng-container *ngIf="domain==='demand'">
+            <ng-container [ngTemplateOutlet]="demandTemplate"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="domain==='reachabilities'">
+            <ng-container [ngTemplateOutlet]="reachabilitiesTemplate"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="domain==='rating'">
+            <ng-container [ngTemplateOutlet]="ratingScenario"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="domain==='supply'">
+            <ng-container [ngTemplateOutlet]="supplyScenario"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    <div id="scenario-controls" *ngIf="processEditable">
+      <div>
+        <button mat-icon-button color="primary" class="small"
+                (click)="onCreateScenario()"
+                title="Szenario erstellen">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="side-toggle-trigger"
+       style="height : 60px"
+       [title]="'Szenariomenü einklappen'"
+       (click)="planningService.showScenarioMenu = false">
+    <div class="side-toggle-indicator"
+         [style.transform]="processEditable? 'translateX(50px)': ''">
+      <mat-icon>chevron_left</mat-icon>
+    </div>
+  </div>
+</div>
+
+<ng-template #editScenarioTemplate>
+  <form [formGroup]="editScenarioForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name des Szenarios</mat-label>
+        <input matInput formControlName="scenarioName" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #demandTemplate let-scenario="scenario">
+  <div class="scenario-row" *ngIf="planningService.activeService && planningService.activeService.demandType !== 3">
+    <ng-container *ngVar="getActiveDemandRateSet(scenario) as demandRateSet">
+      <mat-form-field appearance="standard" class="small"
+                      floatLabel="always"
+                      [style.width]="demandRateSet? 'calc(100% - 30px)': '100%'"
+                      [ngClass]="{ 'invalid': !demandRateSet }"
+                      title="Nachfragequoten-Set ({{planningService.activeService.name}})">
+        <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    [disabled]="scenario.isBase || !processEditable"
+                    [placeholder]="(demandRateSets.length > 0)? 'keine Auswahl': 'keine Sets definiert'"
+                    [title]="demandRateSet? demandRateSet.name: 'keine Auswahl'"
+                    [value]="demandRateSet"
+                    (selectionChange)="onDemandRateChange(scenario, $event.value)">
+          <mat-option *ngFor="let set of demandRateSets" [value]="set">
+            {{set.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button *ngIf="demandRateSet"
+              class="small" color="primary"
+              style="margin-top: 15px; width: 25px; height: 25px; line-height: 25px;"
+              title="Aktuell eingestellte Nachfragequoten anzeigen"
+              (click)="onShowDemandQuotaSet()">
+        <mat-icon>search</mat-icon>
+      </button>
+    </ng-container>
+  </div>
+  <div *ngVar="getActivePrognosis(scenario) as activePrognosis"
+       class="scenario-row">
+<!--    <mat-icon class="material-icons-outlined" color="primary"
+              title="aktuell eingestellte Einwohnerentwicklung anzeigen"
+              (click)="onShowDemandPlaceholder()">
+      info
+    </mat-icon>-->
+    <mat-form-field appearance="standard" class="small"
+                    [ngClass]="{ 'invalid': !scenario.prognosis }"
+                    floatLabel="always">
+      <mat-label>Einwohnerentwicklung (Prognosevariante)</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [value]="scenario.prognosis"
+                  [disabled]="scenario.isBase || !processEditable"
+                  [title]="activePrognosis? activePrognosis.name: 'keine Auswahl'"
+                  [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Einwohnerentwicklung (Prognosevarianten) definiert'"
+                  (selectionChange)="onPrognosisChange(scenario, $event.value)">
+        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis.id">
+          {{prognosis.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</ng-template>
+
+<ng-template #reachabilitiesTemplate let-scenario="scenario">
+  <div *ngVar="getActiveTransitVariant(scenario) as activeVariant"
+       class="scenario-row">
+    <mat-form-field appearance="standard" class="small"
+                    [ngClass]="{ 'invalid': !activeVariant?.statistics?.nRelsPlaceCellModevariant }"
+                    floatLabel="always">
+      <mat-label>ÖPNV-Netz</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [value]="activeVariant"
+                  [title]="!activeVariant? 'keine Auswahl': activeVariant.statistics?.nRelsPlaceCellModevariant? activeVariant.label: 'Das ausgewählte Netz wurde im Bereich Grundlagendaten nicht vorberechnet!'"
+                  (selectionChange)="onTransitChange(scenario, $event.value)"
+                  [placeholder]="(transitVariants.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [disabled]="scenario.isBase || !processEditable">
+        <mat-option *ngFor="let variant of transitVariants"
+                    [value]="variant"
+                    [title]="variant.label">
+          {{variant.label}} <ng-container *ngIf="!variant.statistics?.nRelsPlaceCellModevariant">(nicht vorberechnet)</ng-container>
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+<!--  <div *ngIf="!getTransitVariant(scenario)?.statistics?.nRelsPlaceCellModevariant"
+       class="scenario-row">
+    Das gewählte Netz wurde nicht vorberechnet.
+  </div>-->
+</ng-template>
+
+<ng-template #ratingScenario let-scenario="scenario">
+  <ng-container [ngTemplateOutlet]="demandTemplate"
+                [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+  <ng-container [ngTemplateOutlet]="reachabilitiesTemplate"
+                [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+</ng-template>
+
+<ng-template #supplyScenario let-scenario="scenario">
+  <ng-container *ngIf="planningService.activeService">
+    <div class="supply-capacity"
+         *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
+      <div title='{{planningService.activeService.name || "-"}}'> Angebot für Leistung ({{planningService.activeYear}})</div>
+      <div style="margin-top: -5px;">{{planningService.activeService.name}}</div>
+      <table style="line-height: 120%;">
+        <tr title="{{capInScenario?.nPlaces}} {{planningService.activeService.facilityPluralUnit}}">
+          <td style="width: 1%;">
+            {{planningService.activeService.facilityPluralUnit}}:
+          </td>
+          <td [style.font-weight]="(capInScenario?.diffPlaces !== 0)? 'bold': 'regular'">
+            {{capInScenario?.nPlaces.toLocaleString()}}
+            <ng-container *ngIf="capInScenario?.diffPlaces !== 0 else plusminus0">
+              (<ng-container *ngIf="capInScenario?.diffPlaces > 0">+</ng-container>{{capInScenario?.diffPlaces.toLocaleString()}})
+            </ng-container>
+          </td>
+        </tr>
+        <tr *ngIf="planningService.activeService?.hasCapacity"
+            title="{{capInScenario?.totalCapacity}} {{planningService.activeService.capacityPluralUnit}}">
+          <td style="width: 1%;">
+            {{planningService.activeService.capacityPluralUnit}}:
+          </td>
+          <td [style.font-weight]="(capInScenario?.diffCapacity !== 0)? 'bold': 'regular'">
+            {{capInScenario?.totalCapacity.toLocaleString()}}
+            <ng-container *ngIf="capInScenario?.diffCapacity !== 0 else plusminus0">
+              (<ng-container *ngIf="capInScenario?.diffCapacity > 0">+</ng-container>{{capInScenario?.diffCapacity.toLocaleString()}})
+            </ng-container>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <ng-template #plusminus0><ng-container *ngIf="!scenario.isBase">(unverändert)</ng-container></ng-template>
+  </ng-container>
+</ng-template>
+
+<ng-template #supplyScenarioTable>
+  Platzhalter für Tabelle mit Änderungen gegenüber des Status Quo<br>
+  <i>Funktionalität für den Prototyp noch nicht hinterlegt.</i>
+</ng-template>
+
+<ng-template #demandPlaceholderTable>
+  <i>Funktionalität für den Prototyp noch nicht hinterlegt.</i>
+</ng-template>
+
+<ng-template #demandQuotaDialog
+             let-year="year"
+             let-scenario="scenario" let-years="years"
+             let-ageGroups="ageGroups" let-genders="genders"
+             let-service="service" let-demandRateSet="demandRateSet">
+  <app-demand-rate-set-view #demandRateSetPreview
+                            [year]="year"
+                            [years]="years"
+                            [demandRateSet]="demandRateSet"
+                            [service]="service"
+                            [genders]="genders"
+                            [ageGroups]="ageGroups"
+                            [chartHeight]="250">
+  </app-demand-rate-set-view>
+</ng-template>

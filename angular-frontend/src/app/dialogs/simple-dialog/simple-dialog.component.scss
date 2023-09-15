@@ -1,0 +1,68 @@
+@import "src/constants";
+
+#close-button {
+  position: absolute;
+  right: -15px;
+  top: -15px;
+}
+
+::ng-deep app-simple-dialog {
+  .sub {
+    color: grey;
+    margin-bottom: 10px;
+  }
+  h4 {
+    color: $accent;
+  }
+  .mat-dialog-content {
+    max-height: 75vh;
+  }
+}
+
+.dot-flashing, .dot-flashing::before, .dot-flashing::after {
+  width: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: black;
+  color: black;
+  animation: dotFlashing 1s infinite linear alternate;
+  animation-delay: .5s;
+}
+
+.dot-flashing::before, .dot-flashing::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dot-flashing {
+  position: relative;
+}
+
+.dot-flashing::before, .dot-flashing::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dot-flashing::before {
+  left: -8px;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 8px;
+  animation-delay: 1s;
+}
+
+@keyframes dotFlashing {
+  0% {
+    background-color: black;
+  }
+  50%,
+  100% {
+    background-color: #ffffff;
+  }
+}

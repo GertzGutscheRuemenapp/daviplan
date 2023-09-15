@@ -1,0 +1,42 @@
+<!--derived from https://material.angular.io/components/tree/api-->
+
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+  <mat-tree-node *matTreeNodeDef="let node"
+                 [ngClass]="{selected: node.isSelected, checked: checklistSelection.isSelected(node)}"
+                 matTreeNodeToggle matTreeNodePadding>
+    <div class="node" (click)="select(node)">
+      <mat-checkbox class="checklist-leaf-node"
+                    color="primary"
+                    [checked]="checklistSelection.isSelected(node)"
+                    (change)="leafItemSelectionToggle(node)"></mat-checkbox>
+      <label class="node-label">{{node.name}}</label>
+<!--      <button mat-icon-button color="primary"
+              class="item-button"
+              title="Layer entfernen">
+        <mat-icon>remove</mat-icon>
+      </button>-->
+    </div>
+  </mat-tree-node>
+
+
+  <mat-tree-node *matTreeNodeDef="let node; when: hasChild" [ngClass]="{selected: node.isSelected, checked: checklistSelection.isSelected(node)}" matTreeNodePadding>
+    <div class="top-node" (click)="select(node)">
+      <button class="toggle-tree-node" mat-icon-button matTreeNodeToggle
+              [attr.aria-label]="'Toggle ' + node.name">
+        <mat-icon class="mat-icon-rtl-mirror">
+          {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+        </mat-icon>
+      </button>
+      <mat-checkbox color="primary"
+                    (click)="$event.stopPropagation();"
+                    [checked]="descendantsAllSelected(node)"
+                    [indeterminate]="descendantsPartiallySelected(node)"
+                    (change)="itemSelectionToggle(node)"></mat-checkbox>
+      <label class="node-label">{{node.name}}</label>
+    </div>
+    <button class="add-item-button" color="primary"
+            mat-icon-button (click)="_onAddItemClicked(node)"
+            [title]="addItemTitle"><mat-icon>add</mat-icon>
+    </button>
+  </mat-tree-node>
+</mat-tree>

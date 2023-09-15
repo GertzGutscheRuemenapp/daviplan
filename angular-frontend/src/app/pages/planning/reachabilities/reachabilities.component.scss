@@ -1,0 +1,30 @@
+@import "src/constants";
+
+#indicator-select {
+  //padding-left: 8px;
+  .row-button {
+    padding-left: 28px;
+    margin-top: -5px;
+  }
+}
+
+.time-button {
+  width: 50px;
+  border-right: 1px solid lightgrey;
+  cursor: pointer;
+  position: relative;
+  .mat-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.time-button:hover {
+  background-color: $primary-light;
+}
+
+#time-slider-wrapper {
+  border: 1px solid lightgrey;
+}

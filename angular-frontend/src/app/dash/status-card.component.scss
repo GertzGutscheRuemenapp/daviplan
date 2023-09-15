@@ -1,0 +1,45 @@
+@import "src/constants";
+
+.dashboard-card {
+  width: fit-content;
+  display: flex;
+  color: grey;
+  background-color: white;
+  border: 1px solid #0000001F;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 20px;
+  margin: 10px;
+  border-bottom: 1px solid red;
+  mat-icon, mat-spinner {
+    //font-size: 30px;
+    margin-right: 10px;
+  }
+}
+
+.title {
+  color: grey;
+  font-size: 16px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin-right: 50px;
+}
+
+.mat-expansion-panel-header {
+  width: calc(100% - 10px);
+  align-items: baseline;
+}
+
+//.mat-expansion-panel-header, .mat-expanded .mat-expansion-panel-header {
+//  height: 40px !important;
+//}
+/*
+::ng-deep app-header-card {
+  .mat-expansion-indicator {
+    align-self: center;
+  }
+  .mat-expansion-panel-body {
+    //max-width: 600px;
+    padding-top: 16px !important;
+  }
+}*/

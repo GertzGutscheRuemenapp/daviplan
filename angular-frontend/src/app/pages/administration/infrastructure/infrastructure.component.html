@@ -1,0 +1,94 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Infrastrukturbereiche'"
+                 cookieId="exp-infra-header"
+                 width="980px">
+  <p>Das Arbeiten mit daviplan gliedert sich anhand von Infrastrukturbereichen (z.B. Kinderbetreuung, Schule, Ärztliche Versorgung, Feuerwehr, …). Diese werden hier definiert.</p>
+  <p>Im Zuge der Erfassung der Grundlagendaten können die Infrastrukturbereich noch weiter ausdifferenziert werden, indem ihnen „Leistungen“ zugewiesen werden. Leistungen im Infrastrukturbereich „Kinderbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ sein.</p>
+  <p>Legen Sie auf dieser Seite zunächst nur die Infrastrukturbereiche fest.</p>
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card [title]="'Betrachtete Infrastrukturbereiche'"
+                    #infrastructureCard
+                    subtitle="Diese Infrastrukturbereiche sollen behandelt werden:"
+                    infoText="<p>Klicken Sie auf „Hinzufügen“, um der Liste einen Infrastrukturbereich hinzuzufügen. Geben Sie dem Infrastrukturbereich einen möglichst kurzen Namen (z.B. „Schulen“ oder „Ärzte“) und eine ggf. etwas längere Beschreibung (z.B. „Allgemeinbildende Schulen“ oder „Haus- und Fachärzte“). Im Bereich „Infrastrukturplanung“ werden die Namen der Infrastrukturbereiche in den Auswahllisten erscheinen. Die Beschreibungen werden den Nutzenden als Mouse-Over-Infotexte angezeigt.</p>
+                    <p>Wenn Sie einen bereits definierten Infrastrukturbereich in der Liste anklicken, erscheint seine Beschreibung in der Anzeigebox „Eigenschaften des ausgewählten Infrastrukturbereichs“.</p>
+                    <p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie im Bereich „Eigenschaften des ausgewählten Infrastrukturbereichs“ auf „Editieren“.</p>
+                    <p>Mit den Pfeiltasten rechts der Liste können Sie festlegen, in welcher Reihenfolge Ihre Infrastrukturbereiche in allen Auswahllisten und Menüs angezeigt werden sollen.</p>">
+      <div style="display: inline-flex;">
+        <mat-selection-list [multiple]="false"
+                            id="infrastructure-select">
+          <mat-list-option *ngFor="let infrastructure of infrastructures"
+                           (click)="selectedInfrastructure = infrastructure"
+                           [selected]="selectedInfrastructure && (infrastructure.id === selectedInfrastructure.id)">
+            <div class="option-text">{{infrastructure.name}}</div>
+          </mat-list-option>
+        </mat-selection-list>
+        <div class="order-controls">
+          <button mat-icon-button
+                  title="In der Sortierung eins nach oben"
+                  [disabled] = "!selectedInfrastructure || (selectedInfrastructure === this.infrastructures[0])"
+                  (click)="moveSelectedUp()">
+            <mat-icon>expand_less</mat-icon>
+          </button>
+          <button mat-icon-button
+                  title="In der Sortierung eins nach unten"
+                  [disabled] = "!selectedInfrastructure || (selectedInfrastructure === this.infrastructures[this.infrastructures.length - 1])"
+                  (click)="moveSelectedDown()">
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                (click)="addInfrastructure()"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                (click)="removeInfrastructure()"
+                class="mat-button-dv" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="600px" [ngClass]="{'hidden': !selectedInfrastructure}">
+    <app-input-card [title]="'Eigenschaften des ausgewählten Infrastrukturbereichs'"
+                    #infrastructureEditCard
+                    infoText="<p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie auf „Editieren“.</p>
+                    <p>Die Beschreibung erscheint als Zusatzinformation in Form eines Tooltips in den Auswahllisten des Hauptmenübereichs „Infrastrukturplanung“. Sie sollte daher möglichst kurz sein.</p>"
+                    [editTemplate]="infrastructureEdit">
+      <table *ngIf="selectedInfrastructure">
+        <tr>
+          <td i18n>Name</td>
+          <td>{{selectedInfrastructure.name}}</td>
+        </tr>
+        <tr>
+          <td i18n>Beschreibung</td>
+          <td>{{selectedInfrastructure.description}}</td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #infrastructureEdit>
+  <form [formGroup]="infrastructureForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" autocomplete="infra-name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description"
+                  cdkTextareaAutosize cdkAutosizeMinRows="3"
+                  autocomplete="infra-desc"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>

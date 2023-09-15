@@ -1,0 +1,327 @@
+<div class="loadOverlay" *ngIf="(popService.isLoading$ | async) || (this.isLoading$ | async)">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Varianten)'"
+                 cookieId="exp-progdata-header"
+                 width="1170px">
+  <p>Für die Abschätzung der zukünftigen Nachfrageentwicklung nach Infrastrukturen werden u.a. Prognosedaten zur Einwohnerentwicklung benötigt. Auf dieser Seite können Sie daher Einwohnerprognosen einlesen. Reale Einwohnerdaten für die zurückliegenden Jahre werden hingegen im vorstehenden Menüpunkt „Vergangenheit“ eingepflegt.</p>
+  <p>Legen Sie in der Eingabebox „Prognosejahre“ zunächst fest, für welche Jahre Sie Prognosedaten hochladen wollen.</p>
+  <p>Da Einwohnerprognosen manchmal unterschiedliche Prognosevarianten enthalten (z.B. „Trendentwicklung“, „mehr Zuwanderung“, „mehr Abwanderung“), können Sie in der Box „Prognosevarianten“ bei Bedarf unterschiedliche Varianten definieren. Wenn Ihre Prognose keine Varianten enthält, definieren Sie hier nur eine Variante. Um eine Prognosevariante zu definieren, klicken Sie auf die Schaltfläche „Hinzufügen“.</p>
+  <p>Für jede Prognosevariante, die Sie definiert haben, können Sie sich anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese Vorlage in Excel mit den Prognosedaten für die zuvor definierten Prognosevariante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+  <p>Wiederholen Sie dieses Vorgehen für alle Prognosevarianten, in dem Sie in der Liste „Prognosevarianten“ die nächste Variante auswählen.</p>
+  <p>Bereits hochgeladene Prognosedaten einer ausgewählten Variante können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
+  <p>Die auf dieser Seite zusammengetragenen Prognosedaten sind für alle Nutzer:innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
+</app-header-card>
+<app-status-card *ngIf="!(popService.isLoading$ | async) && years.length === 0" [showSpinner]="false"
+                 infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Betrachtungszeitraum definiert werden.">
+  Fehler: Es ist kein Betrachtungszeitraum festgelegt!
+</app-status-card>
+<app-status-card *ngIf="!(popService.isLoading$ | async) && !popLevel" [showSpinner]="false"
+                 infoText="Bitte legen Sie im Bereich „Gebietseinteilungen“ eine Gebietseinteilung für die Einwohnerdaten fest.">
+  Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!
+</app-status-card>
+<app-status-card *ngIf="popLevel?.areaCount === 0" [showSpinner]="false"
+                 infoText="Bitte laden Sie im Bereich „Gebietseinteilungen“ Gebiete für die Gebietseinteilung hoch bzw. rufen Sie sie ab.">
+  Fehler: Die Gebietseinteilung für die Bevölkerungsdaten („{{popLevel?.name}}“) enthält keine Gebiete!
+</app-status-card>
+<app-status-card *ngIf="isProcessing$ | async">
+  Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
+</app-status-card>
+<div fxLayout="row wrap">
+  <div fxFlex="350px">
+    <app-input-card #yearCard
+                    [title]="'Prognosejahre'"
+                    subtitle="Folgende Jahre sollen in Vorlage und Karten enthalten sein"
+                    [editTemplate]="yearsEdit"
+                    [disabled]="years.length === 0  || !popLevel || (isProcessing$ | async)!"
+                    dialogWidth="500px"
+                    infoText="<p>Legen Sie über die Schaltfläche „Editieren“ fest, für welche zukünftigen Jahre Ihnen
+                    aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Über die gleiche Schaltfläche
+                    können Sie zudem entscheiden, welche Jahre den Nutzer:innen angezeigt werden sollen. Zudem können Sie
+                    über die Schaltfläche bereits hochgeladene Prognosedaten wieder löschen.</p>"
+                    dialogInfoText="<p>Die Liste enthält alle Jahre Ihres Betrachtungszeitraums. Zurückliegende Jahre sind mit einem Sternchen gekennzeichnet.</p>
+                    <p>In der mittleren Spalte sind die Jahre mit einem grauen Häkchen markiert, für die bereits Prognosedaten hochgeladen wurden (ob diese für alle Varianten vorliegen, wird nicht überprüft).</p>
+                    <p>Sie können in der ersten Spalte auswählen, welche dieser Daten Sie den Nutzer:innen der Hauptmenübereiche „Bevölkerung“ und „Infrastrukturplanung“ als Prognosedaten anzeigen möchten.</p>
+                    <p>Besonders relevant ist diese Auswahl, wenn in einem Jahr sowohl Realdaten aus der Einwohnerstatistik wie auch Prognosedaten aus einer ggf. schon etwas älteren Prognose vorliegen. Daher zeigt Ihnen die letzte Spalte an, für welche der zurückliegenden Jahre auch Realdaten in daviplan hochgeladen wurden.</p>
+                    <p>Um bereits hochgeladenen reale Prognosedaten wieder zu löschen, klicken Sie auf das entsprechende rote Kreuzchen in der Spalte „Prognosedaten“. Die Löschung betrifft alle Varianten für das betreffende Jahr. Realdaten löschen Sie über den Menüpunkt „Bevölkerung > Vergangenheit“ im Menü am linken Browserrand.</p>">
+      <table>
+        <tr>
+          <td i18n>Prognosejahre</td>
+          <td>
+            <ng-container *ngIf="prognosisYears.length === 0">-</ng-container>
+            <ng-container *ngFor="let year of prognosisYears; let i = index;">
+              {{year}}<ng-container *ngIf="i !== prognosisYears.length - 1">, </ng-container>
+            </ng-container>
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card [title]="'Prognosevarianten'"
+                    [disabled]="years.length === 0 || !popLevel || (isProcessing$ | async)!"
+                    subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten"
+                    infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
+                    <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
+                    <p>Für eine in der Liste ausgewählte Varianten können Sie anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                    <p>Wiederholen Sie dieses Vorgehen bitte für alle Prognosevarianten, die Sie Ihren Nutzer:innen zur Verfügung stellen möchten.</p>
+                    <p>Um eine Variante samt ihrer ggf. bereits hochgeladenen Daten zu löschen wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>">
+      <mat-selection-list [multiple]="false"
+                          id="prognosis-select">
+        <mat-list-option *ngFor="let prognosis of prognoses"
+                         (click)="activePrognosis = prognosis; onPrognosisChange();"
+                         [selected]="activePrognosis && (prognosis.id === activePrognosis.id)">
+          <div class="option-text">{{prognosis.name}}</div>
+          <mat-icon *ngIf="prognosis.isDefault"
+                    style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">
+            verified
+          </mat-icon>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="createPrognosis()">
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="float:right;"
+                class="mat-button-dv"
+                (click)="deletePrognosis()"
+                [disabled]="!activePrognosis">
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+      <button mat-button color="primary"
+              class="multiline-button"
+              style="width: 108%;"
+              title="Als Grundlage für alle Szenarien 'Status Quo Fortschreibung' verwenden"
+              (click)="activePrognosis && setDefaultPrognosis(activePrognosis)"
+              [disabled]="!activePrognosis">
+        <mat-icon class="material-icons-outlined">verified</mat-icon>
+        Als Grundlage für alle Szenarien 'Status Quo Fortschreibung' verwenden
+      </button>
+    </app-input-card>
+  </div>
+  <div fxLayout="column">
+    <app-input-card #propertiesCard
+                    width="430px"
+                    [title]="'Bezeichnung der ausgewählten Variante'"
+                    [class.hidden]="!popLevel || !activePrognosis"
+                    [editTemplate]="propertiesEdit">
+      <table *ngIf="activePrognosis">
+        <tr>
+          <td>Name</td>
+          <td>{{activePrognosis.name}}</td>
+        </tr>
+        <tr>
+          <td>Beschreibung</td>
+          <td>
+            <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+              {{activePrognosis.description}}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
+                    width="430px"
+                    [subtitle]="activePrognosis?.name || '-'"
+                    [class.hidden]="years.length === 0 || !popLevel || !activePrognosis"
+                    [disabled]="prognosisYears.length === 0 || (isProcessing$ | async)!"
+                    infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>
+                    <p>Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Bereits importierte Prognosedaten für die ausgewählte Variante“ für einzelne Gebiete anschauen.</p>">
+      <span *ngIf="prognosisYears.length === 0" style="margin-bottom: 10px;">
+        Es müssen „Prognosjahre“ ausgewählt werden, damit eine Vorlage mit diesen Jahren erzeugt werden kann.
+      </span>
+      <div style="width: 100%; display: flex;">
+        <button mat-stroked-button color="primary"
+                style="margin-right: 10px;"
+                (click)="downloadTemplate()">
+          <mat-icon>download</mat-icon> Vorlage herunterladen
+        </button>
+        <button mat-flat-button color="primary" (click)="uploadTemplate()">
+          <mat-icon>upload</mat-icon> Daten hochladen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <app-input-card subtitle="Daten-Historie Bevölkerung"
+                  width="370px"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Bevölkerung“.</p>">
+    <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
+  </app-input-card>
+</div>
+<div fxLayout="row wrap">
+  <app-input-card [title]="'Bereits importierte Prognosedaten für die ausgewählte Variante'"
+                  [disabled]="(isProcessing$ | async)!"
+                  [topRightHelp]="true"
+                  class="spaced"
+                  width="1170px"
+                  [class.hidden]="!popLevel || !activePrognosis"
+                  infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Prognosedaten für die ausgewählte Variante anzusehen.</p>
+                  <ol type='1'>
+                    <li>Sie können sich alle Daten in einer Tabellenansicht ansehen</li>
+                    <li>Sie können ein Jahr auswählen und sich die Gesamteinwohnerzahl aller Gebiete in der Karte ansehen. Diese können Sie über die Kartensteuerung auch als Vollbild über den gesamten Bildschirm anzeigen lassen. Die Namen der Gebiete werden Ihnen angezeigt, wenn Sie mit der Maus über die Karte fahren.</li>
+                    <li>Wenn Sie ein Gebiet in der Karte anklicken wird Ihnen die Alterspyramide nach Geschlecht für das Jahr der Kartendarstellung angezeigt. Alternativ können Sie das Gebiet auch über die darüberstehende Auswahlliste wählen.</li>
+                  </ol>
+                  Voraussetzung für alle Anzeigen ist, dass Sie bereits Prognosedaten für mindestens ein Jahr hochgeladen haben und mindestens ein Jahr zur Anzeige ausgewählt wurde.
+                  </p>">
+    <span class="subtitle1 sub">
+      Prognosevariante:
+      <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
+    </span>
+    <div style="margin-bottom: 10px;">
+      <button class="mat-button-dv"
+              mat-button color="primary"
+              (click)="showDataTable()">
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+        Alle Daten (als Tabelle)
+      </button>
+    </div>
+    <div style="width: 100%; display: flex;">
+      <div style="width: 50%; margin-right: 10px;">
+        <span class="subtitle1">Alle Gesamtwerte eines Jahres <br> (Als Karte)</span><br>
+        <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
+          <mat-label>Jahr</mat-label>
+          <mat-select disableOptionCentering disableRipple
+                      [(ngModel)]="previewYear"
+                      (ngModelChange)="updatePreview()">
+            <ng-container *ngFor="let year of years">
+              <mat-option *ngIf="year.isPrognosis" [value]="year">
+                {{year.year}}
+              </mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+        <div style="width: 100%; display: flex">
+          <div id="base-prog-data-map" class="map-container">
+            <app-map-controls *ngIf="popLevel && activePrognosis"
+                              target="base-prog-data-map"></app-map-controls>
+            <app-side-toggle [class.hidden]="!popLevel || !activePrognosis"
+                             id="legend"
+                             icon="layers"
+                             name="Legenden- und Layersteuerung"
+                             direction="left">
+              <app-legend target="base-prog-data-map"></app-legend>
+            </app-side-toggle>
+          </div>
+        </div>
+      </div>
+      <div style="width: 50%">
+        <span class="subtitle1">Altersstruktur eines Gebiets in diesem Jahr <br>(Auswahl auch über Karte möglich)</span><br>
+        <mat-form-field appearance="outline" class="small">
+          <mat-label>Gebiet</mat-label>
+          <mat-select disableOptionCentering disableRipple
+                      [(ngModel)]="previewArea"
+                      (ngModelChange)="onAreaChange()">
+            <mat-option *ngFor="let area of areas" [value]="area">
+              {{area.properties.label}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="diagram-wrapper">
+          <app-age-tree #ageTree
+                        [showPNGExport]="true"
+                        [animate]="true"
+                        [title]="'Bevölkerungspyramide'">
+          </app-age-tree>
+        </div>
+      </div>
+    </div>
+  </app-input-card>
+</div>
+
+<ng-template #yearsEdit>
+  <table id="years-check-table">
+    <tr>
+      <th colspan="2"></th>
+      <th colspan="2">Daten in der Datenbank</th>
+    </tr>
+    <tr>
+      <th>Jahr (*zurückliegend)</th>
+      <th>Als Prognosejahr anzeigen</th>
+      <th>Prognosedaten</th>
+      <th>Realdaten</th>
+    </tr>
+    <tr *ngFor="let year of years"
+        [class.active]="yearSelection.isSelected(year.year)"
+        [class.warn]="yearSelection.isSelected(year.year) && year.isReal">
+      <td [title]="(yearSelection.isSelected(year.year) && year.isReal)? 'Das Jahr ' + year.year + ' wurde bereits als Realdatenjahr ausgewählt, die Prognosedaten werden später in allen Anzeigen ignoriert.':
+                   (year.isReal)? year.year + ' (Realdatenjahr)': (yearSelection.isSelected(year.year))? year.year + ' (Prognosejahr)': year.year"
+          [style.color]="(!yearSelection.isSelected(year.year) && year.isReal)? 'black': ''">
+        <mat-icon [style.opacity]="(yearSelection.isSelected(year.year) && year.isReal)? 1: 0"
+                  style="vertical-align: bottom;">warning</mat-icon>
+        {{year.year}}<ng-container *ngIf="year.isReal">*</ng-container>
+      </td>
+      <td>
+        <mat-checkbox [color]="!(yearSelection.isSelected(year.year) && year.isReal)? 'primary': ''"
+                      [checked]="yearSelection.isSelected(year.year)"
+                      (change)="yearSelection.toggle(year.year)"
+                      title="{{year.year}} als Prognosejahr aus/abwählen">
+        </mat-checkbox>
+      </td>
+      <td style="text-align: right;">
+        <mat-checkbox [disabled]="true"
+                      [checked]="year.hasPrognosisData"
+                      title="Zeigt an, ob für das Jahr bereits Prognosedaten vorliegen">
+        </mat-checkbox>
+        <button [style.opacity]="(!year.hasPrognosisData)? 0: 1"
+                [style.pointer-events]="(!year.hasPrognosisData)? 'none': ''"
+                (click)="deleteData(year)"
+                mat-icon-button color="warn"
+                title="Prognosedaten des Jahres {{year.year}} entfernen"
+                style="margin-left: 10px;">
+          <mat-icon>close</mat-icon>
+        </button>
+      </td>
+      <td>
+        <mat-checkbox [disabled]="true"
+                      [checked]="year.hasRealData"
+                      title="Zeigt an, ob für das Jahr bereits Prognosedaten vorliegen">
+        </mat-checkbox>
+      </td>
+    </tr>
+  </table>
+</ng-template>
+
+<ng-template #propertiesEdit>
+  <form [formGroup]="propertiesForm" style="padding: 10px 0;">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" autocomplete="prognosis-variant-name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description"
+                  cdkTextareaAutosize cdkAutosizeMinRows="3"
+                  autocomplete="prognosis-variant-desc"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #dataTemplate>
+  <div class="loadOverlay" *ngIf="isLoading$ | async">
+    <mat-spinner [diameter]="50"></mat-spinner>
+  </div>
+  <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
+    <mat-label>Jahr</mat-label>
+    <mat-select disableOptionCentering disableRipple
+                [(ngModel)]="dataYear"
+                (ngModelChange)="updateTableData()">
+      <ng-container *ngFor="let year of years">
+        <mat-option *ngIf="year.isPrognosis" [value]="year">
+          {{year.year}}
+        </mat-option>
+      </ng-container>
+    </mat-select>
+  </mat-form-field>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>
+
+<ng-template #fileUploadTemplate>
+  <p>
+    Befüllte Excel-Vorlage mit Bevölkerungsdaten für die Prognosevariante <b>"{{activePrognosis?.name}}"</b> hochladen
+  </p>
+  <input #fileInput type="file" accept=".xlsx,.xls" (change)="setFiles($event)">
+</ng-template>

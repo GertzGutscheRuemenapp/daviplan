@@ -1,0 +1,14 @@
+<!--<textarea #log disabled id="log" [style.height]="height"></textarea>-->
+<div #log id="log" [style.height]="height">
+  <ng-container *ngFor="let entry of entries" >
+    <div class="log-row"
+         [style.color]="(entry.level === 'ERROR' || entry.status?.success === false)? 'red': (entry.status?.success)? 'green': 'black'"
+         [style.font-weight]="entry.status?.finished? 'bold': ''">
+      <ng-container *ngIf="entry.level === 'DEBUG'">DEBUG </ng-container>
+      <ng-container *ngIf="entry.timestamp">
+        <i>{{entry.timestamp}}</i> -
+      </ng-container>
+      {{entry.message}}
+    </div>
+  </ng-container>
+</div>

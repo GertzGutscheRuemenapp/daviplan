@@ -1,0 +1,87 @@
+@font-face {
+  font-family: 'GGR-davicons-Simple';
+  src:  url('assets/fonts/GGR-davicons-Simple.eot?qjmfbb');
+  src:  url('assets/fonts/GGR-davicons-Simple.eot?qjmfbb#iefix') format('embedded-opentype'),
+  url('assets/fonts/GGR-davicons-Simple.ttf?qjmfbb') format('truetype'),
+  url('assets/fonts/GGR-davicons-Simple.woff?qjmfbb') format('woff'),
+  url('assets/fonts/GGR-davicons-Simple.svg?qjmfbb#GGR-davicons-Simple') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'GGR-davicons-Simple' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-GGR-davicons-Font-Simple-1-Planungsprozess:before {
+  content: "\61";
+}
+.icon-GGR-davicons-Font-Simple-2-Szenario:before {
+  content: "\62";
+}
+.icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen:before {
+  content: "\63";
+}
+.icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung:before {
+  content: "\64";
+}
+.icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit:before {
+  content: "\65";
+}
+.icon-GGR-davicons-Font-Simple-6-Darstellungsoptionen:before {
+  content: "\66";
+}
+.icon-GGR-davicons-Font-Simple-7-Diagramme-Tabellen:before {
+  content: "\67";
+}
+.icon-GGR-davicons-Font-Simple-8-Legende:before {
+  content: "\68";
+}
+.icon-GGR-davicons-Font-Simple-9-Wohnstandort-Singular:before {
+  content: "\69";
+}
+.icon-GGR-davicons-Font-Simple-10-Wohnstandort-Plural:before {
+  content: "\6a";
+}
+.icon-GGR-davicons-Font-Simple-11-Einrichtung-Singular:before {
+  content: "\6b";
+}
+.icon-GGR-davicons-Font-Simple-12-Einrichtung-Plural:before {
+  content: "\6c";
+}
+.icon-GGR-davicons-Font-Simple-13-Einrichtung-Singular-Alt:before {
+  content: "\6d";
+}
+.icon-GGR-davicons-Font-Simple-14-Einrichtung-Plural-Alt:before {
+  content: "\6e";
+}
+.icon-GGR-davicons-Font-Simple-15-Fussweg:before {
+  content: "\6f";
+}
+.icon-GGR-davicons-Font-Simple-16-Radweg:before {
+  content: "\70";
+}
+.icon-GGR-davicons-Font-Simple-17-PKW:before {
+  content: "\71";
+}
+.icon-GGR-davicons-Font-Simple-18-OEPNV:before {
+  content: "\72";
+}
+.icon-GGR-davicons-Font-Single-19-Benutzerkonto-Einstellungen:before {
+  content: "\73";
+}
+.icon-GGR-davicons-Font-Single-20-Benutzer-Plus-Minus:before {
+  content: "\74";
+}

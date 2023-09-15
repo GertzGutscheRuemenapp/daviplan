@@ -1,0 +1,51 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav"
+               [attr.role]="(isHandset$ | async)? 'dialog' : 'navigation'"
+               [mode]="(isHandset$ | async)? 'over' : 'side'"
+               [style.width]="width"
+               [disableClose]="(isHandset$ | async)? false: true"
+               [opened]="(isHandset$ | async) === false">
+    <mat-nav-list [style.margin-top]="marginTop">
+      <div *ngFor="let item of menuItems">
+        <a *ngIf="item.url"
+           mat-list-item
+           routerLinkActive="active-link"
+           [routerLink]="'/'+item.url">
+          <div *ngIf="item.davicon" class="davicon {{item.davicon}}"></div>
+          <mat-icon *ngIf="!item.davicon" class="material-icons-outlined">{{item.icon}}</mat-icon>
+          {{ item.name }}
+        </a>
+        <mat-expansion-panel *ngIf="item.children.length > 0"
+                             [cookieExpansion]="prefix + item.name">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div *ngIf="item.davicon" class="davicon {{item.davicon}}"></div>
+              <mat-icon *ngIf="!item.davicon" class="material-icons-outlined">{{item.icon}}</mat-icon>
+              {{ item.name }}
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <ng-container *ngFor="let subitem of item.children">
+            <a class="subitem" mat-list-item routerLinkActive="active-link" [routerLink]="'/'+subitem.url">
+              <div *ngIf="subitem.davicon" class="davicon {{subitem.davicon}}"></div>
+              <mat-icon *ngIf="!subitem.davicon" class="material-icons-outlined">{{subitem.icon}}</mat-icon>
+              {{ subitem.name }}
+            </a>
+          </ng-container>
+        </mat-expansion-panel>
+      </div>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <button
+      type="button"
+      aria-label="Toggle sidenav"
+      mat-icon-button
+      (click)="drawer.toggle()"
+      *ngIf="isHandset$ | async">
+      <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+    </button>
+    <div [style.margin-top]="marginTop" [style.margin-left]="marginRight">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

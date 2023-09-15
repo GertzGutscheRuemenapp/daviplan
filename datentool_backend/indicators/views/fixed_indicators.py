@@ -1,0 +1,206 @@
+from django.db import models
+from rest_framework import viewsets, serializers
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from drf_spectacular.utils import extend_schema, inline_serializer
+
+from datentool_backend.indicators.compute import (
+    ComputePopulationAreaIndicator,
+    NumberOfLocations,
+    TotalCapacityInArea,
+    DemandAreaIndicator,
+    ComputePopulationDetailIndicator,
+    ReachabilityPlace,
+    ReachabilityCell,
+    ReachabilityNextPlace,
+)
+
+from datentool_backend.places.models import Scenario
+from datentool_backend.indicators.serializers import (IndicatorSerializer)
+
+from .parameters import (arealevel_year_service_scenario_serializer,
+                         area_agegroup_gender_prognosis_year_fields,
+                         arealevel_area_agegroup_gender_prognosis_year_fields,
+                         mode_year_service_scenario_serializer)
+
+
+class FixedIndicatorViewSet(viewsets.GenericViewSet):
+    serializer_class = IndicatorSerializer
+    queryset = models.QuerySet() # dummy queryset
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        description='get the total population for selected areas',
+        request=inline_serializer(
+            name='InlinePopulationAreaSerializer',
+            fields=arealevel_area_agegroup_gender_prognosis_year_fields,
+        ),
+        responses=ComputePopulationAreaIndicator.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def aggregate_population(self, request, **kwargs):
+        indicator = ComputePopulationAreaIndicator(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=arealevel_year_service_scenario_serializer,
+        responses=NumberOfLocations.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def number_of_locations(self, request, **kwargs):
+        """get the number of locations with a certain service for selected areas"""
+        indicator = NumberOfLocations(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=arealevel_year_service_scenario_serializer,
+        responses=TotalCapacityInArea.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def capacity(self, request, **kwargs):
+        """get the total capacity of a certain service for selected areas"""
+        indicator = TotalCapacityInArea(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=arealevel_year_service_scenario_serializer,
+        responses=DemandAreaIndicator.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def demand(self, request, **kwargs):
+        """get the total demand for selected services in selected areas"""
+        indicator = DemandAreaIndicator(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=inline_serializer(
+            name='InlinePopulationDetailSerializer',
+            fields=area_agegroup_gender_prognosis_year_fields,
+        ),
+        responses=ComputePopulationDetailIndicator.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def population_details(self, request, **kwargs):
+        """get the population details by year, gender and agegroup for the selected areas"""
+        indicator = ComputePopulationDetailIndicator(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=inline_serializer(
+            name='PlaceIdSerializer',
+            fields={
+                'place': serializers.IntegerField(required=True),
+                'mode': serializers.IntegerField(),
+                'scenario': serializers.PrimaryKeyRelatedField(
+                    queryset=Scenario.objects.all(),
+                    required=False, help_text='scenario_id'),
+            }
+        ),
+        responses=ReachabilityPlace.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def reachability_place(self, request, **kwargs):
+        """get cells with reachabilities to given place"""
+        indicator = ReachabilityPlace(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=inline_serializer(
+            name='CellIdSerializer',
+            fields={
+                'cell_code': serializers.CharField(required=True),
+                'mode': serializers.IntegerField(),
+                'scenario': serializers.PrimaryKeyRelatedField(
+                    queryset=Scenario.objects.all(),
+                    required=False, help_text='scenario_id'),
+            }
+        ),
+        responses=ReachabilityCell.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def reachability_cell(self, request, **kwargs):
+        """get places with reachabilities to cell closest to given coordinate"""
+        indicator = ReachabilityCell(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=mode_year_service_scenario_serializer,
+        responses=ReachabilityNextPlace.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def reachability_next_place(self, request, **kwargs):
+        """get cells with reachabilities to the next place of given service"""
+        indicator = ReachabilityNextPlace(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))

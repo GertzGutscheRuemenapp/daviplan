@@ -1,0 +1,38 @@
+table {
+  td {
+  }
+  .filter-button {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0;
+    margin-left: auto;
+  }
+}
+
+form {
+  padding: 5px;
+}
+
+#filter-box {
+  min-height: 100px;
+  width: 60%;
+}
+
+.options-control {
+  overflow: auto;
+  max-height: 400px;
+  padding: 10px 20px;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+}
+
+.mat-chip {
+  background-color: white;
+  border: 1px solid grey;
+  .mat-icon {
+    cursor: pointer;
+    color: grey;
+    margin-left: 8px;
+  }
+}

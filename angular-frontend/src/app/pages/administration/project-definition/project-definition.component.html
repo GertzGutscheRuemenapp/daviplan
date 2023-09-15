@@ -1,0 +1,248 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Basisdefinitionen'"
+                 cookieId="exp-project-header"
+                 width="930px">
+  <p>
+    Für Ihre kommunale oder regionale Anwendung von daviplan müssen Sie zu Beginn drei zentrale Festlegungen treffen, deren spätere Veränderung nur mit größerem Aufwand möglich ist. Sie müssen einen Planungsraum abgrenzen, einen Betrachtungszeitraum definieren und eine Altersgruppeneinteilung vornehmen.
+  </p>
+  <p>
+    Wie dies im Einzelnen geht, wird Ihnen in den Hilfetexten der drei nachstehenden Eingabeboxen erläutert.
+  </p>
+</app-header-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Gebiete“/„Planungsraum“
+</app-status-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card #yearCard
+                    [title]="'Betrachtungszeitraum'"
+                    [editTemplate]="yearEdit"
+                    infoText="<p>Klicken Sie auf „Editieren“, um den angezeigten Betrachtungszeitraum zu verändern. Der Betrachtungszeitraum umfasst alle Jahre, für die sich die Nutzenden Daten anzeigen lassen oder Szenarien entwickeln können.</p>
+                    <p>Es empfiehlt sich, den Betrachtungszeitraum so zu wählen, dass sowohl die zurückliegende Entwicklung (z.B. die letzten 10 Jahre) als auch Szenarien für die Zukunft (z.B. die kommenden 20 Jahre) abgebildet werden. Wählen Sie den Betrachtungszeitraum so, dass vorliegende Prognose gut darin abgebildet werden können.</p>">
+      <table>
+        <tr>
+          <td>Betrachtungs-<br>zeitraum</td>
+          <td>{{startYear || '-'}} bis {{endYear || '-'}}</td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card #ageGroupCard
+                    [title]="'Altersgruppeneinteilung'"
+                    [editTemplate]="ageGroupsEdit"
+                    dialogWidth="470px"
+                    infoText="<p>Legen Sie hier die Altersgruppen fest, auf deren Basis in der Anwendung die Einwohnerdaten erfasst und angezeigt werden sollen. Die Altersgruppeneinteilung bildet zudem die Grundlage für die Definition der Nachfragequoten nach den von Ihnen definierten Leistungen. Die Einteilung der Altersgruppen sollte daher vor dem Import von Einwohnerdaten sowie der Festlegung von Nachfragequoten erfolgen. Achtung: Eine nachträgliche Veränderung kann die Löschung bereits vorgenommener Datenimporte und Dateneintragungen nach sich ziehen.</p>
+                    <p>Daviplan kennt eine Standardeinteilung mit 17 Altersgruppen. Diese entspricht der Altersgruppendefinition der Regionalstatistik, dem gemeinsamen Statistikangebot der Statistischen Landesämter. Wird diese Standardeinteilung übernommen, können Einwohnerdaten online abgefragt werden und müssen nicht händisch importiert werden. Daher wird die Nutzung der Standardeinteilung empfohlen. Um dies zu tun, ändern Sie die Altersgruppenteilung nicht oder setzen Sie diese über die Schaltflächen „Editieren“ und „Auf Default zurücksetzen“ auf den Standard zurück. </p>
+                    <p>Um eine eigene Altersgruppeneinteilung vorzunehmen, klicken Sie auf „Editieren“. Dort können Sie die einzelnen Altersgruppen verändern, löschen oder weitere hinzufügen.</p>">
+      <table>
+        <tr>
+          <td i18n>Altersgruppen</td>
+          <td>
+            <ng-container *ngFor="let ageGroup of ageGroups">
+              <ng-container *ngIf="ageGroup.toAge < 999">
+                {{ageGroup.fromAge}} bis unter {{ageGroup.toAge + 1}} Jahre
+              </ng-container>
+              <ng-container *ngIf="ageGroup.toAge >= 999">
+                {{ageGroup.fromAge}} Jahre und älter
+              </ng-container>
+              <br>
+            </ng-container>
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="600px">
+    <app-input-card #areaCard
+                    [disabled]="isProcessing"
+                    [title]="'Planungsraum'"
+                    [topRightHelp]="true"
+                    infoText="Um Ihren Planungsraum festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihren Planungsraum aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
+                    [editTemplate]="projectAreaEdit"
+                    dialogInfoText="<p>Der Planungsraum definiert, für welche Gemeinden die Nutzende Ihrer daviplan-Anwendung Daten sehen und ggf. verändern können. Alle Gemeinden außerhalb des Planungsraums sind nur als Hintergrundkarte sichtbar</p>
+                    <p>Um einen Planungsraum zu definieren oder eine bestehende Definition zu ändern, klicken Sie bitte auf die Schaltfläche „Gebietsauswahl deaktiviert“, um in den Editiermodus zu gelangen.</p>
+                    <p>Die Definition des Planungsraums erfolgt grundsätzlich auf der Ebene der Gemeinden. Im Editiermodus sehen Sie rechts eine Liste der ausgewählten Gemeinden. Darunter finden Sie eine Liste der bisher nicht ausgewählten Gemeinden, die im aktuellen Kartenausschnitt liegen.</p>
+                    <p>Wenn Sie eine Gemeinden der unteren Liste anklicken, wird diese dem Planungsraum hinzugefügt und in der Karte braun eingefärbt. Das gleich passiert, wenn Sie eine Gemeinde in der Karte anklicken. Wenn Sie sie erneut anklicken, wird sie wieder aus dem Planungsraum herausgenommen. Um eine Gemeinde aus dem Planungsraum zu entfernen, können Sie sich auch in der Liste der ausgewählten Gemeinden anklicken.</p>
+                    <p>Sie können sich in der Karte unterschiedliche Verwaltungsebenen anzeigen lassen. Klicken Sie einen Landkreis an, werden alle Gemeinden dieses Landkreises Ihrem Planungsraum hinzugefügt. Klicken Sie den Landkreis erneut an, werden alle Gemeinden des Landkreises wieder aus Ihrem Planungsraum herausgenommen. Durch ein Hin- und Herschalten zwischen den Verwaltungsebenen lassen sich so z.B. alle Gemeinden eines Landkreises erst zuzufügen und dann in einem zweiten Schritt alle Gemeinden einer bestimmten Verwaltungsgemeinschaft (Amt, Samtgemeinde, Verbandsgemeinde, ...) wieder herausnehmen.</p>
+                    <p>Klicken Sie auf Speichern, um Ihre Gebietsdefinition zu speichern.</p>
+                    <p>Ihre Gebietsdefinition sollte nach Möglichkeit später nicht mehr verändert werden. Um einen flächendeckenden Datenbestand sicher zu stellen, muss daviplan bei einer nachträglichen Veränderung des Gebietsstandes ggf. bereits importierte Strukturdaten wieder löschen.</p>"
+                    dialogWidth="1200px">
+      <div id="project-preview-map" class="map-container">
+        <app-map-controls target="project-preview-map"></app-map-controls>
+      </div>
+    </app-input-card>
+    <app-input-card subtitle="Daten-Historie Gebiete"
+                    infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Gebiete“ und aus der Definition des Planungsraums.</p>">
+      <app-log room="areas" (onMessage)="onMessage($event)" height="200px"></app-log>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #yearEdit>
+  <form [formGroup]="yearForm">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Startjahr</mat-label>
+      <input matInput type="number" [min]="projectSettings?.minYear || 2000" max="3000" formControlName="startYear" required>
+      <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>Das Startjahr muss vor dem Endjahr liegen</mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Endjahr</mat-label>
+      <input matInput type="number" [min]="projectSettings?.minYear || 2000" max="3000" formControlName="endYear" required>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<ng-template #ageGroupsEdit>
+  <div class="age-group-container" #ageGroupContainer>
+    <div>
+      <ng-container *ngFor="let ageGroup of editAgeGroups; let i = index;">
+        <div class="age-row">
+          <mat-form-field appearance="outline" class="small">
+            <mat-label i18n>ab</mat-label>
+            <input matInput type="number"
+                   [disabled]="i===0"
+                   [min]="(i===0)? 0: editAgeGroups![i-1].toAge"
+                   [max]="ageGroup.toAge - 1"
+                   [(ngModel)]="ageGroup.fromAge"
+                   required>
+          </mat-form-field>
+          &nbsp;-&nbsp;
+          <mat-form-field appearance="outline" class="small">
+            <mat-label i18n>bis unter</mat-label>
+            <input matInput type="number"
+                   [min]="ageGroup.fromAge + 1"
+                   [max]="(i < editAgeGroups.length - 1)? editAgeGroups![i+1].fromAge: 998"
+                   [(ngModel)]="ageGroup.toAge"
+                   required>
+            <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>
+              Das Startjahr muss vor dem Endjahr liegen
+            </mat-error>
+          </mat-form-field>
+          Jahre
+          <button mat-button color="warn"
+                  class="mat-button-dv"
+                  (click)="removeAgeGroup(ageGroup)"
+                  title="Altersgruppe entfernen"
+                  style="float: right;">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                *ngIf="(i < editAgeGroups.length-1) && ageGroup.toAge < editAgeGroups![i+1].fromAge"
+                (click)="insertAgeGroup(i)"
+                title="Altersgruppe einfügen" i18n>
+          <mat-icon>add</mat-icon>einfügen
+        </button>
+      </ng-container>
+      <div class="age-row">
+        <mat-form-field appearance="outline" class="small">
+          <mat-label i18n>ab</mat-label>
+          <input matInput type="number"
+                 [disabled]="true"
+                 [value]="(editAgeGroups.length === 0)? 0: editAgeGroups[editAgeGroups.length-1].toAge">
+        </mat-form-field>
+        Jahre
+      </div>
+    </div>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="addAgeGroup()"
+            title="Altersgruppe hinzufügen" i18n>
+      <mat-icon>add</mat-icon>hinzufügen
+    </button>
+  </div>
+  <div>
+    <button mat-button color="warn"
+            class="mat-button-dv"
+            (click)="editAgeGroups = []"
+            style="float: right;"
+            title="Alle Altersgruppen entfernen" i18n>
+      <mat-icon>close</mat-icon>Alle entfernen
+    </button>
+  </div>
+  <button mat-button color="primary"
+          class="mat-button-dv multiline-button"
+          style="margin: 15px 0px;"
+          (click)="resetAgeGroups()" i18n>
+    <mat-icon>refresh</mat-icon>auf Defaults der Regionalstatistik zurücksetzen
+  </button>
+</ng-template>
+
+<ng-template #projectAreaEdit>
+  <div style="display: flex">
+    <div style="width: 65%;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-label>Verwaltungsebene</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    [disabled] = "!showAreaLayers"
+                    (selectionChange)="changeAreaLayer()"
+                    [(value)]="selectedAreaLayer">
+          <mat-option [value]="layer" *ngFor="let layer of areaLayers">
+            {{layer.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-slide-toggle color="primary"
+                        style="margin-left: 10px;"
+                        [(ngModel)]="showAreaLayers"
+                        (ngModelChange)="toggleLayerVisibility()">
+        Gebietsauswahl {{showAreaLayers? 'aktiv': 'deaktiviert' }}
+      </mat-slide-toggle>
+      <div id="project-area-select-map" class="map-container">
+        <app-map-controls target="project-area-select-map"></app-map-controls>
+      </div>
+    </div>
+    <mat-divider vertical style="height: 550px; margin: 0 14px;"></mat-divider>
+    <div style="width: 32%;"
+         [style.display]="showAreaLayers? '': 'none'">
+      <h4 style="font-size: 20px!important; margin-bottom: 5px;" i18n>Ausgewählte Gemeinden</h4>
+      <div id="selected-area-list">
+        <ul>
+          <ng-container *ngFor="let baseFeat of baseAreasInExtent">
+            <li title="aus der Auswahl entfernen"
+                (click)= "toggleFeatureSelection(baseFeat)"
+                *ngIf="baseFeat.get('inSelection')">
+              {{baseFeat.get('gen')}}
+              <mat-icon>close</mat-icon>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+      <button mat-button color="primary"
+              class="mat-button-dv"
+              (click)="removeAreaSelections()"
+              style="margin: 0 0 10px 10px"
+              title="gesamte Auswahl entfernen" i18n>
+        <mat-icon>close</mat-icon>Alle abwählen
+      </button>
+      <br>
+      <h4 style="font-size: 20px!important; margin-bottom: 5px;" i18n>Nicht ausgewählte Gemeinden</h4>
+      <div id="available-area-list">
+        <ul>
+          <ng-container *ngFor="let baseFeat of baseAreasInExtent">
+            <li title="zur Auswahl hinzufügen"
+                (click)= "toggleFeatureSelection(baseFeat)"
+                *ngIf="!baseFeat.get('inSelection')">
+              {{baseFeat.get('gen')}}
+              <mat-icon>add</mat-icon>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #ageGroupWarning>
+  <div style="display: flex; align-items: end;">
+    <p style="width: 80%">
+      Die Altersgruppen stimmen nicht mit den Altersgruppen der Regionalstatistik überein.
+    </p>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
+  </div>
+  <p>
+    Sollen die definierten Altersgruppen dennoch übernommen werden?
+  </p>
+</ng-template>

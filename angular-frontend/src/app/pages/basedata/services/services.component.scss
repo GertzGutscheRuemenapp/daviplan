@@ -1,0 +1,19 @@
+#service-select, #infrastructure-select {
+  min-height: 150px;
+  max-height: 250px;
+}
+
+.capacity-checkbox {
+  padding: 4px;
+}
+
+.service-capacity {
+  max-width: 130px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.service-capacity:hover {
+  min-width: 600%;
+}

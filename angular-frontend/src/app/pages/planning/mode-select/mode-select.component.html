@@ -1,0 +1,35 @@
+<div id="mode-select" class="sub-select-wrapper" style="display: flex"
+     [ngClass]="{ 'invalid': !selectedMode }">
+  <label *ngIf="label">{{label}}</label>
+  <ng-container *ngFor="let modeItem of modes | keyvalue">
+    <ng-container *ngVar="Number(modeItem.key) as mode">
+      <div [title]="modeStatus[mode]?.message? modeItem.value + ': ' + modeStatus[mode]?.message: modeItem.value"
+           [style.cursor]="modeStatus[mode]?.enabled? 'pointer': 'not-allowed'">
+        <div (click)="changeMode(mode)"
+             [ngClass]="{ 'selected': mode === selectedMode }"
+             [style.pointer-events]="modeStatus[mode]?.enabled? '': 'none'">
+          <div [ngClass]="{ 'inverted': mode === selectedMode, 'disabled': !modeStatus[mode]?.enabled }"
+               class="mini-fab-icon primary">
+            <ng-container *ngIf="mode === TransportMode.WALK || Number(modeItem.key) === TransportMode.BIKE">
+              <mat-icon *ngIf="mode === TransportMode.WALK"
+                        style="font-size: 20px;" class="material-icons-outlined">
+                directions_walk
+              </mat-icon>
+              <mat-icon *ngIf="mode === TransportMode.BIKE"
+                        style="font-size: 20px;" class="material-icons-outlined">
+                directions_bike
+              </mat-icon>
+            </ng-container>
+            <ng-container *ngIf="mode === TransportMode.CAR || mode === TransportMode.TRANSIT">
+              <div *ngIf="mode === TransportMode.CAR" class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
+              <div *ngIf="mode === TransportMode.TRANSIT" class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
+            </ng-container>
+          </div>
+          <div [style.margin-top]="(mode === TransportMode.CAR || mode === TransportMode.TRANSIT)? '-4px': '0px'">
+            {{modeItem.value}}
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</div>

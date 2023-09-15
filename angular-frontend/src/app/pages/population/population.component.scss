@@ -1,0 +1,107 @@
+@import "src/constants";
+
+.map-wrapper {
+  position: absolute;
+  z-index: 0;
+  top: $sub-nav-height;
+  height: calc(100% - #{$sub-nav-height});
+  width: 100%;
+  padding-left: $context-bar-width;
+}
+#population-map {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background-color: white;
+}
+
+::ng-deep app-population {
+  overflow-y: hidden;
+
+  #chart-toggle {
+    pointer-events: none;
+    position: fixed;
+    left: $context-bar-width;
+    top: 240px;
+    z-index: -1;
+    // side toggle for charts does not "lie under" side nav (context bar)
+    // workaround to make it look like it does by adding left inner shadow
+    .side-toggle-indicator {
+      box-shadow: inset 8px 1px 7px -8px #a7a7a7, 1px 0px 3px 1px #a7a7a7;
+    }
+    .side-toggle-content-wrapper {
+      box-shadow: inset 8px 1px 7px -8px #a7a7a7, 5px 1px 10px -3px #a7a7a7;
+    }
+    .side-toggle-content {
+      padding: 10px;
+    }
+  }
+
+  .context-bar {
+    position: fixed;
+    top: 60px + $sub-nav-height;
+    //z-index: 12;
+  }
+  .diagram-wrapper {
+    width: 700px;
+    height: 400px;
+    position: relative;
+    border-top: 1px solid lightgrey;
+    padding-top: 20px;
+    >div {
+      border: 1px solid lightgrey;
+      padding: 10px;
+      position: absolute;
+      width: 100%;
+      height: calc(100% - 30px);
+    }
+  }
+  #toggle-settings {
+    position: fixed;
+    z-index: 13;
+    top: 74px;
+    left: 10px;
+  }
+
+  .context-bar {
+    mat-form-field, .sub-select-box {
+      width: 230px;
+    }
+
+    .sub-select-wrapper {
+      width: calc(#{$context-bar-width} - 110px);
+    }
+  }
+
+  #pop-description {
+    padding: 5px 15px;
+    line-height: normal;
+    min-height: 70px;
+    max-width: 600px;
+    overflow-y: auto;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.sub-nav {
+  padding-left: calc(#{$context-bar-width});
+  position: fixed;
+}
+
+// small
+@media only screen and (max-width: 50em) {
+  .sub-links {
+    a {
+      font-size: 16px !important;
+      padding: 0 10px;
+    }
+  }
+  .map-wrapper {
+    padding-left: 0;
+    width: 100%;
+  }
+  .sub-nav {
+    padding-left: 60px;
+  }
+}

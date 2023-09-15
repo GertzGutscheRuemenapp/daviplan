@@ -1,0 +1,115 @@
+@import "src/styles";
+
+.mat-sidenav-container {
+  position: fixed;
+  height: 100%;
+  padding-bottom: 60px;
+}
+
+.sidenav {
+  width: 200px;
+}
+
+.sidenav .mat-toolbar {
+  background: inherit;
+}
+
+.main-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: white;
+  //box-shadow: 0px 0px 5px 4px #a7a7a7;
+  font-size: 24px;
+  height: 64px;
+}
+
+.page-links, .home {
+  display: flex;
+  height: 100%;
+  color: #00000099;
+  transition: font-size 0.2s;
+}
+
+.mat-toolbar .link {
+  padding: 17px 10px 0 10px;
+  text-decoration: none;
+  color: #00000099;
+}
+
+.page-links .link {
+  margin-right: 20px;
+  //height: calc(100% - 20px); //- 17px);
+  border-bottom-color: white;
+  transition: font-size 0.2s, color 0.3s, border-bottom-color 0.4s;
+}
+
+.mat-menu-trigger mat-icon {
+  color: grey;
+}
+
+.page-links .link:not(.active-link):hover{
+  //color: $accent;
+  //box-shadow: 0 12px 10px -10px $accent;
+  border-bottom: 3px solid gray;
+  //color: black;
+  font-size: 28px;
+  //background-color: $primary-light;
+}
+
+.home:hover{
+  font-size: 28px;
+}
+
+.page-links .active-link {
+  color: $primary;
+  border-bottom: 3px solid $primary;
+  font-size: 28px;
+  //box-shadow: 0 12px 10px -10px;
+}
+
+.main-collapse {
+  padding-top: 60px;
+  a {
+    font-size: 28px;
+    line-height: 48px;
+    margin-bottom: 20px;
+    font-weight: normal;
+    text-align: left;
+  }
+}
+
+.main-collapse .active-link {
+  color: white;
+  background-color: $primary;
+}
+
+#account {
+  font-size: 18px;
+}
+
+#account a {
+  color: $light-black;
+}
+
+.profile-table {
+ td:first-child:not(.not-first-child) {
+   padding-right: 20px;
+   font-size: 14px;
+   line-height: 16px;
+   color: #00000061;
+   text-transform: uppercase;
+   font-weight: bold;
+   letter-spacing: 0.6px;
+   white-space: nowrap;
+ }
+}
+
+@media only screen and (max-width: 90em) {
+  .page-links {
+    a {
+      font-size: 20px !important;
+      padding: 0 10px;
+    }
+  }
+}

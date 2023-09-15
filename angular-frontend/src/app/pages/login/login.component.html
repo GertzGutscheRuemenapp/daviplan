@@ -1,0 +1,45 @@
+<div id="background" style="background-image: url('{{backend}}/static/img/GGR-Startbild-Layout-1-01.png');"></div>
+<div id="banner" class="center">
+  <img *ngIf="settings?.logo" [src]="settings?.logo" height="120px" style="mix-blend-mode: multiply; margin-right: 50px;" >
+  <div class="logo">
+    <img src="{{backend}}/static/img/test-logo.png" height="100px" alt="Logo"/>
+    <div style="align-items: center; font-size: 50px;"> <p>davi</p><p>plan</p> </div>
+  </div>
+</div>
+<div class="center" style="overflow-y: auto;">
+  <div style="width: 600px;">
+    <div class="center">
+      <div style="width: 400px; margin-top: 25px;">
+        <ng-template #loggedIn>
+          <p style="text-align: center;"> Eingeloggt als <b>{{user?.username}}</b> </p>
+          <button class="large" mat-raised-button color="primary" (click)="auth.logout()" style="width:100%" i18n>Ausloggen</button>
+        </ng-template>
+        <mat-card class="mat-elevation-z12" style="width: 360px;">
+          <form *ngIf="!user; else loggedIn" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" style="margin-bottom: -20px;">
+              <mat-label i18n>Nutzername</mat-label>
+              <input matInput formControlName="userName" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" style="margin-bottom: -10px;">
+              <mat-label i18n>Passwort</mat-label>
+              <input matInput type="password" formControlName="password" [type]="showPassword ? 'text' : 'password'" required>
+              <fa-icon matSuffix [icon]="showPassword? faEyeSlash: faEye" (click)="showPassword = !showPassword"></fa-icon>
+            </mat-form-field>
+            <mat-error *ngIf="loginForm.errors && loginForm.errors['error']" class="alert">
+              {{loginForm.errors['error']}}
+            </mat-error>
+            <button class="large" mat-raised-button color="primary" type="submit" style="width:100%" i18n>Einloggen</button>
+            <div *ngIf="settings?.contactMail" style="text-align: center; margin-top: 20px; font-style: italic;">
+              <span i18n>Zur Beantragung eines Accounts oder bei Verlust der Zugangsdaten, wenden Sie sich bitte an</span>
+              &nbsp;
+              <a [href]="settings?.contactMail">{{settings?.contactMail}}</a>
+            </div>
+          </form>
+        </mat-card>
+        <p class="mat-body-2" style="text-align: center; color: #00000099; width: 90%; padding: 20px;">
+          © 2021 - 2022 Gertz Gutsche Rümenapp Stadtentwicklung und Mobilität GbR <br> Hamburg | Berlin
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

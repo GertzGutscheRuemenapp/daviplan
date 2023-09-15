@@ -1,0 +1,150 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
+<app-header-card [title]="'Bevölkerungssalden: Wanderungssaldo und natürliches Saldo'"
+                 width="1040px">
+  <p>Neben den Einwohnerzahlen (Realdaten der zurückliegenden Jahre und Prognose für die Zukunft) können im Hauptmenüabschnitt „Bevölkerung“ für alle Nutzer:innen auch Daten zum Wanderungssaldo (= Zuzüge minus Fortzüge) angezeigt werden. Diese haben rein informatorischen Charakter und fließen nicht in den Auswertungen des Hauptmenüabschnitts „Infrastrukturplanung“ ein.</p>
+  <p>Im Gegensatz zu den Einwohnerzahlen brauchen Sie die Bevölkerungssalden nicht selbst hochladen. Vielmehr greift daviplan hierzu auf die Online-Angebote der Statistischen Ämter des Bundes und der Länder („Regionalstatistik“) zurück.</p>
+  <p>Wenn Sie die Bevölkerungssalden für Ihre Nutzer:innen anzeigen möchten, klicken Sie in der Box „Online-Datenabruf“ auf „Abrufen“.</p>
+  <p>Ihnen werden dann in der Box „Jahre“ die Jahre angezeigt, für die aus dem Online-Angebot der Regionalstatistik Daten über Ihr Projektgebiet heruntergeladen werden konnten. Wenn Sie eines dieser Jahre in der Liste auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
+  <p>Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
+</app-header-card>
+<app-status-card *ngIf="isProcessing$ | async">
+  Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
+</app-status-card>
+<app-status-card *ngIf="areaLevel?.areaCount === 0" [showSpinner]="false"
+                 infoText="Bitte laden Sie im Bereich „Gebietseinteilungen“ Gebiete für die Gebietseinteilung hoch bzw. rufen Sie sie ab.">
+  Fehler: Die Gebietseinteilung für die Statistikdaten („{{areaLevel?.name}}“) enthält keine Gebiete!
+</app-status-card>
+<div fxLayout="row wrap">
+  <app-input-card [title]="'Online-Datenabruf '"
+                  [disabled]="(isProcessing$ | async)! || areaLevel?.areaCount === 0"
+                  width="300px"
+                  infoText="<p>Klicken Sie auf „Abrufen“, um die Daten der natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) sowie zu den Wanderungen (Zu- und Fortzüge) aus dem Online-Angebot der Regionalstatistik herunterzuladen.</p>
+                  <p>Nach dem erfolgreichen Abruf werden Ihnen in der Box „Jahre“ die Jahre angezeigt, für die nun Daten zur Verfügung stehen. Wenn Sie eines dieser Jahre auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
+                  <p>Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>"
+                  [subtitle]="'Abruf der Regionalstatistik'">
+    <label>
+      <ng-container *ngIf="(this.settings.siteSettings$ | async)?.regionalstatistikUser else noRegStatUser">
+        Nutzerdaten für die Regionalstatistik sind hinterlegt
+      </ng-container>
+      <ng-template #noRegStatUser>
+        Es sind keine Nutzerdaten für die Regionalstatistik hinterlegt
+      </ng-template>
+    </label>
+    <button mat-flat-button color="primary"
+            (click)="pullService()">
+      <mat-icon>refresh</mat-icon> Abrufen
+    </button>
+  </app-input-card>
+  <app-input-card [title]="'Jahre'"
+                  [disabled]="(isProcessing$ | async)! || areaLevel?.areaCount === 0"
+                  width="300px"
+                  subtitle="Verfügbare Jahre"
+                  infoText="<p>Die Liste in dieser Box enthält die Jahre, für die Daten aus dem Online-Angebot der Regionalstatistik heruntergeladen werden konnten.</p>
+                  <p>Wenn Sie den Nutzer:innen im Hauptmenüabschnitt „Bevölkerung“ ein Jahr davon nicht zur Verfügung stellen möchten, wählen Sie dieses in der Liste aus und klicken Sie auf „Entfernen“. Um es wieder hinzuzufügen, müssen Sie alle Daten erneut von der Regionalstatistik abrufen.</p>
+                  <p>Wenn Sie eines der Jahre in der Liste auswählen, werden Ihnen die zugehörigen Werte zur natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) und zu den Wanderungen (Zu- und Fortzüge) in der Karte angezeigt. Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>">
+    <mat-selection-list [multiple]="false"
+                        id="year-select">
+      <mat-list-option *ngFor="let stat of statistics"
+                       (click)="year = stat.year; onYearChange();"
+                       [selected]="(stat.year === year)">
+        <div class="option-text">{{stat.year}}</div>
+      </mat-list-option>
+    </mat-selection-list>
+    <div style="margin-top: 10px;">
+      <button mat-button color="primary"
+              class="mat-button-dv"
+              [disabled]="!year"
+              (click)="onRemoveStatistics()">
+        <mat-icon>close</mat-icon>entfernen
+      </button>
+    </div>
+  </app-input-card>
+  <app-input-card subtitle="Daten-Historie Bevölkerung"
+                  width="400px"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte und Berechnungen im Bereich „Bevölkerung“.</p>">
+    <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
+  </app-input-card>
+</div>
+<div fxLayout="row wrap">
+  <app-input-card [title]="'Daten des ausgewählten Jahres'"
+                  [disabled]="(isProcessing$ | async)!"
+                  [topRightHelp]="true"
+                  width="1040px"
+                  infoText="<p>Die Karte veranschaulicht Ihnen die Daten für das in der Box „Jahre“ ausgewählte Jahr.</p>
+                  <p>Die Inhalte der Karte – also natürliche Bevölkerungsentwicklung (Geburten und Sterbefälle) oder Wanderungen (Zu- und Fortzüge) – steuern Sie über das Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
+                  <p>Weitere Informationen wie zusätzliche Gebietsgrenzen können Sie über die Legendensteuerung (auf halber Höhe am rechten Rand der Karte) hinzufügen. Ist diese Steuerung eingeklappt, klicken Sie bitte auf das Icon mit den gestapelten Kartenblättern.</p>">
+
+    <span class="subtitle1 sub" style="width: 100%;">
+      Jahr:
+      <p style="font-size: 1.5em;">{{year || '-'}}</p>
+    </span>
+    <div>
+      <button class="mat-button-dv"
+              [disabled] = "!year"
+              (click)="showDataTable()"
+              mat-button color="primary">
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+      </button>
+    </div>
+    <div id="base-statistics-map" class="map-container">
+      <app-map-controls target="base-statistics-map"></app-map-controls>
+      <app-side-toggle id="legend"
+                       icon="layers"
+                       name="Legenden- und Layersteuerung"
+                       direction="left">
+        <app-legend target="base-statistics-map"></app-legend>
+      </app-side-toggle>
+      <app-side-toggle id="statistics-theme"
+                       name="Themenwahl"
+                       icon="family_restroom">
+        <div style="padding: 15px;">
+          <mat-form-field appearance="outline" class="small">
+            <mat-label i18n>Thema</mat-label>
+            <mat-select disableOptionCentering disableRipple
+                        [(ngModel)]="theme"
+                        (ngModelChange)="updateMap()">
+              <mat-option value="nature">
+                Geburten und Sterbefälle
+              </mat-option>
+              <mat-option value="migration">
+                Wanderung
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="sub-select-wrapper" [style.display]="(theme==='migration')? 'block' : 'none'">
+            <mat-checkbox [(ngModel)]="showImmigration"
+                          color="primary"
+                          (ngModelChange)="updateMap()">
+              Zuzüge
+            </mat-checkbox>
+            <br>
+            <mat-checkbox [(ngModel)]="showEmigration"
+                          color="primary"
+                          (ngModelChange)="updateMap()">
+              Fortzüge
+            </mat-checkbox>
+          </div>
+          <div class="sub-select-wrapper" [style.display]="(theme==='nature')? 'block' : 'none'">
+            <mat-checkbox [(ngModel)]="showBirths"
+                          color="primary"
+                          (ngModelChange)="updateMap()">
+            Geburten
+            </mat-checkbox>
+            <br>
+            <mat-checkbox [(ngModel)]="showDeaths"
+                          color="primary"
+                          (ngModelChange)="updateMap()">
+              Sterbefälle
+            </mat-checkbox>
+          </div>
+        </div>
+      </app-side-toggle>
+    </div>
+  </app-input-card>
+</div>
+
+<ng-template #dataTemplate>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>

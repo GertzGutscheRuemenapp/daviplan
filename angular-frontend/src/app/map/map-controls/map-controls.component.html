@@ -1,0 +1,121 @@
+<div (mouseenter)="showOnHover && toggle()" (mouseleave)="showOnHover && toggle()">
+  <div id="leftDialBack" [ngClass]="{'expanded': expanded}"
+       [style.width]="bookmarks? '180px': '130px'"
+       [style.margin-left]="bookmarks? '-160px': '-110px'">
+    <div></div>
+  </div>
+  <eco-fab-speed-dial #leftDial direction="left" [fixed]="true">
+    <eco-fab-speed-dial-actions>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Karte ausdrucken"
+              (click)="print()">
+        <mat-icon>print</mat-icon>
+      </button>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Karte als Grafik exportieren"
+              [matMenuTriggerFor]="profileMenu">
+        <mat-icon>photo_camera</mat-icon>
+      </button>
+      <mat-menu #profileMenu>
+        <a mat-menu-item (click)="exportPNG()">
+          <mat-icon>map</mat-icon>
+          Karte als PNG-Bilddatei speichern
+        </a>
+        <a mat-menu-item (click)="exportLegend()">
+          <mat-icon>layers</mat-icon>
+          Legende als PNG-Bilddatei speichern
+        </a>
+        <a mat-menu-item (click)="copyTitle()">
+          <mat-icon>content_paste</mat-icon>
+          Kartentitel in Zwischenablage kopieren
+        </a>
+      </mat-menu>
+      <button *ngIf="bookmarks"
+              #extentButton
+              mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Kartenausschnitte (Bookmarks)"
+              (click)="openExtentDialog()"
+              placement="bottom-right"
+              triggers="click">
+        <mat-icon>bookmark</mat-icon>
+      </button>
+    </eco-fab-speed-dial-actions>
+  </eco-fab-speed-dial>
+  <eco-fab-speed-dial #rightDial direction="down" [fixed]="true">
+    <eco-fab-speed-dial-trigger [spin]="true">
+      <button mat-fab
+              class="bordered"
+              color="primary"
+              title="Kartenfunktionen ein-/ausblenden"
+              (click)="toggle()">
+        <mat-icon>apps</mat-icon>
+      </button>
+    </eco-fab-speed-dial-trigger>
+    <eco-fab-speed-dial-actions>
+      <button mat-mini-fab
+              color="primary"
+              class="no-shadow"
+              title="In die Karte hineinzoomen"
+              (click)="zoomIn()">
+        <mat-icon>zoom_in</mat-icon>
+      </button>
+      <button mat-mini-fab
+              color="primary"
+              class="no-shadow"
+              title="Aus der Karte herauszoomen"
+              (click)="zoomOut()">
+        <mat-icon>zoom_out</mat-icon>
+      </button>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Karte im Vollbildmodus darstellen"
+              (click)="toggleFullscreen()">
+        <mat-icon>fullscreen</mat-icon>
+      </button>
+    </eco-fab-speed-dial-actions>
+  </eco-fab-speed-dial>
+</div>
+
+<ng-template #extentDialogTemplate>
+  <div style="margin-top: 5px;">
+    <p *ngFor="let extent of mapControl?.mapExtents | keyvalue">
+      <button mat-button
+              title='Auf Ausschnitt "{{extent.key}}" zoomen'
+              (click)="loadExtent(extent.key)"
+              style="width: calc(100% - 40px); display: inline-flex; overflow: hidden; cursor: zoom-in;">
+        <mat-icon>bookmark_border</mat-icon>
+        {{extent.key}}
+      </button>
+      <button mat-icon-button
+              (click)="removeExtent(extent.key)"
+              title='Kartenausschnitt "{{extent.key}}" entfernen'
+              style="float: right;">
+        <mat-icon class="material-icons-outlined">delete_forever</mat-icon>
+      </button>
+    </p>
+  </div>
+  <button mat-button color="primary"
+          class="mat-button-dv"
+          style="margin: 6px 0 10px 11px"
+          (click)="addExtent()" i18n>
+    <mat-icon>add</mat-icon>aktuellen Ausschnitt speichern
+  </button>
+</ng-template>
+
+<ng-template #addExtentTemplate>
+  <form [formGroup]="addExtentForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill" style="width: 100%">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
