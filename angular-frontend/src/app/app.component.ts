@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MatDialog } from "@angular/material/dialog";
 import { Router } from "@angular/router";
-import { tap } from "rxjs/operators";
+import { share, tap } from "rxjs/operators";
 import { AuthService } from "./auth.service";
 
 @Component({
@@ -17,7 +17,7 @@ export class AppComponent {
     authService.settings.refresh().subscribe(() => {
       // initialize authentication cycle by refreshing access token
       if (authService.hasPreviousLogin())
-        authService.refreshToken().subscribe();
+        authService.refreshToken().subscribe(() => authService.fetchCurrentUser().subscribe());
       // fetch demo user in demo mode if not logged in
       else if (authService.settings.siteSettings$.value.demoMode) {
         authService.fetchCurrentUser().subscribe((user) => {

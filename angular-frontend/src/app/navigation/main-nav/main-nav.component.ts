@@ -18,7 +18,6 @@ import { RestCacheService } from "../../rest-cache.service";
 export class MainNavComponent implements OnInit{
 
   user?: User;
-  user$?: Observable<User | undefined>;
   backend: string = environment.backend;
   settings?: SiteSettings;
   infrastructures: Infrastructure[] = [];
@@ -26,17 +25,16 @@ export class MainNavComponent implements OnInit{
 
   menuItems: { name: string, url: string }[] = [];
 
-  constructor(private auth: AuthService, private dialog: MatDialog,
-              private router: Router, private rest: RestCacheService) { }
+  constructor(protected auth: AuthService, private dialog: MatDialog, private rest: RestCacheService) { }
 
   ngOnInit(): void {
     this.auth.settings.siteSettings$.subscribe(settings => {
       this.settings = settings;
-    });
-    this.user$ = this.auth.getCurrentUser().pipe(share());
-    this.user$.subscribe(user => {
-      this.user = user;
-      this.buildMenu();
+      // this.user$ = this.auth.getCurrentUser().pipe(share());
+      this.auth.user$.subscribe(user => {
+        this.user = user;
+        this.buildMenu();
+      });
     });
   }
 

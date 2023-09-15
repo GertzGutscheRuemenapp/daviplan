@@ -1,4 +1,4 @@
-<mat-toolbar *ngIf="user$ | async" class="main-nav">
+<mat-toolbar *ngIf="auth.user$ | async" class="main-nav">
   <div fxShow="true" fxHide.gt-sm="true">
     <button mat-icon-button (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
