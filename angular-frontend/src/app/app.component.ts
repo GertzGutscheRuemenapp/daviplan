@@ -22,7 +22,9 @@ export class AppComponent {
       else if (authService.settings.siteSettings$.value.demoMode) {
         authService.fetchCurrentUser().subscribe((user) => {
           if (user)
-            authService.login({ username: user.username, password: '-' }).subscribe();
+            authService.login({ username: user.username, password: '-' }).subscribe(
+              () => router.navigateByUrl('/')
+            );
         });
       }
     })
