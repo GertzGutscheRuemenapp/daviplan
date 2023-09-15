@@ -30,7 +30,7 @@ export class BasedataComponent implements OnInit {
     {name:  $localize`Externe Layer`, url: 'grundlagendaten/layer', icon: 'layers', children: []}
   ];
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit(): void {
   }
