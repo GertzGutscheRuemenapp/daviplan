@@ -13,7 +13,6 @@ export class AppComponent {
 
   constructor(router: Router, dialog: MatDialog, authService: AuthService) {
 
-    // auto apply site settings when new ones were fetched
     authService.settings.refresh().subscribe(() => {
       // initialize authentication cycle by refreshing access token
       if (authService.hasPreviousLogin())

@@ -84,7 +84,12 @@ export class SettingsService {
   });
   user!: UserSettings;
 
-  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {}
+  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
+    // auto apply site settings when new ones were fetched
+    this.siteSettings$.subscribe(settings => {
+      this.applySiteSettings(settings);
+    })
+  }
 
   refresh(): Observable<any> {
     return this.getSiteSettings().pipe(tap( () => {
