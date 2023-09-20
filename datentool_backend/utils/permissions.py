@@ -24,8 +24,8 @@ class BasePermission(permissions.BasePermission):
 
 
 class ReadOnlyPermission(BasePermission):
-    """Only user with admin_access or can_edit_basedata have read access.
-    Write access is forbidden
+    """Only user with admin_access, can_edit_basedata or demo users
+    have read access. Write access is forbidden in general
     """
     def has_permission(self, request, view):
         self.check_demo_mode(request)
@@ -33,8 +33,10 @@ class ReadOnlyPermission(BasePermission):
             return False
         if request.method in permissions.SAFE_METHODS and (
               request.user.is_superuser or
-               request.user.profile.admin_access or
-               request.user.profile.can_edit_basedata):
+              request.user.profile.admin_access or
+              request.user.profile.can_edit_basedata or
+              (getattr(settings, 'DEMO_MODE') and
+               request.user.profile.is_demo_user)):
             return True
         return False
 
