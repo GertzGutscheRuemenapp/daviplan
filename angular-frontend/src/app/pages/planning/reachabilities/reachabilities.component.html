@@ -2,7 +2,8 @@
     <p>Wählen Sie hier das Szenario aus, dessen Erreichbarkeitsverhältnisse Sie in der Karte anzeigen möchten. Erreichbarkeiten beschreiben, wie lange der Nachfragenden mit unterschiedlichen Verkehrsmitteln zu den Einrichtungen brauchen (oder umgekehrt, z.B. bei der Feuerwehr).</p>
     <p>Sie können die Erreichbarkeitsverhältnisse des Szenarien verändern, indem Sie – sofern vorhanden – ein anderes Wegenetz auswählen. Zudem können Sie ein neues Szenario hinzufügen oder ein bestehendes löschen.</p>">
 </app-scenario-menu>
-<mat-expansion-panel cookieExpansion="exp-reach-services">
+<mat-expansion-panel cookieExpansion="exp-reach-services"
+                     [initiallyExpanded]="true">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
