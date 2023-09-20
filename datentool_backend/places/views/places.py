@@ -31,6 +31,7 @@ from datentool_backend.utils.crypto import decrypt
 from datentool_backend.utils.permissions import (HasAdminAccess,
                                                  HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,
+                                                 IsDemoUser
                                                  )
 
 from datentool_backend.site.models import SiteSetting
@@ -128,7 +129,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                    ),
                    )
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccess | CanEditBasedata])
+            permission_classes=[IsDemoUser | HasAdminAccess | CanEditBasedata])
     def create_template(self, request):
         """Download the Template"""
         infrastructure_id = request.data.get('infrastructure')

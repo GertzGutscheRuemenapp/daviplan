@@ -78,6 +78,13 @@ class HasAdminAccess(BasePermission):
                      request.user.profile.admin_access))
 
 
+class IsDemoUser(BasePermission):
+    def has_permission(self, request, view):
+        return (getattr(settings, 'DEMO_MODE') and
+                request.user.is_authenticated and
+                request.user.profile.is_demo_user)
+
+
 class IsOwner(BasePermission):
     ''' object can only be requested in any way if it is owned by the user '''
     def has_permission(self, request, view):
