@@ -489,6 +489,9 @@ export class PrognosisDataComponent implements OnInit, AfterViewInit, OnDestroy 
       this.prognoses.forEach(p => p.isDefault = false);
       this.activePrognosis!.isDefault = prognosis.isDefault;
       this.isLoading$.next(false);
+    },(error) => {
+      this.isLoading$.next(false);
+      showAPIError(error, this.dialog);
     })
   }
 

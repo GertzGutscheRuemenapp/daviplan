@@ -421,6 +421,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     forkJoin(...observables).subscribe(next => {
       this.mapControl?.refresh({ external: true });
       this.layerTree.refresh();
+    },(error) => {
+      showAPIError(error, this.dialog);
     })
   }
 

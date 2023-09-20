@@ -330,6 +330,9 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
       areaLevel.isActive = level.isActive;
       this.mapControl?.refresh({ internal: true });
       this.isLoading$.next(false);
+    }, error => {
+      this.isLoading$.next(false);
+      showAPIError(error, this.dialog);
     });
   }
 
@@ -355,6 +358,8 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
       this.mapControl?.refresh({ internal: true });
       this.customAreaLevels = sortBy(this.customAreaLevels, 'order');
       this.orderIsChanging$.next(false);
+    }, error => {
+      showAPIError(error, this.dialog);
     })
   }
 
@@ -388,6 +393,9 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
       this.customAreaLevels.concat(this.presetLevels).forEach(l => l.isPopLevel = false);
       areaLevel.isPopLevel = al.isPopLevel;
       this.isLoading$.next(false);
+    }, error => {
+      this.isLoading$.next(false);
+      showAPIError(error, this.dialog);
     })
   }
 
