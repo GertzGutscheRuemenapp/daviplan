@@ -25,9 +25,7 @@ class UserSettings {
   private settings$ = new BehaviorSubject<Record<string, any>>({});
   private _settings: Record<string, any> = {};
 
-  constructor(private rest: RestAPI, private http: HttpClient) {
-    this.fetch();
-  }
+  constructor(private rest: RestAPI, private http: HttpClient) { }
 
   get(key: string): Observable<any>{
     const observable = new Observable<any>(subscriber => {
@@ -89,13 +87,18 @@ export class SettingsService {
     this.siteSettings$.subscribe(settings => {
       this.applySiteSettings(settings);
     })
+    this.user = new UserSettings(this.rest, this.http);
+  }
+
+  init() {
+    this.user.fetch();
+    this.getProjectSettings().subscribe();
+    this.getBaseDataSettings().subscribe();
   }
 
   refresh(): Observable<any> {
     return this.getSiteSettings().pipe(tap( () => {
-      this.user = new UserSettings(this.rest, this.http);
-      this.getProjectSettings().subscribe();
-      this.getBaseDataSettings().subscribe();
+      this.init();
     }));
   }
 

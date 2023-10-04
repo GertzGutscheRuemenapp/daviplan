@@ -30,7 +30,6 @@ export class MainNavComponent implements OnInit{
   ngOnInit(): void {
     this.auth.settings.siteSettings$.subscribe(settings => {
       this.settings = settings;
-      // this.user$ = this.auth.getCurrentUser().pipe(share());
       this.auth.user$.subscribe(user => {
         this.user = user;
         this.buildMenu();

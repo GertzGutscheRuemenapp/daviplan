@@ -11,21 +11,24 @@ import { AuthService } from "./auth.service";
 })
 export class AppComponent {
 
-  constructor(router: Router, dialog: MatDialog, authService: AuthService) {
-
-    authService.settings.refresh().subscribe(() => {
+  constructor(private router: Router, dialog: MatDialog, private authService: AuthService) {
+    authService.settings.getSiteSettings().subscribe(() => {
       // initialize authentication cycle by refreshing access token
-      if (authService.hasPreviousLogin())
-        authService.refreshToken().subscribe(() => authService.fetchCurrentUser().subscribe());
-      // fetch demo user in demo mode if not logged in
-      else if (authService.settings.siteSettings$.value.demoMode) {
-        authService.fetchCurrentUser().subscribe((user) => {
-          if (user)
-            authService.login({ username: user.username, password: '-' }).subscribe(
-              () => router.navigateByUrl('/')
-            );
-        });
+      if (authService.hasPreviousLogin()) {
+        authService.refreshToken().subscribe(() => {
+            authService.fetchCurrentUser().subscribe(() => this.authService.settings.init());
+          },
+          error => {
+            this.demoLogin();
+          }
+        );
       }
+      // fetch demo user in demo mode if not logged in
+      else {
+        this.demoLogin();
+      }
+    }, error => {
+      this.demoLogin();
     })
     router.events.pipe(
       tap(() => {
@@ -33,5 +36,16 @@ export class AppComponent {
         dialog.closeAll();
       })
     ).subscribe();
+  }
+
+  demoLogin(): void {
+    if (this.authService.settings.siteSettings$.value.demoMode) {
+      this.authService.fetchCurrentUser().subscribe((user) => {
+        if (user)
+          this.authService.login({ username: user.username, password: '-' }).subscribe(
+            () => this.router.navigateByUrl('/')
+          );
+      });
+    }
   }
 }

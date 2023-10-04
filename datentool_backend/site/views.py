@@ -218,6 +218,7 @@ class SiteSettingViewSet(SingletonViewSet):
     serializer_class = SiteSettingSerializer
     parser_classes = [CamelCaseMultiPartParser, CamelCaseJSONParser]
     permission_classes = [HasAdminAccessOrReadOnlyAny]
+    authentication_classes = []
 
 
 class MatrixStatisticsViewSet(viewsets.GenericViewSet):

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError, Subscription } from 'rxjs';
 import { User } from "./rest-interfaces";
-import { catchError, filter, switchMap, take, tap, delay } from 'rxjs/operators';
+import { catchError, filter, switchMap, take, tap, delay, share } from 'rxjs/operators';
 import { RestAPI } from "./rest-api";
 import {
   CanActivate,
@@ -65,8 +65,8 @@ export class AuthService {
     this.clearLocalStorage();
     this.stopTokenTimer();
     this.user$.next(undefined);
-    // const redirectUrl = this.settings.siteSettings$.value?.demoMode? '/': '/login';
-    this.router.navigateByUrl('/login');
+    if (!this.settings.siteSettings$.value?.demoMode)
+      this.router.navigateByUrl('/login');
   }
 
   /**
@@ -81,7 +81,7 @@ export class AuthService {
         }
         const token = localStorage.getItem('accessToken');
         // if there is token then fetch the current user
-        if (token) {
+        if (token) {// || this.settings.siteSettings$.value.demoMode) {
           return this.fetchCurrentUser();
         }
         return of(undefined);
@@ -178,7 +178,7 @@ export class TokenInterceptor implements HttpInterceptor {
           if (refreshToken && accessToken) {
             return this.refreshToken(req, next);
           }
-          return this.logout(err);
+          // return this.logout(err);
         }
         return throwError(err);
       })
@@ -211,7 +211,8 @@ export class TokenInterceptor implements HttpInterceptor {
         }),
         catchError(err => {
           this.refreshingInProgress = false;
-          return this.logout(err);
+          return throwError(err);
+          //return this.logout(err);
         })
       );
     }
