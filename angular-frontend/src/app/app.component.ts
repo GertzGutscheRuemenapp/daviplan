@@ -45,7 +45,13 @@ export class AppComponent {
           this.authService.login({ username: user.username, password: '-' }).subscribe(
             () => this.router.navigateByUrl('/')
           );
+        else
+          this.router.navigateByUrl('/login');
+      }, error => {
+        this.router.navigateByUrl('/login');
       });
     }
+    else
+      this.router.navigateByUrl('/login');
   }
 }
