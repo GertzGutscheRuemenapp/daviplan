@@ -29,3 +29,11 @@
   border: 1px solid lightgrey;
   padding: 5px 10px;
 }
+
+.layer-preview-table {
+  table-layout: fixed;
+  width: 100%;
+  tr td:first-child {
+    width: 120px;
+  }
+}

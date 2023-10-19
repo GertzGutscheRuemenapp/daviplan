@@ -223,7 +223,8 @@ export class MapService {
                 layerName: layer.layerName,
                 description: layer.description,
                 order: layer.order,
-                active: layer.active
+                active: layer.active,
+                cors: layer.cors
               })
               mGroup.appendLayer(mLayer);
             }

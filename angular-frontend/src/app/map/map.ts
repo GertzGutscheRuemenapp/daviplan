@@ -130,17 +130,16 @@ export class OlMap {
   }
 
   addTileServer(name: string, url: string, options: { params?: any, zIndex?: number, minZoom?: number,
-    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string } = {}): OlLayer<any>{
+    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string, crossOrigin?: boolean } = {}): OlLayer<any>{
 
-    if (this.layers[name] != null) this.removeLayer(name)
-
+    if (this.layers[name] != null) this.removeLayer(name);
     const attributions = options.attribution? [options.attribution]: [];
     let source = (options.xyz) ?
       new XYZ({
         url: url,
         attributions: attributions,
         attributionsCollapsible: false,
-        crossOrigin: '*'
+        crossOrigin: options?.crossOrigin? '*': undefined
       }) :
       new TileWMS({
         url: url,
@@ -148,7 +147,7 @@ export class OlMap {
         serverType: 'geoserver',
         attributions: attributions,
         attributionsCollapsible: false,
-        crossOrigin: '*'
+        crossOrigin: options?.crossOrigin? '*': undefined
       })
 
     let layer = new OlTileLayer({

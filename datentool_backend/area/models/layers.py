@@ -43,6 +43,7 @@ class Layer(DatentoolModelMixin, NamedModel, models.Model):
 class WMSLayer(Layer):
     """a WMS Layer"""
     url = models.URLField()
+    cors = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.url}'
