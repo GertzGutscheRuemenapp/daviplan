@@ -85,7 +85,8 @@ export interface ExtLayer {
   description: string,
   group: number | string,
   layerName: string,
-  active: boolean
+  active: boolean,
+  cors?: boolean
 }
 
 export interface Source {

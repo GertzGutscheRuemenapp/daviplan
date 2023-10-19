@@ -12,7 +12,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { arrayMove, showAPIError } from "../../../helpers/utils";
 import { ExtLayerGroup, ExtLayer } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
-import { MapLayer, WMSLayer } from "../../../map/layers";
+import { MapLayer, TileLayer, WMSLayer } from "../../../map/layers";
 
 function isLayer(obj: any): obj is ExtLayer{
   return 'layerName' in obj;
@@ -33,7 +33,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   layerGroups: MapLayerGroup[] = [];
   mapControl?: MapControl;
   layerGroupForm: FormGroup;
-  addLayerForm: FormGroup;
   editLayerForm: FormGroup;
   selectedLayer?: MapLayer;
   selectedGroup?: MapLayerGroup;
@@ -42,20 +41,17 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private restService: RestCacheService, private formBuilder: FormBuilder) {
-    this.addLayerForm = this.formBuilder.group({
-      name: new FormControl(''),
-      url: new FormControl(''),
-      layerName: new FormControl(''),
-      description: new FormControl('')
-    });
     this.editLayerForm = this.formBuilder.group({
-      name: new FormControl(''),
-      description: new FormControl('')
+      name: '',
+      url: '',
+      layerName: '',
+      description: '',
+      cors: false
     });
-    this.addLayerForm.controls['layerName'].disable();
-    this.addLayerForm.controls['url'].disable();
+    this.editLayerForm.controls['layerName'].disable();
+    this.editLayerForm.controls['url'].disable();
     this.layerGroupForm = this.formBuilder.group({
-      name: new FormControl('')
+      name: ''
     });
   }
 
@@ -94,8 +90,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   setupLayerCard(): void {
     this.layerCard?.dialogOpened.subscribe(ok => {
       this.editLayerForm.reset({
+        url: this.selectedLayer?.url,
+        layerName: (this.selectedLayer as TileLayer)?.layerName,
         name: this.selectedLayer?.name,
-        description: this.selectedLayer?.description
+        description: this.selectedLayer?.description,
+        cors: !!this.selectedLayer?.cors
       });
     })
     this.layerCard?.dialogConfirmed.subscribe((ok)=>{
@@ -104,13 +103,15 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       if (this.editLayerForm.invalid) return;
       let attributes: any = {
         name: this.editLayerForm.value.name,
-        description: this.editLayerForm.value.description
+        description: this.editLayerForm.value.description,
+        cors: this.editLayerForm.value.cors
       }
       this.layerCard?.setLoading(true);
       this.http.patch<ExtLayer>(`${this.rest.URLS.layers}${this.selectedLayer?.id}/`, attributes
       ).subscribe(layer => {
         this.selectedLayer!.name = layer.name;
         this.selectedLayer!.description = layer.description;
+        this.selectedLayer!.cors = layer.cors;
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
         this.layerCard?.closeDialog(true);
@@ -236,7 +237,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    * open dialog to create new layer, post to backend on confirm
    */
   addLayer(parent: MapLayerGroup): void {
-    this.addLayerForm.reset();
+    this.editLayerForm.reset();
     this.availableLayers = [];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
@@ -249,13 +250,13 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.addLayerForm.markAllAsTouched();
-      if (this.addLayerForm.invalid) return;
+      this.editLayerForm.markAllAsTouched();
+      if (this.editLayerForm.invalid) return;
       let attributes: any = {
-        name: this.addLayerForm.value.name,
-        layerName: this.addLayerForm.get('layerName')!.value,
-        url: this.addLayerForm.get('url')!.value,
-        description: this.addLayerForm.value.description || '',
+        name: this.editLayerForm.value.name,
+        layerName: this.editLayerForm.get('layerName')!.value,
+        url: this.editLayerForm.get('url')!.value,
+        description: this.editLayerForm.value.description || '',
         order: parent.children?.length,
         group: parent.id
       }
@@ -267,7 +268,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
           order: layer.order,
           description: layer.description,
           layerName: layer.layerName,
-          active: layer.active
+          active: layer.active,
+          cors: layer.cors
         }));
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
@@ -287,21 +289,19 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    */
   requestCapabilities(url: string): void {
     if (!url) return;
-    this.addLayerForm.reset();
-    this.addLayerForm.setErrors(null);
+    this.editLayerForm.reset();
+    this.editLayerForm.setErrors(null);
     this.http.post(this.rest.URLS.getCapabilities, { url: url }).subscribe((res: any) => {
       this.availableLayers = [];
-      if (!res.cors) {
-        showAPIError({ message: 'Der Server unterstützt kein Cross-Origin Resource Sharing (CORS).' }, this.dialog);
-        return;
-      }
+      this.editLayerForm.controls['cors'].setValue(!!res.cors);
       for (let i = 0; i < res.layers.length; i += 1) {
         const l = res.layers[i];
         const layer = new WMSLayer(l.title, res.url,{
           id: i,
           layerName: l.name,
           order: 0,
-          description: l.abstract
+          description: l.abstract,
+          cors: !!res.cors
         });
         this.availableLayers.push(layer);
         if (res.layers.length > 0)
@@ -319,7 +319,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    */
   onAvLayerSelected(idx: number): void {
     const layer = this.availableLayers[idx],
-          controls = this.addLayerForm.controls;
+          controls = this.editLayerForm.controls;
     controls['name'].patchValue(layer.name);
     controls['description'].patchValue(layer.description);
     controls['layerName'].patchValue((layer as WMSLayer).layerName);
