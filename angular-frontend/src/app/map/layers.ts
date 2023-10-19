@@ -142,8 +142,6 @@ export class TileLayer extends MapLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
-    if (this.minZoom)
-      this.map.view.on('change:resolution', () => console.log(this.map?.view.getZoom()))
     return this.map.addTileServer(
       this.mapId, this.url!, {
         zIndex: this.zIndex,

@@ -230,7 +230,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         colorFunc: (value: number) => (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey'
       }: undefined;
       const values = popData.values.map(d => d.value);
-      console.log(popData.values);
       const absMax = Math.max(...values.map(v => Math.abs(v || 0)));
       const max = Math.max(...values);
       const min = Math.min(...values);

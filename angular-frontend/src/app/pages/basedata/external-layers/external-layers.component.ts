@@ -249,7 +249,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         closeOnConfirm: false
       }
     });
-    console.log(this.editLayerForm.value['cors'])
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editLayerForm.markAllAsTouched();
       if (this.editLayerForm.invalid) return;
