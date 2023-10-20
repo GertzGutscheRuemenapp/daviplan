@@ -85,8 +85,9 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
             "Referrer-Policy": "strict-origin-when-cross-origin",
         }
         res = requests.options(url, headers=headers)
-        cors_enabled = ('access-control-allow-origin' in res.headers and
-                        res.headers['access-control-allow-origin'] == '*')
+        cors_enabled = (res.status_code == 200 and
+                        ('access-control-allow-origin' in res.headers and
+                        res.headers['access-control-allow-origin'] == '*'))
 
         return JsonResponse({
             'version': wms.version,
