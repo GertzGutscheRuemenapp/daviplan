@@ -12,6 +12,7 @@ import { AuthService } from "./auth.service";
 export class AppComponent {
 
   constructor(private router: Router, dialog: MatDialog, private authService: AuthService) {
+    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
     authService.settings.getSiteSettings().subscribe(() => {
       // initialize authentication cycle by refreshing access token
       if (authService.hasPreviousLogin()) {
@@ -43,7 +44,10 @@ export class AppComponent {
       this.authService.fetchCurrentUser().subscribe((user) => {
         if (user)
           this.authService.login({ username: user.username, password: '-' }).subscribe(
-            () => this.router.navigateByUrl('/')
+            () => {
+              // lazy: reloading page to force refresh of settings
+              this.router.navigateByUrl('/').then(() => window.location.reload());
+            }
           );
         else
           this.router.navigateByUrl('/login');
