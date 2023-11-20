@@ -12,12 +12,21 @@ import { AuthService } from "./auth.service";
 export class AppComponent {
 
   constructor(private router: Router, dialog: MatDialog, private authService: AuthService) {
-    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
-    authService.settings.getSiteSettings().subscribe(() => {
+    this.router.events.pipe(
+      tap(() => {
+        // close all dialogs on page change (esp. help dialogs)
+        dialog.closeAll();
+      })
+    ).subscribe();
+    this.init();
+  }
+
+  init(): void {
+    this.authService.settings.getSiteSettings().subscribe(() => {
       // initialize authentication cycle by refreshing access token
-      if (authService.hasPreviousLogin()) {
-        authService.refreshToken().subscribe(() => {
-            authService.fetchCurrentUser().subscribe(() => this.authService.settings.init());
+      if (this.authService.hasPreviousLogin()) {
+        this.authService.refreshToken().subscribe(() => {
+            this.authService.fetchCurrentUser().subscribe(() => this.authService.settings.init());
           },
           error => {
             this.demoLogin();
@@ -31,12 +40,6 @@ export class AppComponent {
     }, error => {
       this.demoLogin();
     })
-    router.events.pipe(
-      tap(() => {
-        // close all dialogs on page change (esp. help dialogs)
-        dialog.closeAll();
-      })
-    ).subscribe();
   }
 
   demoLogin(): void {
@@ -44,10 +47,7 @@ export class AppComponent {
       this.authService.fetchCurrentUser().subscribe((user) => {
         if (user)
           this.authService.login({ username: user.username, password: '-' }).subscribe(
-            () => {
-              // lazy: reloading page to force refresh of settings
-              this.router.navigateByUrl('/').then(() => window.location.reload());
-            }
+            () => this.init()
           );
         else
           this.router.navigateByUrl('/login');
