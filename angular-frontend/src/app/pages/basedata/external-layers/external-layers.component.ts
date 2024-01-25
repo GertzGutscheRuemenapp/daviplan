@@ -46,7 +46,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       url: '',
       layerName: '',
       description: '',
-      cors: 'anonymous'
+      cors: false
     });
     this.editLayerForm.controls['layerName'].disable();
     this.editLayerForm.controls['url'].disable();
@@ -258,7 +258,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         url: this.editLayerForm.get('url')!.value,
         description: this.editLayerForm.value.description || '',
         order: parent.children?.length,
-        group: parent.id
+        group: parent.id,
+        cors: this.editLayerForm.value.cors
       }
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayer>(this.rest.URLS.layers, attributes).subscribe(layer => {
