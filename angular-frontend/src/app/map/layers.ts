@@ -37,7 +37,7 @@ export interface LayerOptions {
   active?: boolean,
   legend?: ColorLegend,
   legendElapsed?: boolean,
-  cors?: boolean
+  cors?: boolean | string
 }
 
 export abstract class MapLayer {
@@ -58,7 +58,7 @@ export abstract class MapLayer {
   legend?: ColorLegend;
   legendElapsed?: boolean
   protected _legend?: ColorLegend;
-  cors?: boolean
+  cors?: boolean | string
   attributeChanged = new EventEmitter<{attribute: string, value: any}>();
 
   protected constructor(name: string, options?: LayerOptions) {

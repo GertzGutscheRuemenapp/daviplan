@@ -46,7 +46,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       url: '',
       layerName: '',
       description: '',
-      cors: false
+      cors: 'anonymous'
     });
     this.editLayerForm.controls['layerName'].disable();
     this.editLayerForm.controls['url'].disable();
