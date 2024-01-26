@@ -241,7 +241,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     this.availableLayers = [];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '900px',
+      width: '1000px',
       disableClose: true,
       data: {
         title: `Neuer Layer in "${parent.name}"`,

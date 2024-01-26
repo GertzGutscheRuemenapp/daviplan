@@ -165,7 +165,7 @@
   </div>
   <mat-divider vertical style="align-self: stretch; margin: 0 14px;"></mat-divider>
   <form [formGroup]="editLayerForm">
-    <div fxLayout="column" fxFlex="400px">
+    <div fxLayout="column" fxFlex="500px">
       <mat-form-field appearance="fill">
         <mat-label i18n>Layer</mat-label>
         <input matInput formControlName="layerName" required>
@@ -180,11 +180,28 @@
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Beschreibung</mat-label>
-        <textarea matInput formControlName="description" rows="10"></textarea>
+        <textarea matInput formControlName="description" rows="3"></textarea>
       </mat-form-field>
-      <mat-checkbox color="primary" formControlName="cors" title="Cross-origin erlauben - Wird automatisch ermittelt bei der URL-Abfrage und ist abhängig von der Serverkonfiguration des Kartenservices. Bitte nur ändern, falls Sie es besser wissen.">
-        CORS
-      </mat-checkbox>
+      <div>
+        <mat-checkbox color="primary" formControlName="cors" title="Cross-origin erlauben">
+          CORS
+        </mat-checkbox>
+        <mat-expansion-panel class="text-panel" style="transform: translateY(-30px); background: none; pointer-events: none;">
+          <mat-expansion-panel-header style="position: relative; width: 100%; padding-right: 10px;">
+            <div style="position: absolute; top: 0; right: 20px; display: flex; margin-right: 10px; pointer-events: all;">
+              <mat-icon color="primary" class="material-icons-outlined"
+                        style="margin-right: 5px;">help_outline</mat-icon>
+              <span class="subtitle1" style="color: grey;">Hilfe</span>
+            </div>
+          </mat-expansion-panel-header>
+          <span style="overflow-x: auto; display: block; height: 150px; pointer-events: all;">
+            CORS - Cross-origin erlauben. Die CORS-Unterstützung wird automatisch ermittelt bei der URL-Abfrage und ist abhängig von der Serverkonfiguration des Kartenservices. <br>
+            Beachten Sie, dass Karten in den meisten Browsern aus Sicherheitsgründen nicht exportiert werden können, wenn Layer aktiv sind, die CORS nicht unterstützen. <br>
+            Falls die Antwort des Service auf OPTIONS-Anfragen falsch konfiguriert ist, kann es sein, dass die Checkbox nicht aktiv ist nach der URL-Abfrage, obwohl CORS eigentlich unterstützt wird.
+            In diesem Fall hilft nur ausprobieren.<br>
+          </span>
+        </mat-expansion-panel>
+      </div>
     </div>
   </form>
 </ng-template>
