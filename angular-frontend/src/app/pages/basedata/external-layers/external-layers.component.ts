@@ -259,7 +259,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         description: this.editLayerForm.value.description || '',
         order: parent.children?.length,
         group: parent.id,
-        cors: this.editLayerForm.value.cors
+        cors: this.editLayerForm.value.cors,
+        active: true
       }
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayer>(this.rest.URLS.layers, attributes).subscribe(layer => {
@@ -274,7 +275,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         }));
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
-        this.layerTree.select(layer);
+        const node = this.layerTree.getNode(layer.id);
+        if (node) {
+          this.layerTree.setChecked(node, layer.active);
+          this.layerTree.select(node);
+        }
         dialogRef.close();
       },(error) => {
         showAPIError(error, this.dialog);
