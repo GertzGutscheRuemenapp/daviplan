@@ -112,7 +112,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.selectedLayer!.name = layer.name;
         this.selectedLayer!.description = layer.description;
         this.selectedLayer!.cors = layer.cors;
+        this.selectedLayer!.active = layer.active;
         this.layerTree.refresh();
+        // workaround for layer tree unchecking changed nodes
+        const node = this.layerTree.getNode(layer.id);
+        if (node) this.layerTree.setChecked(node, layer.active);
         this.mapControl?.refresh({ external: true });
         this.layerCard?.closeDialog(true);
       },(error) => {
