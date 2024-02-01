@@ -4,7 +4,7 @@ import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service"
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
-import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { FormBuilder, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
