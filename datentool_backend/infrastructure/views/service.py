@@ -35,6 +35,9 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         max_capacity=Max('capacity__capacity'))
     serializer_class = ServiceSerializer
 
+    def get_queryset(self):
+        return self.queryset.order_by('id')
+
     def get_permissions(self):
         if (getattr(settings, 'DEMO_MODE') and
             self.action == 'compute_indicator'):
