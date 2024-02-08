@@ -6,6 +6,8 @@ from rest_framework_gis.fields import GeoJsonDict
 from django.utils.encoding import force_str
 from rest_framework import status
 from django.db.models.query import QuerySet
+
+from django.conf import settings
 from datentool_backend.utils.geometry_fields import compare_geometries, NoWKTError
 
 from datentool_backend.user.factories import ProfileFactory, Profile
@@ -50,9 +52,14 @@ class LoginTestCase:
     def setUpTestData(cls):
         super().setUpTestData()
         cls.profile = ProfileFactory(user__username='Anonymus User',
-                                    can_create_process=False,
-                                    admin_access=False,
-                                    can_edit_basedata=False)
+                                     can_create_process=False,
+                                     admin_access=False,
+                                     can_edit_basedata=False)
+        cls.demo_profile = ProfileFactory(user__username='Demo User',
+                                          can_create_process=False,
+                                          admin_access=False,
+                                          can_edit_basedata=False,
+                                          is_demo_user=True)
 
     def setUp(self):
         self.client.force_login(user=self.profile.user)
@@ -648,6 +655,32 @@ class SingletonReadAlwaysWriteOnlyWithAdminAccessTest:
         self.client.force_login(user=self.profile.user)
         self.test_detail()
 
+
+
+class DemoModeReadOnlyTest:
+
+    def demo_login(self):
+        self.client.logout()
+        setattr(settings, 'DEMO_MODE', True)
+        self.client.force_login(user=self.demo_profile.user)
+
+    def demo_logout(self):
+        setattr(settings, 'DEMO_MODE', False)
+        self.client.logout()
+
+
+    def test_demo_write_forbidden(self):
+        self.demo_login()
+        self._test_put_patch_forbidden()
+        self._test_post_forbidden()
+        self._test_delete_forbidden()
+        self.demo_logout()
+
+    def test_demo_read(self):
+        self.demo_login()
+        self.test_detail()
+        self.test_list()
+        self.demo_logout()
 
 
 class TestAPIMixin:

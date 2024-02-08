@@ -48,7 +48,7 @@ class HasAdminAccessOrReadOnly(BasePermission):
         if (getattr(settings, 'DEMO_MODE') and
             request.method in permissions.SAFE_METHODS):
             return True
-        # otherwise log in requiredto read and admin to write
+        # otherwise log in required to read and admin to write
         return request.user.is_authenticated and (
             request.method in permissions.SAFE_METHODS or
                 request.user.is_superuser or

@@ -8,7 +8,6 @@ from PIL import Image
 import factory
 
 from datentool_backend.api_test import (BasicModelSingletonTest,
-                                        SingletonWriteOnlyWithAdminAccessTest,
                                         SingletonReadAlwaysWriteOnlyWithAdminAccessTest,
                                         TestAPIMixin)
 from datentool_backend.user.factories import ProfileFactory
@@ -20,7 +19,7 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
+class TestProjectSetting(SingletonReadAlwaysWriteOnlyWithAdminAccessTest,
                          TestAPIMixin, BasicModelSingletonTest, APITestCase):
     """"""
     url_key = "projectsettings"

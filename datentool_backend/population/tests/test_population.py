@@ -8,7 +8,7 @@ from test_plus import APITestCase
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
-                                        TestAPIMixin,
+                                        TestAPIMixin, DemoModeReadOnlyTest,
                                         TestPermissionsMixin,
                                         )
 from datentool_backend.site.factories import YearFactory
@@ -120,7 +120,7 @@ class TestPopulation(TestCase):
         logger.debug(rcp)
 
 
-class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                     TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "rasters"
@@ -135,7 +135,7 @@ class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = dict(name=faker.word())
 
 
-class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                               TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "populationrasters"
@@ -154,7 +154,7 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "prognoses"
@@ -170,7 +170,7 @@ class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "populations"
@@ -229,7 +229,8 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
                             set(range(1927, 1930)))
 
 
-class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, TestPermissionsMixin,
+class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest,
+                             TestPermissionsMixin, DemoModeReadOnlyTest,
                              TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "populationentries"
