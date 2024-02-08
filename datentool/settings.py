@@ -59,6 +59,8 @@ PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+DEMO_MODE = str(os.environ.get('DEMO_MODE', False)).lower() == 'true'
+
 hosts = os.environ.get('ALLOWED_HOSTS')
 if hosts:
     hosts = hosts.split(',')
@@ -126,10 +128,10 @@ SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
     # OTHER SETTINGS
 }
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'TOKEN_OBTAIN_SERIALIZER': 'datentool_backend.user.serializers.CustomTokenObtainPairSerializer',
     'ROTATE_REFRESH_TOKENS': True
 }
 

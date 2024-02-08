@@ -189,7 +189,8 @@ export class MapService {
             description: `Gebiete der Gebietseinteilung ${level.name}`,
             style: level.symbol,
             labelField: '_label',
-            zIndex: 20000
+            zIndex: 20000,
+            cors: 'anonymous'
           })
           layers.push(mLayer);
         });
@@ -279,7 +280,8 @@ export class MapControl {
           visible: layerDef.id === backgroundId,
           layerName: layerDef.layerName,
           opacity: this.getCookieLayerAttr(layerDef.id, 'opacity'),
-          attribution: layerDef.attribution
+          attribution: layerDef.attribution,
+          cors: 'anonymous'
         });
         this.backgroundLayers.push(bg);
         bg.addToMap(this.map);

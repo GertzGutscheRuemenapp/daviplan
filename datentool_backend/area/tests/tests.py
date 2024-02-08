@@ -16,7 +16,8 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin,
                                         TestPermissionsMixin,
-                                        LoginTestCase
+                                        LoginTestCase,
+                                        DemoModeReadOnlyTest
                                         )
 from datentool_backend.area.serializers import (MapSymbolSerializer,
                                                 SourceSerializer)
@@ -223,7 +224,7 @@ class TestAreas(TestCase):
         self.assertEqual(area1._label, 'MyName (Ausschnitt)')
 
 
-class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "layergroups"
@@ -240,7 +241,7 @@ class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = dict(name='patchtestname', order=next(cls.orders))
 
 
-class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "wmslayers"
@@ -318,7 +319,7 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
             self.assertIsInstance(coord, float)
 
 
-class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "arealevels"
@@ -495,7 +496,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         self.assert_http_204_no_content(response)
 
 
-class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                   TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "areas"
@@ -591,7 +592,7 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 
-class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "areafields"

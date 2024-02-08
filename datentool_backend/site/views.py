@@ -219,6 +219,12 @@ class SiteSettingViewSet(SingletonViewSet):
     parser_classes = [CamelCaseMultiPartParser, CamelCaseJSONParser]
     permission_classes = [HasAdminAccessOrReadOnlyAny]
 
+    def get_authenticators(self):
+        # you can retrieve the site settings without authentication
+        if self.request.method == 'GET':
+            return []
+        return [auth() for auth in self.authentication_classes]
+
 
 class MatrixStatisticsViewSet(viewsets.GenericViewSet):
     serializer_class = MatrixStatisticsSerializer

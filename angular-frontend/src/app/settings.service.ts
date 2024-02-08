@@ -6,10 +6,12 @@ import { Title } from "@angular/platform-browser";
 import { ProjectSettings } from "./pages/administration/project-definition/project-definition.component";
 import { BasedataSettings } from "./rest-interfaces";
 import { environment } from "../environments/environment";
+import { tap } from "rxjs/operators";
 
 export interface SiteSettings {
   id: number,
   version: string,
+  demoMode: boolean,
   title: string,
   contactMail: string,
   welcomeText: string,
@@ -23,9 +25,7 @@ class UserSettings {
   private settings$ = new BehaviorSubject<Record<string, any>>({});
   private _settings: Record<string, any> = {};
 
-  constructor(private rest: RestAPI, private http: HttpClient) {
-    this.fetch();
-  }
+  constructor(private rest: RestAPI, private http: HttpClient) { }
 
   get(key: string): Observable<any>{
     const observable = new Observable<any>(subscriber => {
@@ -65,7 +65,7 @@ class UserSettings {
 export class SettingsService {
   siteSettings$ = new BehaviorSubject<SiteSettings>({
     id: 0, title: '', contactMail: '', welcomeText: '', logo: '', regionalstatistikUser: '',
-    regionalstatistikPasswordIsSet: false, bkgPasswordIsSet: false, version: '0.0.0'
+    regionalstatistikPasswordIsSet: false, bkgPasswordIsSet: false, version: '0.0.0', demoMode: false,
   });
   baseDataSettings$ = new BehaviorSubject<BasedataSettings>({
     popStatisticsAreaLevel: 0,
@@ -83,35 +83,44 @@ export class SettingsService {
   user!: UserSettings;
 
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
-    this.refresh();
-  }
-
-  refresh(): void {
-    this.fetchSiteSettings();
-    this.fetchProjectSettings();
-    this.fetchBaseDataSettings();
+    // auto apply site settings when new ones were fetched
+    this.siteSettings$.subscribe(settings => {
+      this.applySiteSettings(settings);
+    })
     this.user = new UserSettings(this.rest, this.http);
   }
 
-  public fetchSiteSettings(): void {
-    this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
-      .subscribe(siteSettings => {
+  init() {
+    this.user.fetch();
+    this.getProjectSettings().subscribe();
+    this.getBaseDataSettings().subscribe();
+  }
+
+  refresh(): Observable<any> {
+    return this.getSiteSettings().pipe(tap( () => {
+      this.init();
+    }));
+  }
+
+  public getSiteSettings(): Observable<SiteSettings> {
+    return this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
+      .pipe(tap(siteSettings => {
         if (environment.production) {
           if (siteSettings.logo)
             siteSettings.logo = siteSettings.logo.replace('http:', 'https:');
         }
         this.siteSettings$.next(siteSettings)
-      });
+      }));
   }
 
-  public fetchProjectSettings(): void {
-    this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
-      .subscribe(projectSettings => this.projectSettings$.next(projectSettings));
+  public getProjectSettings(): Observable<ProjectSettings> {
+    return this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
+      .pipe(tap(projectSettings => this.projectSettings$.next(projectSettings)));
   }
 
-  public fetchBaseDataSettings(): void {
-    this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings)
-      .subscribe((basedataSettings) => this.baseDataSettings$.next(basedataSettings));
+  public getBaseDataSettings(): Observable<BasedataSettings> {
+    return this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings)
+        .pipe(tap((basedataSettings) => this.baseDataSettings$.next(basedataSettings)));
   }
 
   applySiteSettings(settings: SiteSettings) {

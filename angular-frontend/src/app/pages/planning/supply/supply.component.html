@@ -2,7 +2,8 @@
     <p>Wählen Sie hier das Szenario aus, dessen Angebotsstruktur Sie in der Karte anzeigen möchten. Eine Angebotsstruktur beschreibt, an welchen Standorten die ausgewählte Leistung in welchem Jahr (und ggf. mit welcher Kapazität) angeboten wird.</p>
     <p>Sie können die Angebotsstruktur editieren. Zudem können Sie ein neues Szenario hinzufügen oder ein bestehendes löschen.</p>">
 </app-scenario-menu>
-<mat-expansion-panel cookieExpansion="exp-supply-services">
+<mat-expansion-panel cookieExpansion="exp-supply-services"
+                     [initiallyExpanded]="true">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">

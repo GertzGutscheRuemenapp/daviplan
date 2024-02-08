@@ -54,8 +54,7 @@ class PostOnlyWithCanCreateProcessTest:
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(
-            response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 

@@ -10,6 +10,7 @@ import { BehaviorSubject } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { Infrastructure, InfrastructureAccess, User } from "../../../rest-interfaces";
 import { showAPIError } from "../../../helpers/utils";
+import { SettingsService, SiteSettings } from "../../../settings.service";
 
 @Component({
   selector: 'app-users',
@@ -38,11 +39,12 @@ export class UsersComponent implements AfterViewInit  {
   isLoading$ = new BehaviorSubject<boolean>(true);
 
   constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
-              private rest: RestAPI) {
+              private rest: RestAPI, protected settings: SettingsService) {
     this.createUserForm = this.formBuilder.group({
       username: new FormControl(''),
       password: new FormControl(''),
-      confirmPass: new FormControl('')
+      confirmPass: new FormControl(''),
+      isDemoUser: new FormControl('')
     });
   }
 
@@ -84,6 +86,8 @@ export class UsersComponent implements AfterViewInit  {
         }
         attributes.password = pass;
       }
+      if (this.settings.siteSettings$.value.demoMode)
+        attributes.profile = { isDemoUser: this.accountForm.value.isDemoUser };
       this.accountCard?.setLoading(true);
       this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
       ).subscribe(user => {
@@ -91,6 +95,7 @@ export class UsersComponent implements AfterViewInit  {
         this.selectedUser!.email = user.email;
         this.selectedUser!.firstName = user.firstName;
         this.selectedUser!.lastName = user.lastName;
+        this.selectedUser!.profile.isDemoUser = user.profile.isDemoUser;
         this.accountCard?.closeDialog(true);
       },(error) => {
         showAPIError(error, this.dialog);
@@ -106,7 +111,8 @@ export class UsersComponent implements AfterViewInit  {
         user: this.selectedUser,
         changePass: this.changePassword,
         password: '',
-        confirmPass: ''
+        confirmPass: '',
+        isDemoUser: this.selectedUser!.profile.isDemoUser
       });
     })
   }
@@ -186,7 +192,8 @@ export class UsersComponent implements AfterViewInit  {
       user: this.formBuilder.group(this.selectedUser),
       changePass: this.changePassword,
       password: new FormControl({value: '', disabled: !this.changePassword}),
-      confirmPass: new FormControl({value: '', disabled: !this.changePassword})
+      confirmPass: new FormControl({value: '', disabled: !this.changePassword}),
+      isDemoUser: user.profile.isDemoUser
     });
     // let userControl: any = this.accountForm.get('user');
     // userControl.get('email').setValidators([Validators.email])
@@ -233,10 +240,12 @@ export class UsersComponent implements AfterViewInit  {
         return;
       }
       dialogRef.componentInstance.isLoading$.next(true);
-      let attributes = {
+      let attributes: any = {
         username: username,
         password: password
       };
+      if (this.settings.siteSettings$.value.demoMode)
+        attributes.profile = { isDemoUser: this.createUserForm.value.isDemoUser };
       this.http.post<User>(this.rest.URLS.users, attributes
       ).subscribe(user => {
         this.users.push(user);

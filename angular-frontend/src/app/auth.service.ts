@@ -2,16 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError, Subscription } from 'rxjs';
 import { User } from "./rest-interfaces";
-import { catchError, filter, switchMap, take, tap, map, delay } from 'rxjs/operators';
+import { catchError, filter, switchMap, take, tap, delay, share } from 'rxjs/operators';
 import { RestAPI } from "./rest-api";
 import {
   CanActivate,
   ActivatedRouteSnapshot,
-  RouterStateSnapshot,
   UrlTree,
-  Router,
-  ActivatedRoute
+  Router
 } from "@angular/router";
+import { SettingsService, SiteSettings } from "./settings.service";
 
 interface Token {
   access: string;
@@ -25,10 +24,11 @@ interface Token {
  *
  */
 export class AuthService {
+  // private anonymous: User = { id: , name: 'anonym', };
   user$ = new BehaviorSubject<User | undefined>(undefined);
   private timer?: Subscription;
 
-  constructor(private rest: RestAPI, private http: HttpClient, private router: Router, private route: ActivatedRoute) { }
+  constructor(private rest: RestAPI, private http: HttpClient, private router: Router, public settings: SettingsService) { }
 
   private setLocalStorage(token: Token) {
     localStorage.setItem('accessToken', token.access);
@@ -45,7 +45,7 @@ export class AuthService {
    *
    * @param credentials
    */
-  login(credentials: { username: string; password: string }): Observable<Token> {
+  login(credentials: { username: string; password?: string }): Observable<Token> {
     let query = this.http.post<Token>(this.rest.URLS.token, credentials)
       .pipe(
         tap(token => {
@@ -65,15 +65,8 @@ export class AuthService {
     this.clearLocalStorage();
     this.stopTokenTimer();
     this.user$.next(undefined);
-/*    this.route.queryParams
-      .subscribe(params => {
-          if(params.next) {
-            this.router.navigate(['/login'], {queryParams: {next: params.next}});
-          }
-          else this.router.navigateByUrl('/login');
-        }
-      );*/
-    this.router.navigateByUrl('/login');
+    if (!this.settings.siteSettings$.value?.demoMode)
+      this.router.navigateByUrl('/login');
   }
 
   /**
@@ -88,7 +81,7 @@ export class AuthService {
         }
         const token = localStorage.getItem('accessToken');
         // if there is token then fetch the current user
-        if (token) {
+        if (token) {// || this.settings.siteSettings$.value.demoMode) {
           return this.fetchCurrentUser();
         }
         return of(undefined);
@@ -171,7 +164,7 @@ export class AuthService {
 export class TokenInterceptor implements HttpInterceptor {
   private refreshingInProgress: boolean = false;
   private accessTokenSubject: Subject<string> = new ReplaySubject<string>();
-  constructor( private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const accessToken = localStorage.getItem('accessToken');
@@ -185,12 +178,8 @@ export class TokenInterceptor implements HttpInterceptor {
           if (refreshToken && accessToken) {
             return this.refreshToken(req, next);
           }
-          return this.logoutAndRedirect(err);
+          // return this.logout(err);
         }
-        // if (err instanceof HttpErrorResponse && err.status === 403) {
-        //   return this.logoutAndRedirect(err);
-        // }
-        // other errors
         return throwError(err);
       })
     );
@@ -203,7 +192,7 @@ export class TokenInterceptor implements HttpInterceptor {
     return request;
   }
 
-  private logoutAndRedirect(err: any): Observable<HttpEvent<any>> {
+  private logout(err: any): Observable<HttpEvent<any>> {
     this.authService.logout();
     return throwError(err);
   }
@@ -222,7 +211,8 @@ export class TokenInterceptor implements HttpInterceptor {
         }),
         catchError(err => {
           this.refreshingInProgress = false;
-          return this.logoutAndRedirect(err);
+          return throwError(err);
+          //return this.logout(err);
         })
       );
     }
@@ -247,31 +237,31 @@ export class TokenInterceptor implements HttpInterceptor {
  * role admin includes access to dataEditor pages
  */
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService,
-              private router: Router) { }
+  constructor(private authService: AuthService, private router: Router) { }
 
-  canActivate(
-    next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return this.authService.getCurrentUser().pipe(
-      map(user => {
+  canActivate(next: ActivatedRouteSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    return this.authService.settings.getSiteSettings().pipe(switchMap(settings => {
+      // all pages are accessible in "demo mode"
+      if (settings.demoMode)
+        return of(true);
+      return this.authService.getCurrentUser().pipe(switchMap(user => {
         const expectedRole = next.data.expectedRole;
         const isLoggedIn = !!user;
         if (expectedRole === 'admin')
-          return isLoggedIn && (user?.profile.adminAccess || user?.isSuperuser);
+          return of(isLoggedIn && (user?.profile.adminAccess || user?.isSuperuser));
         if (expectedRole === 'dataEditor')
-          return isLoggedIn && (user?.profile.canEditBasedata || user?.profile.adminAccess || user?.isSuperuser);
-        return isLoggedIn;
-      }),
-      tap(hasAccess => {
-        if (!hasAccess) {
-          // @ts-ignore
-          const _next = next._routerState.url;
-          let params: any = {};
-          if (_next && _next !== '/') params['queryParams'] = {next: _next};
-          this.router.navigate(['/login'], params);
-        }
-      })
-    );
+          return of(isLoggedIn && (user?.profile.canEditBasedata || user?.profile.adminAccess || user?.isSuperuser));
+        return of(isLoggedIn);
+      }))
+    }), tap(hasAccess => {
+          if (!hasAccess) {
+            // @ts-ignore
+            const _next = next._routerState.url;
+            let params: any = {};
+            if (_next && _next !== '/') params['queryParams'] = {next: _next};
+            if (!this.authService.settings.siteSettings$.value?.demoMode)
+              this.router.navigate(['/login'], params);
+          }
+        }));
   }
 }

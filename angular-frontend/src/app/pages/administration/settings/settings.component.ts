@@ -81,7 +81,7 @@ export class SettingsComponent implements AfterViewInit {
           this.settings = Object.assign({}, settings);
           this.titleEdit.closeDialog(true);
           // update global settings
-          this.settingsService.refresh();
+          this.settingsService.refresh().subscribe();
         },(error) => {
           showAPIError(error, this.dialog);
           this.titleEdit.setLoading(false);
@@ -113,7 +113,7 @@ export class SettingsComponent implements AfterViewInit {
         this.settings = Object.assign({}, settings);
         this.contactEdit.closeDialog(true);
         // update global settings
-        this.settingsService.refresh();
+        this.settingsService.refresh().subscribe();
       },(error) => {
         showAPIError(error, this.dialog);
         this.contactEdit.setLoading(false);
@@ -139,7 +139,7 @@ export class SettingsComponent implements AfterViewInit {
       ).subscribe(settings => {
         this.settings = Object.assign({}, settings);
         // update global settings
-        this.settingsService.refresh();
+        this.settingsService.refresh().subscribe();
         this.welcomeTextEdit.closeDialog(true);
       },(error) => {
         showAPIError(error, this.dialog);
@@ -165,7 +165,7 @@ export class SettingsComponent implements AfterViewInit {
         this.settings = Object.assign({}, settings);
         this.logoEdit?.closeDialog(true);
         // update global settings
-        this.settingsService.refresh();
+        this.settingsService.refresh().subscribe();
       },(error) => {
         showAPIError(error, this.dialog);
         this.logoEdit?.setLoading(false);
@@ -194,7 +194,7 @@ export class SettingsComponent implements AfterViewInit {
         this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, { logo: null }
         ).subscribe( settings => {
           this.settings = Object.assign({}, settings);
-          this.settingsService.refresh();
+          this.settingsService.refresh().subscribe();
         } )
       }
     });
@@ -224,7 +224,7 @@ export class SettingsComponent implements AfterViewInit {
         this.regstatEdit.closeDialog(true);
         this.settings = Object.assign({}, settings);
         // update global settings
-        this.settingsService.refresh();
+        this.settingsService.refresh().subscribe();
       },(error) => {
         showAPIError(error, this.dialog);
         this.regstatEdit.setLoading(false);
@@ -249,7 +249,7 @@ export class SettingsComponent implements AfterViewInit {
     ).subscribe(settings => {
       this.settings = Object.assign({}, settings);
       // update global settings
-      this.settingsService.refresh();
+      this.settingsService.refresh().subscribe();
     },(error) => {
       showAPIError(error, this.dialog);
     });
@@ -270,7 +270,7 @@ export class SettingsComponent implements AfterViewInit {
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
       ).subscribe(settings => {
         this.settings = Object.assign({}, settings);
-        this.settingsService.refresh();
+        this.settingsService.refresh().subscribe();
         this.BKGEdit.closeDialog(true);
       },(error) => {
         showAPIError(error, this.dialog);
@@ -294,7 +294,7 @@ export class SettingsComponent implements AfterViewInit {
     ).subscribe(settings => {
       this.settings = Object.assign({}, settings);
       // update global settings
-      this.settingsService.refresh();
+      this.settingsService.refresh().subscribe();
     },(error) => {
       showAPIError(error, this.dialog);
     });

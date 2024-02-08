@@ -10,7 +10,7 @@ Pillow
 django-cleanup
 factory_boy
 coverage
-django-test-plus
+django-test-plus==2.2.1
 djangorestframework-gis
 pandas>=1.5
 xlsxwriter

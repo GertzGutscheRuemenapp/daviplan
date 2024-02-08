@@ -148,6 +148,8 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           if (processId) {
             this.setProcess(Number(processId));
           }
+          else if (processes.length > 0)
+            this.setProcess(processes[0].id);
         })
       })
     })

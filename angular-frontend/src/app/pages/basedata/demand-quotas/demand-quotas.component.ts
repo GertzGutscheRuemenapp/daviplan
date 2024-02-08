@@ -299,6 +299,9 @@ export class DemandQuotasComponent implements OnInit, AfterViewInit {
     ).subscribe(ds => {
       this.demandRateSets.forEach(s => s.isDefault = false);
       set.isDefault = ds.isDefault;
+    }, (error) => {
+      this.isLoading$.next(false);
+      showAPIError(error, this.dialog);
     })
   }
 

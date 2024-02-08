@@ -1,4 +1,4 @@
-<mat-toolbar *ngIf="user$ | async" class="main-nav">
+<mat-toolbar *ngIf="auth.user$ | async" class="main-nav">
   <div fxShow="true" fxHide.gt-sm="true">
     <button mat-icon-button (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
@@ -30,9 +30,11 @@
   <mat-menu #collapseMenu>
     <a mat-menu-item routerLink="/impressum">Impressum</a>
     <a mat-menu-item routerLink="/datenschutz">Datenschutz</a>
-    <a mat-menu-item *ngIf="!user" routerLink="/login">Login</a>
-    <a mat-menu-item *ngIf="user" (click)="showProfile()">Profil</a>
-    <a mat-menu-item *ngIf="user" (click)="logout()" href="">Logout</a>
+    <a mat-menu-item *ngIf="!user || user.profile.isDemoUser" routerLink="/login">Login</a>
+    <ng-container *ngIf="user && !user.profile.isDemoUser">
+      <a mat-menu-item (click)="showProfile()">Profil</a>
+      <a mat-menu-item (click)="logout()" href="">Logout</a>
+    </ng-container>
   </mat-menu>
   <span fxHide.lt-lg="true">
     <button mat-button routerLink="/impressum"> Impressum </button>
@@ -42,9 +44,11 @@
       {{(user)? user.username: 'Profil'}}
     </button>
     <mat-menu #profileMenu>
-      <a mat-menu-item *ngIf="!user" routerLink="/login">Login</a>
-      <a mat-menu-item *ngIf="user" (click)="showProfile()">Profil</a>
-      <a mat-menu-item *ngIf="user" (click)="logout()" href="">Logout</a>
+      <a mat-menu-item *ngIf="!user || user.profile.isDemoUser" routerLink="/login">Login</a>
+      <ng-container *ngIf="user && !user.profile.isDemoUser">
+        <a mat-menu-item (click)="showProfile()">Profil</a>
+        <a mat-menu-item (click)="logout()" href="">Logout</a>
+      </ng-container>
     </mat-menu>
   </span>
 </mat-toolbar>

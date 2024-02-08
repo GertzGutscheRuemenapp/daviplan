@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.contrib.gis.geos import Point
 from test_plus import APITestCase
 
-from datentool_backend.api_test import (BasicModelTest,
+from datentool_backend.api_test import (BasicModelTest, DemoModeReadOnlyTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         )
 from datentool_backend.api_test import TestAPIMixin, TestPermissionsMixin
@@ -61,7 +61,7 @@ class TestCapacity(TestCase):
         logger.debug(place_field)
 
 
-class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "places"
@@ -737,7 +737,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         pd.testing.assert_series_equal(actual, expected, check_like=True)
 
 
-class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "capacities"
@@ -746,6 +746,8 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         infrastructure = InfrastructureFactory()
+        infrastructure.accessible_by.add(cls.profile)
+        infrastructure.accessible_by.add(cls.demo_profile)
         capacity = CapacityFactory(place__infrastructure=infrastructure,
                                    service__infrastructure=infrastructure)
 
@@ -766,7 +768,7 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.query_params = {'service': service, }
 
 
-class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                              TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fieldtypes"
@@ -783,7 +785,7 @@ class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                           TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fieldtypes"
@@ -847,7 +849,7 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
         self.profile.save()
 
 
-class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "placefields"

@@ -62,7 +62,7 @@ export class StatisticsComponent implements OnInit, OnDestroy {
       this.baseSettings = baseSettings;
       this.fetchData();
     }));
-    this.settings.fetchBaseDataSettings();
+    this.settings.getBaseDataSettings().subscribe();
   }
 
   fetchData(): void {

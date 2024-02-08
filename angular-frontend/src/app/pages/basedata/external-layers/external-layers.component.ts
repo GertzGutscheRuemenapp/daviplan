@@ -4,7 +4,7 @@ import { MapControl, MapLayerGroup, MapService } from "../../../map/map.service"
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
-import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { FormBuilder, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -112,7 +112,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.selectedLayer!.name = layer.name;
         this.selectedLayer!.description = layer.description;
         this.selectedLayer!.cors = layer.cors;
+        this.selectedLayer!.active = layer.active;
         this.layerTree.refresh();
+        // workaround for layer tree unchecking changed nodes
+        const node = this.layerTree.getNode(layer.id);
+        if (node) this.layerTree.setChecked(node, layer.active);
         this.mapControl?.refresh({ external: true });
         this.layerCard?.closeDialog(true);
       },(error) => {
@@ -241,7 +245,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     this.availableLayers = [];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '900px',
+      width: '1000px',
       disableClose: true,
       data: {
         title: `Neuer Layer in "${parent.name}"`,
@@ -258,7 +262,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         url: this.editLayerForm.get('url')!.value,
         description: this.editLayerForm.value.description || '',
         order: parent.children?.length,
-        group: parent.id
+        group: parent.id,
+        cors: this.editLayerForm.value.cors,
+        active: true
       }
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayer>(this.rest.URLS.layers, attributes).subscribe(layer => {
@@ -273,7 +279,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         }));
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
-        this.layerTree.select(layer);
+        const node = this.layerTree.getNode(layer.id);
+        if (node) {
+          this.layerTree.setChecked(node, layer.active);
+          this.layerTree.select(node);
+        }
         dialogRef.close();
       },(error) => {
         showAPIError(error, this.dialog);
@@ -421,6 +431,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     forkJoin(...observables).subscribe(next => {
       this.mapControl?.refresh({ external: true });
       this.layerTree.refresh();
+    },(error) => {
+      showAPIError(error, this.dialog);
     })
   }
 
