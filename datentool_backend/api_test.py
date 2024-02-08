@@ -462,7 +462,7 @@ class WriteOnlyWithCanEditBaseDataTest:
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
@@ -503,7 +503,7 @@ class WriteOnlyWithAdminAccessTest:
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
@@ -565,7 +565,7 @@ class ReadOnlyWithAdminBasedataAccessTest:
         """Test get, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         # test_list() with check of admin_access
@@ -600,7 +600,7 @@ class SingletonWriteOnlyWithCanEditBaseDataTest:
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
@@ -621,12 +621,33 @@ class SingletonWriteOnlyWithAdminAccessTest:
     def test_is_logged_in(self):
         """Test read, if user is authenticated"""
         self.client.logout()
-        response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        response = self.get(self.url_key + '-detail')
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
         self.test_detail()
+
+
+class SingletonReadAlwaysWriteOnlyWithAdminAccessTest:
+
+    def test_put_patch(self):
+        """Test for Singletons, put and patch with and without admin_access"""
+        self.profile.admin_access= True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.admin_access= False
+        self.profile.save()
+        self._test_put_patch_forbidden()
+
+    def test_read(self):
+        """test that resource can always be accessed"""
+        self.client.logout()
+        self.test_detail()
+
+        self.client.force_login(user=self.profile.user)
+        self.test_detail()
+
 
 
 class TestAPIMixin:
@@ -649,7 +670,7 @@ class TestPermissionsMixin:
     def test_is_logged_in(self):
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         self.test_list()

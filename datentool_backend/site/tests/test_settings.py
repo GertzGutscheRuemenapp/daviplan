@@ -9,6 +9,7 @@ import factory
 
 from datentool_backend.api_test import (BasicModelSingletonTest,
                                         SingletonWriteOnlyWithAdminAccessTest,
+                                        SingletonReadAlwaysWriteOnlyWithAdminAccessTest,
                                         TestAPIMixin)
 from datentool_backend.user.factories import ProfileFactory
 from datentool_backend.site.factories import (ProjectSettingFactory,
@@ -64,7 +65,8 @@ class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
         cls.expected_patch_data = dict(project_area=ewkt_web_mercator)
 
 
-class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase):
+class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase,
+                      SingletonReadAlwaysWriteOnlyWithAdminAccessTest):
     """"""
     url_key = "sitesettings"
     factory = SiteSettingFactory
