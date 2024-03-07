@@ -180,8 +180,12 @@ class ProjectSettingViewSet(RunProcessMixin, SingletonViewSet):
         logger.info('Verarbeitung des Planungsraums gestartet')
         for popraster in PopulationRaster.objects.all():
             logger.info('Verschneide Planungsraum mit dem Zensusraster...')
-            PopulationRasterViewSet._intersect_census(
-                popraster, drop_constraints=True)
+            try:
+                PopulationRasterViewSet._intersect_census(
+                    popraster, drop_constraints=True)
+            except Exception as e:
+                logger.error(str(e))
+                raise(e)
         logger.info('Bereinige Daten:')
         for area_level in AreaLevel.objects.filter():
             areas = Area.objects.filter(area_level=area_level)

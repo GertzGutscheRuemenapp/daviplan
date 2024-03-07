@@ -250,6 +250,7 @@ class NetworkViewSet(RunProcessMixin, ProtectCascadeMixin, viewsets.ModelViewSet
             if not success:
                 msg = (f'Berechnung fehlgeschlagen. Der Router {mode.name} '
                        'konnte nicht gebaut werden.')
+                logger.error(msg)
                 raise Exception(msg)
             else:
                 msg = (f'Router {mode.name} erfolgreich gebaut.')
