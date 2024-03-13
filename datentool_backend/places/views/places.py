@@ -346,8 +346,9 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
                                                    attr)]
                     except KeyError:
                         fieldtype_name = place_field['field_type__name']
-                        msg = f'Wert {attr} existiert nicht für Klassifizierung '\
-                            f'{fieldtype_name} in Spalte {place_field_name}'
+                        msg = (f'Wert "{attr}" in Spalte "{place_field_name}" '
+                               f'fehlt in der Klassifizierung "{fieldtype_name}"')
+                        logger.error(msg)
                         raise ColumnError(msg)
                 attribute = (place.id, place_field['id'], str_value, num_value, class_value)
                 place_attributes.append(attribute)
