@@ -14,7 +14,7 @@ RUN apt-get -y update \
 
 RUN git clone https://github.com/GertzGutscheRuemenapp/bule_datentool.git /datentool
 
-RUN npm i npm@latest -g
+RUN npm i npm@9 -g
 RUN npm i -g @angular/cli@14
 
 # bundle the frontend scripts
