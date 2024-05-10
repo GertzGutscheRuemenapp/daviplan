@@ -90,8 +90,7 @@ export class PrognosisDataComponent implements OnInit, AfterViewInit, OnDestroy 
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
       this.isProcessing$.next(baseSettings.processes?.population || false);
     }));
-    this.settings.fetchBaseDataSettings();
-    this.fetchData();
+    this.settings.getBaseDataSettings().subscribe(() => this.fetchData());
   }
 
   ngAfterViewInit() {
@@ -490,6 +489,9 @@ export class PrognosisDataComponent implements OnInit, AfterViewInit, OnDestroy 
       this.prognoses.forEach(p => p.isDefault = false);
       this.activePrognosis!.isDefault = prognosis.isDefault;
       this.isLoading$.next(false);
+    },(error) => {
+      this.isLoading$.next(false);
+      showAPIError(error, this.dialog);
     })
   }
 

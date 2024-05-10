@@ -22,6 +22,7 @@ export const mockUsers: User[] = [
       adminAccess: true,
       canCreateProcess: true,
       canEditBasedata: true,
+      isDemoUser: false
     },
     access: []
   },
@@ -37,6 +38,7 @@ export const mockUsers: User[] = [
       adminAccess: false,
       canCreateProcess: false,
       canEditBasedata: false,
+      isDemoUser: false
     },
     access: []
   },

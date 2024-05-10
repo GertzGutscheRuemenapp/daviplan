@@ -64,24 +64,32 @@
                     [editTemplate]="editLayerTemplate"
                     infoText="<p>Klicken Sie auf „Editieren“, um die URL des WMS-Dienstes (und weitere ggf. relevante Informationen) einzutragen oder diese zu verändern.</p>
                     <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
-      <table class="layer-preview-table">
-        <tr>
-          <td>URL</td>
-          <td style="color: grey">{{selectedLayer?.url}}</td>
-        </tr>
-        <tr>
-          <td>Layer</td>
-          <td style="color: grey">{{$any(selectedLayer)?.layerName}}</td>
-        </tr>
-        <tr>
-          <td>Name</td>
-          <td>{{selectedLayer?.name}}</td>
-        </tr>
-        <tr>
-          <td>Beschreibung</td>
-          <td>{{selectedLayer?.description || '-'}}</td>
-        </tr>
-      </table>
+      <div>
+        <table class="layer-preview-table">
+          <tr>
+            <td >URL</td>
+            <td style="color: grey; text-overflow: ellipsis; overflow: hidden;">{{selectedLayer?.url}}</td>
+          </tr>
+          <tr>
+            <td>Layer</td>
+            <td style="color: grey">{{$any(selectedLayer)?.layerName}}</td>
+          </tr>
+          <tr>
+            <td>Name</td>
+            <td>{{selectedLayer?.name}}</td>
+          </tr>
+          <tr>
+            <td>Beschreibung</td>
+            <td>{{selectedLayer?.description || '-'}}</td>
+          </tr>
+          <tr>
+            <td>CORS</td>
+            <td>
+              <mat-checkbox disabled [checked]="selectedLayer?.cors"></mat-checkbox>
+            </td>
+          </tr>
+        </table>
+      </div>
     </app-input-card>
     <app-input-card [title]="'Eigenschaften der ausgewählten Layergruppe'"
                     #layerGroupCard
@@ -102,7 +110,6 @@
                     infoText="In der Karte können Sie sehen, ob der Datenzugriff für den ausgewählten externen Layer funktioniert und wie er in allen daviplan-Karten angezeigt wird.</p>
                     <p>Eine Veränderung der Kartendarstellung ist nur bei den WMS-Dienst-Bereitstellenden direkt möglich.</p>
                     <p>Die Nutzer:innen haben in den einzelnen Karten lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>">
-
       <div id="base-layers-map" class="map-container">
         <app-map-controls target="base-layers-map"></app-map-controls>
         <app-side-toggle id="legend"
@@ -157,8 +164,8 @@
     </div>
   </div>
   <mat-divider vertical style="align-self: stretch; margin: 0 14px;"></mat-divider>
-  <form [formGroup]="addLayerForm">
-    <div fxLayout="column" fxFlex="400px">
+  <form [formGroup]="editLayerForm">
+    <div fxLayout="column" fxFlex="500px">
       <mat-form-field appearance="fill">
         <mat-label i18n>Layer</mat-label>
         <input matInput formControlName="layerName" required>
@@ -173,8 +180,28 @@
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Beschreibung</mat-label>
-        <textarea matInput formControlName="description" rows="10"></textarea>
+        <textarea matInput formControlName="description" rows="3"></textarea>
       </mat-form-field>
+      <div>
+        <mat-checkbox color="primary" formControlName="cors" title="Cross-origin erlauben">
+          CORS
+        </mat-checkbox>
+        <mat-expansion-panel class="text-panel" style="transform: translateY(-30px); background: none; pointer-events: none;">
+          <mat-expansion-panel-header style="position: relative; width: 100%; padding-right: 10px;">
+            <div style="position: absolute; top: 0; right: 20px; display: flex; margin-right: 10px; pointer-events: all;">
+              <mat-icon color="primary" class="material-icons-outlined"
+                        style="margin-right: 5px;">help_outline</mat-icon>
+              <span class="subtitle1" style="color: grey;">Hilfe</span>
+            </div>
+          </mat-expansion-panel-header>
+          <span style="overflow-x: auto; display: block; height: 150px; pointer-events: all;">
+            CORS - Cross-origin erlauben. Die CORS-Unterstützung wird automatisch ermittelt bei der URL-Abfrage und ist abhängig von der Serverkonfiguration des Kartenservices. <br>
+            Beachten Sie, dass Karten in den meisten Browsern aus Sicherheitsgründen nicht exportiert werden können, wenn Layer aktiv sind, die CORS nicht unterstützen. <br>
+            Falls die Antwort des Service auf OPTIONS-Anfragen falsch konfiguriert ist, kann es sein, dass die Checkbox nicht aktiv ist nach der URL-Abfrage, obwohl CORS eigentlich unterstützt wird.
+            In diesem Fall hilft nur ausprobieren.<br>
+          </span>
+        </mat-expansion-panel>
+      </div>
     </div>
   </form>
 </ng-template>
@@ -183,6 +210,14 @@
   <form [formGroup]="editLayerForm">
     <div fxLayout="column">
       <mat-form-field appearance="fill">
+        <mat-label i18n>Layer (unveränderlich)</mat-label>
+        <input matInput formControlName="layerName" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>URL (unveränderlich)</mat-label>
+        <input matInput formControlName="url" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>
         <input matInput formControlName="name" required>
       </mat-form-field>
@@ -190,6 +225,9 @@
         <mat-label i18n>Beschreibung</mat-label>
         <textarea matInput formControlName="description" rows="10"></textarea>
       </mat-form-field>
+      <mat-checkbox color="primary" formControlName="cors" title="Cross-origin erlauben (abhängig von der Serverkonfiguration des Kartenservices. Bitte nur ändern, falls Sie CORS-Fehler beim Laden der Layer in der Karte erhalten)">
+        CORS
+      </mat-checkbox>
     </div>
   </form>
 </ng-template>

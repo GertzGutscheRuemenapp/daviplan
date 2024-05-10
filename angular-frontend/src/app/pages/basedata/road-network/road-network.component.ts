@@ -35,9 +35,10 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
       this.baseDataSettings = bs;
       this.isProcessing$.next(bs.processes?.routing || false);
     }));
-    this.settings.fetchBaseDataSettings();
-    this.isLoading$.next(true);
-    this.fetchVariants();
+    this.settings.getBaseDataSettings().subscribe(() => {
+      this.isLoading$.next(true);
+      this.fetchVariants();
+    });
   }
 
   fetchVariants(options?: { reset?: boolean }): void {
@@ -125,8 +126,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
       this.isProcessing$.next(false);
-      this.settings.fetchBaseDataSettings();
-      this.fetchVariants({ reset: true })
+      this.settings.getBaseDataSettings().subscribe(() => this.fetchVariants({ reset: true }));
     }
   }
 

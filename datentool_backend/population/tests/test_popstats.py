@@ -2,7 +2,7 @@ from test_plus import APITestCase
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
-                                        TestAPIMixin,
+                                        TestAPIMixin, DemoModeReadOnlyTest,
                                         TestPermissionsMixin,
                                         )
 from datentool_backend.population.models import (PopStatistic,
@@ -17,7 +17,7 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                           TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatistics"
@@ -34,7 +34,7 @@ class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = dict(year=year)
 
 
-class TestPopStatEntryAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestPopStatEntryAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                           TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatentries"

@@ -12,7 +12,7 @@ from datentool_backend.site.models import ProjectSetting
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
-                                        TestAPIMixin,
+                                        TestAPIMixin, DemoModeReadOnlyTest,
                                         TestPermissionsMixin)
 
 from faker import Faker
@@ -63,7 +63,7 @@ def copy_pbf_file(from_url, to_file, **kwargs):
 
 
 class TestNetworkAPI(WriteOnlyWithCanEditBaseDataTest,
-                     TestPermissionsMixin,
+                     TestPermissionsMixin, DemoModeReadOnlyTest,
                      TestAPIMixin,
                      BasicModelTest,
                      APITestCase):

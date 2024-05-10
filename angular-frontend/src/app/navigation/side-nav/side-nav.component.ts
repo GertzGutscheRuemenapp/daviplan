@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
+import { AuthService } from "../../auth.service";
 
 type Link = {
   name: string;
@@ -29,6 +30,6 @@ export class SideNavComponent {
       shareReplay()
     );
 
-  constructor(private breakpointObserver: BreakpointObserver) {}
+  constructor(private breakpointObserver: BreakpointObserver, protected auth: AuthService) {}
 
 }

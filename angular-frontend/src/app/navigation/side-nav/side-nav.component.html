@@ -6,6 +6,16 @@
                [disableClose]="(isHandset$ | async)? false: true"
                [opened]="(isHandset$ | async) === false">
     <mat-nav-list [style.margin-top]="marginTop">
+      <mat-expansion-panel *ngIf="auth.settings.siteSettings$?.value?.demoMode && auth.user$.value?.profile?.isDemoUser"
+                           [cookieExpansion]="'demoNotePanel'" [initiallyExpanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>report_problem</mat-icon>
+            <b>DEMO-MODUS</b>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <p style="padding: 0 10px 0 40px;">Sie sind als Demonutzer angemeldet. Sie können sich diesen Bereich angucken aber keine Änderungen vornehmen.</p>
+      </mat-expansion-panel>
       <div *ngFor="let item of menuItems">
         <a *ngIf="item.url"
            mat-list-item

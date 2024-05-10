@@ -6,6 +6,8 @@ from rest_framework_gis.fields import GeoJsonDict
 from django.utils.encoding import force_str
 from rest_framework import status
 from django.db.models.query import QuerySet
+
+from django.conf import settings
 from datentool_backend.utils.geometry_fields import compare_geometries, NoWKTError
 
 from datentool_backend.user.factories import ProfileFactory, Profile
@@ -50,9 +52,14 @@ class LoginTestCase:
     def setUpTestData(cls):
         super().setUpTestData()
         cls.profile = ProfileFactory(user__username='Anonymus User',
-                                    can_create_process=False,
-                                    admin_access=False,
-                                    can_edit_basedata=False)
+                                     can_create_process=False,
+                                     admin_access=False,
+                                     can_edit_basedata=False)
+        cls.demo_profile = ProfileFactory(user__username='Demo User',
+                                          can_create_process=False,
+                                          admin_access=False,
+                                          can_edit_basedata=False,
+                                          is_demo_user=True)
 
     def setUp(self):
         self.client.force_login(user=self.profile.user)
@@ -462,7 +469,7 @@ class WriteOnlyWithCanEditBaseDataTest:
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
@@ -503,7 +510,7 @@ class WriteOnlyWithAdminAccessTest:
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
@@ -565,7 +572,7 @@ class ReadOnlyWithAdminBasedataAccessTest:
         """Test get, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         # test_list() with check of admin_access
@@ -600,7 +607,7 @@ class SingletonWriteOnlyWithCanEditBaseDataTest:
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
@@ -621,12 +628,59 @@ class SingletonWriteOnlyWithAdminAccessTest:
     def test_is_logged_in(self):
         """Test read, if user is authenticated"""
         self.client.logout()
-        response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        response = self.get(self.url_key + '-detail')
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
         self.test_detail()
+
+
+class SingletonReadAlwaysWriteOnlyWithAdminAccessTest:
+
+    def test_put_patch(self):
+        """Test for Singletons, put and patch with and without admin_access"""
+        self.profile.admin_access= True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.admin_access= False
+        self.profile.save()
+        self._test_put_patch_forbidden()
+
+    def test_read(self):
+        """test that resource can always be accessed"""
+        self.client.logout()
+        self.test_detail()
+
+        self.client.force_login(user=self.profile.user)
+        self.test_detail()
+
+
+
+class DemoModeReadOnlyTest:
+
+    def demo_login(self):
+        self.client.logout()
+        setattr(settings, 'DEMO_MODE', True)
+        self.client.force_login(user=self.demo_profile.user)
+
+    def demo_logout(self):
+        setattr(settings, 'DEMO_MODE', False)
+        self.client.logout()
+
+
+    def test_demo_write_forbidden(self):
+        self.demo_login()
+        self._test_put_patch_forbidden()
+        self._test_post_forbidden()
+        self._test_delete_forbidden()
+        self.demo_logout()
+
+    def test_demo_read(self):
+        self.demo_login()
+        self.test_detail()
+        self.test_list()
+        self.demo_logout()
 
 
 class TestAPIMixin:
@@ -649,7 +703,7 @@ class TestPermissionsMixin:
     def test_is_logged_in(self):
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         self.test_list()

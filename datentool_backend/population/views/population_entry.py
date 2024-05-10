@@ -19,7 +19,7 @@ from datentool_backend.utils.excel_template import (ColumnError,
                                                     ExcelTemplateMixin)
 
 from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
+    HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata, IsDemoUser)
 from datentool_backend.utils.pop_aggregation import (
     aggregate_many,
     disaggregate_population)
@@ -70,7 +70,7 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                        ),
                    )
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccess | CanEditBasedata])
+            permission_classes=[IsDemoUser | HasAdminAccess | CanEditBasedata])
     def create_template(self, request, **kwargs):
         area_level_id = request.data.get('area_level')
         prognosis_id = request.data.get('prognosis')

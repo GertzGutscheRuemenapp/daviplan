@@ -17,7 +17,8 @@ from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiRespo
 
 from datentool_backend.utils.processes import RunProcessMixin
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
-from datentool_backend.utils.permissions import HasAdminAccess, CanEditBasedata
+from datentool_backend.utils.permissions import (HasAdminAccess,
+                                                 CanEditBasedata, IsDemoUser)
 
 
 class ColumnError(Exception):
@@ -40,7 +41,7 @@ class ExcelTemplateMixin(RunProcessMixin):
                    )
 
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccess | CanEditBasedata])
+            permission_classes=[IsDemoUser | HasAdminAccess | CanEditBasedata])
     def create_template(self, request, **kwargs):
         """Download the Template"""
         serializer = self.get_serializer()

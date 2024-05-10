@@ -219,7 +219,7 @@
             {{planningService.activeService.capacityPluralUnit}}:
           </td>
           <td [style.font-weight]="(capInScenario?.diffCapacity !== 0)? 'bold': 'regular'">
-            {{capInScenario?.totalCapacity.toLocaleString()}}
+            {{capInScenario?.totalCapacity?.toLocaleString() || 0}}
             <ng-container *ngIf="capInScenario?.diffCapacity !== 0 else plusminus0">
               (<ng-container *ngIf="capInScenario?.diffCapacity > 0">+</ng-container>{{capInScenario?.diffCapacity.toLocaleString()}})
             </ng-container>

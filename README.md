@@ -4,11 +4,13 @@ Webtool zur Planung und Darstellung von Strukturen der regionalen Daseinsvorsorg
 
 A web tool to display and plan basic public services
 
+Homepage: [daviplan.de](https://daviplan.de)
+
 ## Software Manuals / Handbücher
 
-Die Handbücher zur Installation und Anwendung der Software finden Sie als PDFs [hier](https://github.com/GertzGutscheRuemenapp/daviplan/releases).
+Auf der Homepage finden Sie die Handbücher zur [Installation](https://daviplan.de/installation) und [Anwendung der Software](https://daviplan.de/nutzung) als PDFs.
 
-You can find the PDF manuals in german [here](https://github.com/GertzGutscheRuemenapp/daviplan/releases).
+At the homepage you can find the PDF [installation](https://daviplan.de/installation) and [operating](https://daviplan.de/nutzung) manuals in german.
 
 ## Status
 

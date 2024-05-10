@@ -122,7 +122,7 @@ class TravelTimeRouterMixin:
                 msg = 'Keine Routen gefunden'
                 raise RoutingError(msg)
 
-        except RoutingError as err:
+        except Exception as err:
             msg = str(err)
             logger.error(msg)
             raise Exception(msg)
@@ -772,7 +772,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                                                ignore_columns=ignore_columns,
                                                )
 
-        except RoutingError as err:
+        except Exception as err:
             msg = str(err)
             logger.error(msg)
             raise Exception(msg)

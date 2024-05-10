@@ -80,6 +80,7 @@ export abstract class ColumnFilter {
     this.active = !!options?.active;
   }
   filter(value: any): boolean {
+    // defaults fitting strings and bools
     switch (this.operator) {
       case FilterOperator.gt:
         return (value > this.value);
@@ -123,8 +124,9 @@ export class StrFilter extends ColumnFilter {
   name = 'Zeichenfilter';
   allowedOperators = [FilterOperator.in, FilterOperator.contains];
   filter(value: string): boolean {
+    if (!this.value) return true;
     if (this.operator === FilterOperator.contains)
-      return value.indexOf(this.value) >= 0;
+      return (!!value && value.toLowerCase().indexOf(this.value.toLowerCase()) >= 0);
     return super.filter(value);
   }
 }

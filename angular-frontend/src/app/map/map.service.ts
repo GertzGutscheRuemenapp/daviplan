@@ -124,7 +124,7 @@ const backgroundLayerDefs: BackgroundLayerDef[] = [
     name: 'TopPlusOpen grau',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Graustufendarstellung',
-    attribution: '©<a target="_blank" href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/Datenquellen_TopPlusOpen.html">Bundesamt für Kartographie und Geodäsie (${currentYear})<a>',
+    attribution: `©<a target="_blank" href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/Datenquellen_TopPlusOpen.html">Bundesamt für Kartographie und Geodäsie (${currentYear})<a>`,
     type: 'wms',
     layerName: 'web_grau'
   }
@@ -189,7 +189,8 @@ export class MapService {
             description: `Gebiete der Gebietseinteilung ${level.name}`,
             style: level.symbol,
             labelField: '_label',
-            zIndex: 20000
+            zIndex: 20000,
+            cors: 'anonymous'
           })
           layers.push(mLayer);
         });
@@ -223,7 +224,8 @@ export class MapService {
                 layerName: layer.layerName,
                 description: layer.description,
                 order: layer.order,
-                active: layer.active
+                active: layer.active,
+                cors: layer.cors
               })
               mGroup.appendLayer(mLayer);
             }
@@ -278,7 +280,8 @@ export class MapControl {
           visible: layerDef.id === backgroundId,
           layerName: layerDef.layerName,
           opacity: this.getCookieLayerAttr(layerDef.id, 'opacity'),
-          attribution: layerDef.attribution
+          attribution: layerDef.attribution,
+          cors: 'anonymous'
         });
         this.backgroundLayers.push(bg);
         bg.addToMap(this.map);

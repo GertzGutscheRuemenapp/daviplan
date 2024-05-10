@@ -8,7 +8,7 @@ from unittest import skip
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
-                                        TestAPIMixin,
+                                        TestAPIMixin, DemoModeReadOnlyTest,
                                         TestPermissionsMixin)
 
 from .factories import (AgeGroupFactory,
@@ -24,7 +24,7 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                     TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "gender"
@@ -40,7 +40,7 @@ class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 
-class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
+class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest, DemoModeReadOnlyTest,
                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "agegroups"
@@ -176,7 +176,7 @@ class TestDemand(TestCase):
         logger.debug(demand_rate)
 
 
-class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                            TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "demandratesets"

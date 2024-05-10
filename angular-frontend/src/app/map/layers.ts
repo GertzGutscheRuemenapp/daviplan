@@ -36,7 +36,8 @@ export interface LayerOptions {
   visible?: boolean,
   active?: boolean,
   legend?: ColorLegend,
-  legendElapsed?: boolean
+  legendElapsed?: boolean,
+  cors?: boolean | string
 }
 
 export abstract class MapLayer {
@@ -57,6 +58,7 @@ export abstract class MapLayer {
   legend?: ColorLegend;
   legendElapsed?: boolean
   protected _legend?: ColorLegend;
+  cors?: boolean | string
   attributeChanged = new EventEmitter<{attribute: string, value: any}>();
 
   protected constructor(name: string, options?: LayerOptions) {
@@ -73,6 +75,7 @@ export abstract class MapLayer {
     this.active = options?.active;
     this.zIndex = options?.zIndex;
     this._legend = options?.legend;
+    this.cors = options?.cors;
   }
 
   getZIndex(): number {
@@ -139,8 +142,6 @@ export class TileLayer extends MapLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
-    if (this.minZoom)
-      this.map.view.on('change:resolution', () => console.log(this.map?.view.getZoom()))
     return this.map.addTileServer(
       this.mapId, this.url!, {
         zIndex: this.zIndex,
@@ -149,7 +150,8 @@ export class TileLayer extends MapLayer {
         visible: this.visible,
         opacity: this.opacity,
         xyz: this.xyz,
-        attribution: this.attribution
+        attribution: this.attribution,
+        crossOrigin: this.cors
       });
   }
 }

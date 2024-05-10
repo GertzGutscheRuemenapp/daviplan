@@ -129,6 +129,14 @@ export class CheckTreeComponent implements OnInit {
     this._database.insertItem(child, parent);
   }
 
+  getNode(id: number): TreeItemFlatNode | undefined {
+    for (let [key, value] of this.nestedNodeMap) {
+      if (value.id === id)
+        return value;
+    }
+    return;
+  }
+
   refresh(): void {
     this._database.refresh();
   }

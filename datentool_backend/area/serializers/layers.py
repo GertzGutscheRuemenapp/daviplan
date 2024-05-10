@@ -19,8 +19,8 @@ class WMSLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = WMSLayer
         fields = ('id', 'name', 'group', 'layer_name', 'order', 'url',
-                  'description', 'active')
-        optional_fields = ('description', 'active')
+                  'description', 'active', 'cors')
+        optional_fields = ('description', 'active', 'cors')
 
 
 class GetCapabilitiesRequestSerializer(serializers.Serializer):

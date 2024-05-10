@@ -53,28 +53,35 @@
                      [title]="'Ausgewähltes Konto'"
                      infoText="Über die Schaltfläche „Editieren“ können Sie Namen, E-Mail-Adresse und Passwort verändern."
                      [editTemplate]="accountEdit">
-        <table *ngIf="selectedUser">
-          <tr>
-            <td i18n>Nutzername</td>
-            <td>{{selectedUser.username}}</td>
-          </tr>
-          <tr>
-            <td i18n>Vorname</td>
-            <td>{{selectedUser.firstName || '-'}}</td>
-          </tr>
-          <tr>
-            <td i18n>Nachname</td>
-            <td>{{selectedUser.lastName || '-'}}</td>
-          </tr>
-          <tr>
-            <td i18n>E-Mail</td>
-            <td>{{selectedUser.email || '-'}}</td>
-          </tr>
-          <tr>
-            <td i18n>Passwort</td>
-            <td>************</td>
-          </tr>
-        </table>
+        <div *ngIf="selectedUser">
+          <table>
+            <tr>
+              <td i18n>Nutzername</td>
+              <td>{{selectedUser.username}}</td>
+            </tr>
+            <tr>
+              <td i18n>Vorname</td>
+              <td>{{selectedUser.firstName || '-'}}</td>
+            </tr>
+            <tr>
+              <td i18n>Nachname</td>
+              <td>{{selectedUser.lastName || '-'}}</td>
+            </tr>
+            <tr>
+              <td i18n>E-Mail</td>
+              <td>{{selectedUser.email || '-'}}</td>
+            </tr>
+            <tr>
+              <td i18n>Passwort</td>
+              <td>************</td>
+            </tr>
+          </table>
+          <mat-checkbox *ngIf="settings.siteSettings$.value?.demoMode"
+                        style="margin-top: 10px;"
+                        disabled [(ngModel)]="selectedUser.profile.isDemoUser" i18n>
+            Demo-Nutzer
+          </mat-checkbox>
+        </div>
       </app-input-card>
       <app-input-card #permissionCard
                       [title]="'Weitergehende Berechtigungen des ausgewählten Kontos'"
@@ -148,6 +155,12 @@
         <input matInput formControlName="email"/>
       </mat-form-field>
     </div>
+    <mat-checkbox *ngIf="settings.siteSettings$.value?.demoMode"
+                  color="primary"
+                  style="margin-bottom: 15px;"
+                  formControlName="isDemoUser" i18n>
+      Demo-Nutzer
+    </mat-checkbox>
     <div fxLayout="column">
       <mat-checkbox #passCheck
                     formControlName="changePass"
@@ -200,6 +213,12 @@
         <mat-label i18n>Nutzername</mat-label>
         <input matInput formControlName="username" required>
       </mat-form-field>
+      <mat-checkbox *ngIf="settings.siteSettings$.value?.demoMode"
+                    color="primary"
+                    style="margin-bottom: 15px;"
+                    formControlName="isDemoUser" i18n>
+        Demo-Nutzer
+      </mat-checkbox>
       <mat-form-field appearance="fill">
         <mat-label i18n>Passwort</mat-label>
         <input matInput formControlName="password"

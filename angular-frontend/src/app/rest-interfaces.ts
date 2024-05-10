@@ -24,6 +24,7 @@ export type Profile = {
   adminAccess: boolean;
   canCreateProcess: boolean;
   canEditBasedata: boolean;
+  isDemoUser: boolean;
 }
 
 export type InfrastructureAccess = {
@@ -85,7 +86,8 @@ export interface ExtLayer {
   description: string,
   group: number | string,
   layerName: string,
-  active: boolean
+  active: boolean,
+  cors?: boolean
 }
 
 export interface Source {

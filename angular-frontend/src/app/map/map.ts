@@ -47,7 +47,7 @@ export class OlMap {
 
   constructor( target: string,
                options: { center?: Coordinate, zoom?: number, projection?: string,
-                 showDefaultControls?: boolean, doubleClickZoom?: boolean } = {}) {
+               showDefaultControls?: boolean, doubleClickZoom?: boolean } = {}) {
     // this.layers = layers;
     const zoom = options.zoom || 8;
     const center = options.center || [13.3392,52.5192];
@@ -130,17 +130,16 @@ export class OlMap {
   }
 
   addTileServer(name: string, url: string, options: { params?: any, zIndex?: number, minZoom?: number,
-    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string } = {}): OlLayer<any>{
+    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string, crossOrigin?: boolean | string } = {}): OlLayer<any>{
 
-    if (this.layers[name] != null) this.removeLayer(name)
-
+    if (this.layers[name] != null) this.removeLayer(name);
     const attributions = options.attribution? [options.attribution]: [];
     let source = (options.xyz) ?
       new XYZ({
         url: url,
         attributions: attributions,
         attributionsCollapsible: false,
-        crossOrigin: '*'
+        crossOrigin: options?.crossOrigin? '*': undefined
       }) :
       new TileWMS({
         url: url,
@@ -148,9 +147,8 @@ export class OlMap {
         serverType: 'geoserver',
         attributions: attributions,
         attributionsCollapsible: false,
-        crossOrigin: '*'
+        crossOrigin: (options?.crossOrigin === true)? '*': (options?.crossOrigin)? options?.crossOrigin: undefined
       })
-
     let layer = new OlTileLayer({
       opacity: (options.opacity != undefined) ? options.opacity: 1,
       source: source,
@@ -775,7 +773,15 @@ export class OlMap {
         // @ts-ignore
         navigator.msSaveBlob(mapCanvas.msToBlob(), filename);
       } else {
-        saveAs(mapCanvas.toDataURL(), filename);
+        try {
+          saveAs(mapCanvas.toDataURL(), filename);
+        }
+        catch (error) {
+          alert('Fehler beim Export der Karte. Möglicherweise werden externe Layer ohne CORS angezeigt und der ' +
+          'Browser weigert sich aus Sicherheitsgründen diese zu exportieren ("tainted"). \nWählen Sie diese Layer ab, ' +
+          'laden Sie diese Seite neu und/oder informieren Sie Ihren Administrator.' +
+          '\n\nOriginale Fehlermeldung:\n' + error)
+        }
       }
     });
     this.map.renderSync();

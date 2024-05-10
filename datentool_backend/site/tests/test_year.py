@@ -1,7 +1,7 @@
 from test_plus import APITestCase
 
 from datentool_backend.api_test import (TestPermissionsMixin,
-                                        BasicModelTest,
+                                        BasicModelTest, DemoModeReadOnlyTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin)
 
@@ -11,7 +11,7 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestYearAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                   TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "years"

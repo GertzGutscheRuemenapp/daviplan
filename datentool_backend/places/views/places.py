@@ -31,6 +31,7 @@ from datentool_backend.utils.crypto import decrypt
 from datentool_backend.utils.permissions import (HasAdminAccess,
                                                  HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,
+                                                 IsDemoUser
                                                  )
 
 from datentool_backend.site.models import SiteSetting
@@ -128,7 +129,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                    ),
                    )
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccess | CanEditBasedata])
+            permission_classes=[IsDemoUser | HasAdminAccess | CanEditBasedata])
     def create_template(self, request):
         """Download the Template"""
         infrastructure_id = request.data.get('infrastructure')
@@ -345,8 +346,9 @@ def read_excel_file(excel_filepath, infrastructure_id: int):
                                                    attr)]
                     except KeyError:
                         fieldtype_name = place_field['field_type__name']
-                        msg = f'Wert {attr} existiert nicht für Klassifizierung '\
-                            f'{fieldtype_name} in Spalte {place_field_name}'
+                        msg = (f'Wert "{attr}" in Spalte "{place_field_name}" '
+                               f'fehlt in der Klassifizierung "{fieldtype_name}"')
+                        logger.error(msg)
                         raise ColumnError(msg)
                 attribute = (place.id, place_field['id'], str_value, num_value, class_value)
                 place_attributes.append(attribute)

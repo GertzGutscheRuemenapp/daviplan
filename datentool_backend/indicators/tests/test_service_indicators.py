@@ -170,6 +170,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
                              extra={'format': 'json'})
         capacity = pd.DataFrame(response.data['values']).set_index('area_id')
         expected = pop['value'] / capacity['value']
+        expected.replace(np.inf, np.NaN, inplace=True)
         pd.testing.assert_series_equal(result['value'], expected,
                                        check_dtype=False, rtol=0.01)
 

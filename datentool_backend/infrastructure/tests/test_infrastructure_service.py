@@ -7,7 +7,7 @@ logger = logging.getLogger(name='test')
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
-                                        TestAPIMixin,
+                                        TestAPIMixin, DemoModeReadOnlyTest,
                                         TestPermissionsMixin)
 from datentool_backend.area.serializers import MapSymbolSerializer
 
@@ -39,7 +39,7 @@ class TestInfrastructure(TestCase):
                                  profiles[1:], ordered=False)
 
 
-class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
+class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest, DemoModeReadOnlyTest,
                             TestPermissionsMixin, TestAPIMixin,
                             BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
@@ -306,7 +306,7 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         self.assertEqual(field_c.unit, 'm2')
 
 
-class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
+class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest, DemoModeReadOnlyTest,
                      TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "services"
