@@ -4,7 +4,7 @@ Webtool zur Planung und Darstellung von Strukturen der regionalen Daseinsvorsorg
 
 A web tool to display and plan basic public services
 
-Homepage: [daviplan.de](https://daviplan.de/installation)
+Homepage: [daviplan.de](https://daviplan.de)
 
 ## Software Manuals / Handbücher
 
