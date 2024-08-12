@@ -1,8 +1,9 @@
 // staging mode
 export const environment = {
   production: true,
-  loglevel: 'DEBUG',
-  maxLogs: undefined,
+  loglevel: 'INFO',
+  maxLogs: 4000,
   backend: '',
-  apiPath: '/api'
+  apiPath: '/api',
+  ssl: false
 };

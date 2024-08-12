@@ -4,5 +4,6 @@ export const environment = {
   loglevel: 'INFO',
   maxLogs: 2000,
   backend: '',
-  apiPath: '/api'
+  apiPath: '/api',
+  ssl: false
 };

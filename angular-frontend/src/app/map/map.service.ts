@@ -181,7 +181,7 @@ export class MapService {
           level.symbol.fillColor = '';
           let tileUrl = level.tileUrl!;
           // "force" https in production, backend returns http (running in container)
-          if (environment.production) {
+          if (environment.ssl) {
             tileUrl = tileUrl.replace('http:', 'https:');
           }
           const mLayer = new VectorTileLayer(level.name, tileUrl, {

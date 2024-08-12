@@ -88,7 +88,7 @@ export class AreasComponent implements OnInit, AfterViewInit, OnDestroy {
       this.presetLevels = [];
       this.customAreaLevels = [];
       areaLevels.forEach(level => {
-        if (environment.production) {
+        if (environment.ssl) {
           level.tileUrl = level.tileUrl?.replace('http:', 'https:');
         }
         if (level.isPreset)

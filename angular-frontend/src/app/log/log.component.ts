@@ -30,9 +30,9 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
   entries: LogEntry[] = [];
 
   constructor(private restService: RestCacheService, private cdref: ChangeDetectorRef) {
-    // in local dev the location equals
+    // in local dev remove leading http
     const host = environment.backend? environment.backend.replace('http://', ''): window.location.hostname;
-    this.wsURL = `${(environment.production && host.indexOf('localhost') === -1)? 'wss:': 'ws:'}//${host}/ws/log/`;
+    this.wsURL = `${(environment.ssl)? 'wss:': 'ws:'}//${host}/ws/log/`;
   }
 
   ngAfterViewInit(): void {

@@ -105,7 +105,7 @@ export class SettingsService {
   public getSiteSettings(): Observable<SiteSettings> {
     return this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
       .pipe(tap(siteSettings => {
-        if (environment.production) {
+        if (environment.ssl) {
           if (siteSettings.logo)
             siteSettings.logo = siteSettings.logo.replace('http:', 'https:');
         }

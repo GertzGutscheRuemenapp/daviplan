@@ -4,7 +4,8 @@ export const environment = {
   loglevel: 'DEBUG',
   maxLogs: undefined,
   backend: 'http://localhost:8000',
-  apiPath: 'http://localhost:8000/api'
+  apiPath: 'http://localhost:8000/api',
+  ssl: false
 };
 
 /*
