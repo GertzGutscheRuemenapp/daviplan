@@ -31,7 +31,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
 
   constructor(private restService: RestCacheService, private cdref: ChangeDetectorRef) {
     // in local dev remove leading http
-    const host = environment.backend? environment.backend.replace('http://', ''): window.location.hostname;
+    const host = environment.backend? environment.backend.replace('http://', ''): window.location.host;
     this.wsURL = `${(environment.ssl)? 'wss:': 'ws:'}//${host}/ws/log/`;
   }
 
