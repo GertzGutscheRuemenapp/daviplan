@@ -5,5 +5,5 @@ export const environment = {
   maxLogs: 2000,
   backend: '',
   apiPath: '/api',
-  ssl: false
+  ssl: true
 };
