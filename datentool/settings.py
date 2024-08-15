@@ -64,7 +64,7 @@ DEMO_MODE = str(os.environ.get('DEMO_MODE', False)).lower() == 'true'
 hosts = os.environ.get('ALLOWED_HOSTS')
 if hosts:
     hosts = hosts.split(',')
-    CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in hosts]
+    CSRF_TRUSTED_ORIGINS = [f'https://{h.strip()}' for h in hosts]
     ALLOWED_HOSTS = hosts
 
 # Application definition
@@ -168,8 +168,8 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.pubsub.RedisPubSubChannelLayer',
         'CONFIG': {
             "hosts": [f'redis://{REDIS_HOST}:{REDIS_PORT}'],
-        },
-    },
+        }
+    }
 }
 
 # Database

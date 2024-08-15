@@ -23,7 +23,7 @@ class MatrixStopStopSerializer(serializers.ModelSerializer):
 
 class MatrixStopStopTemplateSerializer(serializers.Serializer):
     """Serializer for uploading MatrixStopStopTemplate"""
-    excel_or_visum_file = FileField()
+    file = FileField()
     variant = IntegerField()
     drop_constraints = BooleanField(default=False)
     scope = ProcessScope.ROUTING
