@@ -91,7 +91,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
                                'variant': serializers.PrimaryKeyRelatedField(
                            queryset=ModeVariant.objects.all(),
                            help_text='mode_variant_id',),
-                               'excel_or_visum_file': serializers.FileField(help_text='Excel- or PTV-Visum-Matrix'),
+                               'file': serializers.FileField(help_text='Excel- or PTV-Visum-Matrix'),
                                },
                    ),
                    responses={202: OpenApiResponse(MessageSerializer,
@@ -106,13 +106,13 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
 
     def get_read_excel_params(self, request) -> Dict:
         params = dict()
-        io_file = request.FILES['excel_or_visum_file']
+        io_file = request.FILES['file']
         ext = os.path.splitext(io_file.name)[-1]
         logger.info('Lese Eingangsdatei')
         fp = mktemp(suffix=ext)
         with open(fp, 'wb') as f:
             f.write(io_file.file.read())
-        params['excel_or_visum_filepath'] = fp
+        params['filepath'] = fp
 
         params['variant_id'] = int(request.data.get('variant'))
         params['format'] = request.data.get('format', 'excel')
@@ -120,19 +120,19 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
 
     @staticmethod
     def process_excelfile(logger,
-                          excel_or_visum_filepath,
+                          filepath,
                           variant_id,
                           drop_constraints=False,
                           format='excel'
                           ):
         # read excelfile
         if (format == 'visum'):
-            df = read_visum_tt_matrix(excel_or_visum_filepath, variant_id)
+            df = read_visum_tt_matrix(filepath, variant_id)
         else:
-            df = read_excel_tt_matrix(excel_or_visum_filepath, variant_id)
+            df = read_excel_tt_matrix(filepath, variant_id)
 
         logger.info('Tempfile löschen')
-        os.remove(excel_or_visum_filepath)
+        os.remove(filepath)
 
         df = validate_tt_matrix(df, variant_id)
 
@@ -152,18 +152,18 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
             write_template_df(chunk, model, logger, drop_constraints=drop_constraints)
             logger.info(f'{i + n_inserted:n}/{n_rows:n} {model_name}-Einträgen geschrieben')
 
-def read_excel_tt_matrix(excel_or_visum_filepath, variant_id) -> pd.DataFrame:
+def read_excel_tt_matrix(filepath, variant_id) -> pd.DataFrame:
     """read excelfile and return a dataframe"""
     logger.info('Lese Excel-Datei')
-    df = pd.read_excel(excel_or_visum_filepath,
+    df = pd.read_excel(filepath,
                        sheet_name='Reisezeit',
                        skiprows=[1])
     return df
 
-def read_visum_tt_matrix(excel_or_visum_filepath, variant_id) -> pd.DataFrame:
+def read_visum_tt_matrix(filepath, variant_id) -> pd.DataFrame:
     """read visum file and return a dataframe"""
     logger.info('Lese PTV-Matrix')
-    da = ReadPTVMatrix(excel_or_visum_filepath)
+    da = ReadPTVMatrix(filepath)
 
     logger.info(f'PTV-Matrix mit den Dimensionen {da.dims}')
 

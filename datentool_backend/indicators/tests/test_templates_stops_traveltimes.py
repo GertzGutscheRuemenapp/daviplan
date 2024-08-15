@@ -134,9 +134,10 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                                         fn_matrix)
             file_content = open(file_path, 'rb')
             data = {
-                'excel_or_visum_file': file_content,
+                'file': file_content,
                 'variant': mode_variant_id,
                 'drop_constraints': False,
+                'format': 'excel' if fn_matrix.endswith('.xlsx') else 'visum'
             }
 
             url = reverse('matrixstopstops-upload-template')
@@ -186,7 +187,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
 
         # recreate and delete again
         mode_variant = ModeVariantFactory(id=mode_variant_id, label='I am Back', mode=mode)
-        
+
         res = self.delete(url, pk=mode_variant_id, extra={'format': 'json'})
         self.assert_http_204_no_content(res)
 
@@ -202,7 +203,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                                  self.filename_rz_errors)
         url = reverse('matrixstopstops-upload-template')
         data = {
-            'excel_or_visum_file' : open(file_path, 'rb'),
+            'file' : open(file_path, 'rb'),
             'variant': mode_variant_id,
             'drop_constraints': False,
         }

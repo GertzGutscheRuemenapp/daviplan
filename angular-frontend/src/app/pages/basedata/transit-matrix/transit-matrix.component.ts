@@ -220,7 +220,7 @@ export class TransitMatrixComponent implements OnInit, OnDestroy {
         return;
       dialogRef.componentInstance.setLoading(true);
       const formData = new FormData();
-      formData.append('excel_or_visum_file', this.file);
+      formData.append('file', this.file);
       formData.append('variant', this.selectedVariant!.id.toString());
       formData.append('format', visum? 'visum': 'excel');
       const url = `${this.rest.URLS.transitMatrix}upload_template/`;

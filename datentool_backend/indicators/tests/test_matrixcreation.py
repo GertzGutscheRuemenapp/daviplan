@@ -382,7 +382,7 @@ class TestMatrixCreation(CreateTestdataMixin,
                                  'Beförderungszeit.mtx')
         file_content = open(file_path_matrix, 'rb')
         data = {
-            'excel_or_visum_file': file_content,
+            'file': file_content,
             'variant': self.transit.pk,
             'drop_constraints': False,
         }
